@@ -1,0 +1,5 @@
+lost+found
+.Trash*
+/.git
+/.gitignore
+/local

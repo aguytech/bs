@@ -1,0 +1,169 @@
+#!/bin/bash
+#
+# Provides:             backup-server
+# Short-Description:    backup server, vz & kvm files & configuration
+# Description:          backup server, vz & kvm files & configuration
+
+################################ GLOBAL FUNCTIONS
+#S_TRACE=debug
+
+! [[ "$S_GLOBAL_FUNCTIONS" && -f $S_GLOBAL_FUNCTIONS ]] && echo -e "\e[1;31merror - unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'\e[0;0m" && exit 1
+. $S_GLOBAL_FUNCTIONS
+
+################################  VARIABLES
+
+usage="backup-server : backup server, vz & kvm files & configuration. By default save all, use options for a selected save
+backup-server --help
+
+options:
+    -c, --conf       save only vz configuration files
+    -s, --scripts     save only scripts
+    -v, --vz         save only vz files
+    -l, --libvirt    save only kvm files
+    -q, --quiet      don't show any infomations except interaction informations
+    --exclude ''     exclude parts in double quote: vz kvm conf scripts
+    --debug          output in screen & in file debug informations
+"
+
+
+################################################################  _SCRIPT
+
+# compress path
+# $1 path base
+# $2 sub path
+_compress() {
+	path_from="$1"
+	paths_sub="$2"
+	path_to="${path_from#/}"; path_to="$path_save/${path_to//\//.}"; path_to="${path_to%/}"
+	_echoD "$FUNCNAME:$LINENO path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
+
+	# wrong path
+	! [ -d "$path_from" ] && _exitE "Wrong path '$path_from' for calling '$*'"
+
+	# create path
+	! [ -d "$path_to" ] && mkdir -p "$path_to"
+
+	cd "$path_from"
+	_echoT "$PWD"
+
+	for path_sub in $paths_sub; do
+		if [ -d "$path_sub" ]; then
+			file_to="${path_sub#/}"
+			file_to="${file_to//\//.}"
+			file_to="$path_to/${file_to%/}.$cmd_ext"
+
+			_echo "compress $path_sub"
+			_evalq "tar $cmd_opt $file_to $path_sub"
+		else
+			_echoE "wrong path '$path_sub'"
+			_echoD "$FUNCNAME:$LINENO wrong path '$path_sub'"
+		fi
+	done
+}
+
+
+################################  MAIN
+
+_echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
+
+all=a
+path_save="$S_PATH_SAVE/$HOSTNAME/backup/$DDATE"
+cmd_opt=" --exclude='.cache' -czf"
+cmd_ext=tgz
+
+opts_given="$@"
+opts_short="dckqsv"
+opts_long="help,debug,conf,kvm,quiet,scripts,vz,exclude:"
+opts=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+eval set -- "$opts"
+
+if [ "${_CLUSTER_IPS/$_IPTHIS/}" == "${_CLUSTER_IPS}" ]; then
+	_askyn "This server is not in S_CLUSTER, confirm"
+	[ "$_ANSWER" == "n" ] && _exit
+fi
+
+_echoD "$FUNCNAME:$LINENO opts_given='$opts_given' opts='$opts'"
+while true; do
+	case "$1" in
+		--help)
+			_echo "$usage"; _exit
+			;;
+		-d|--debug)
+			_redirect debug
+			;;
+		-q|--quiet)
+			_redirect quiet
+			_echoD "_redirect quiet"
+			;;
+		-x|--exclude)
+			shift
+			exclude="$1"
+			;;
+		-c|--conf)
+			all=
+			conf=c
+			;;
+		-s|--scripts)
+			all=
+			scripts=s
+			;;
+		-v|--vz)
+			all=
+			vz=v
+			;;
+		-k|--kvm)
+			all=
+			kvm=k
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			_exitE "Bad options: '$1' in '$opts_given'"
+			;;
+	esac
+	shift
+done
+
+# all
+if [ "$all" ]; then conf=c; kvm=k; scripts=s; vz=v; fi
+
+# exclude part
+if [ "$exclude" ]; then
+	for str in $exclude; do unset $str; done
+fi
+
+_echoD "$FUNCNAME:$LINENO conf='$conf' scripts='$scripts' kvm='$kvm' vz='$vz' \$*='$*'"
+
+# script
+if [ "$scripts" ]; then
+	_echoW "scripts"
+	path_from="/"
+	paths_sub="usr/local/bs"
+	_compress "$path_from" "$paths_sub"
+fi
+
+# conf
+if [ "$conf" ]; then
+	_echoW "conf"
+	path_from="/"
+	paths_sub="boot/grub etc root"
+	_compress "$path_from" "$paths_sub"
+fi
+
+# vz
+if [ "$vz" ]; then
+	_echoW "vz"
+	backup-vz
+fi
+
+<<KEEP
+# kvm
+if [ "$kvm" ]; then
+	_echoW "kvm"
+	backup-kvm
+fi
+KEEP
+
+_exit 0

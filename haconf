@@ -1,0 +1,240 @@
+#!/bin/bash
+#
+# Provides:             haconf
+# Short-Description:    control extended configurations files for haproxy
+# Description:          control extended configurations files for haproxy
+
+################################ GLOBAL FUNCTIONS
+#S_TRACE=debug
+
+! [[ "$S_GLOBAL_FUNCTIONS" && -f $S_GLOBAL_FUNCTIONS ]] && echo -e "\e[1;31merror - unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'\e[0;0m" && exit 1
+. $S_GLOBAL_FUNCTIONS
+
+################################  VARIABLES
+
+usage="haconf, control extended configurations files for haproxy
+haconf -h, --help
+
+For the optionnal arguments NAME, you can use the wildcard for the name
+	or alone for all selection.
+	without agument NAME command return a global selection without filter.
+
+options:
+    -h, --help      get usage of this command
+    -q, --quiet     Don't show any infomations except errors
+    -d, --debug     output debugging in screen & file
+
+	check           check all the enabled configuration files
+	reload          reload the haproxy daemon
+
+    clear           clear all broken links of configurations
+    list (NAME)     return a list of
+                    'enabled / disabled / broken' configurations
+    enable (NAME)   enable an disabled configuration & return a list of
+                    'enabled / enable' configurations
+    disable (NAME)  disable an enabled configuration & return a list of
+                    'disabled / enable' configurations
+"
+
+
+################################  FUNCTION
+
+
+# check enabled configuration files
+__check() {
+
+	for file in $(find /etc/haproxy/conf-enabled -type l|sort -n); do
+		configs=" $configs -f $file"
+	done;
+
+	haproxy -c -f /etc/haproxy/haproxy.cfg $configs >/dev/null && _echo 'OK' || _echoE 'KO'
+}
+
+
+# clear broken links for names of available configuration
+___clear() {
+
+	confs="$(find -L $path_conf_enabled/ -type l|sort|sed "s|$path_conf_enabled/\(.*\).cfg|\1|")"
+	_evalq "find -L $path_conf_enabled/ -type l -exec rm {} \\;"
+
+	[ "$confs" ] && _echo "- The following broken links are deleted:\n$confs"
+}
+
+
+# enable configuration files with his short names (without extension)
+# $* : configuration names
+__enable() {
+
+	_echoD "$FUNCNAME:$LINENO \$*='$*'"
+
+	# name to search
+	[ "$1" ] && SEARCH="-name $1.cfg"
+
+	confs=$*
+	if [ "$confs" == "*" ]; then
+		confs="$(find $path_conf_available/ -type f|sort|sed "s|$path_conf_available/\(.*\).cfg|\1|"|xargs)"
+	else
+		confs="$(find $path_conf_available/ -type f $SEARCH|sort|sed "s|$path_conf_available/\(.*\).cfg|\1|"|xargs)"
+	fi
+	_echoD "$FUNCNAME:$LINENO $confs='$confs'"
+
+	for CONF in $confs; do
+	    if [ -f "$path_conf_available/${CONF}.cfg" ] && ! [ -h "$path_conf_enabled/${CONF}.cfg" ] ; then
+	        _evalq ln -s $path_conf_available/${CONF}.cfg $path_conf_enabled/${CONF}.cfg
+	        OK="$OK${CONF}\n"
+	    else KO="$KO${CONF}\n"; fi
+	done
+
+	ENABLED="$(find -L $path_conf_enabled/ -type f|sort|sed "s|$path_conf_enabled/\(.*\).cfg|\1|")"
+
+	#[ "$KO" ] && echo -e "- Config file(s) are skipped:\n${KO# }"
+	#[ "$OK" ] && echo -e "- Config file(s) are enabled:\n${OK# }"
+	if [ "$KO" ]; then
+		paste <(echo -e "--enable--\n$OK") <(echo -e "--enabled--\n$ENABLED") <(echo -e "--skipped--\n$KO")|column -tn
+	else
+		paste <(echo -e "--enable--\n$OK") <(echo -e "--enabled--\n$ENABLED")|column -tn
+	fi
+	[ "$OK" ] && echo -e "\nTo activate the new configuration, use 'haconf reload'"
+}
+
+
+# disable configuration files with his short names (without extension)
+# $* : configuration names
+__disable() {
+
+	_echoD "$FUNCNAME:$LINENO \$*='$*'"
+
+	# name to search
+	[ "$1" ] && SEARCH="-name $1.cfg"
+
+	confs=$*
+	if [ "$confs" == "*" ]; then
+		confs="$(find $path_conf_enabled/ -type l|sort|sed "s|$path_conf_enabled/\(.*\).cfg|\1|"|xargs)"
+	else
+		confs="$(find $path_conf_enabled/ -type l $SEARCH|sort|sed "s|$path_conf_enabled/\(.*\).cfg|\1|"|xargs)"
+	fi
+	_echoD "$FUNCNAME:$LINENO $confs='$confs'"
+
+	for CONF in $confs; do
+		if [ -h "$path_conf_enabled/${CONF}.cfg" ]; then
+			_evalq rm $path_conf_enabled/${CONF}.cfg
+			OK="$OK${CONF}\n"
+		else KO="$KO${CONF}\n"; fi
+	done
+
+	ENABLED="$(find -L $path_conf_enabled/ -type f|sort|sed "s|$path_conf_enabled/\(.*\).cfg|\1|")"
+
+	#[ "$KO" ] && echo -e "- Config file(s) are skipped:\n${KO# }"
+	#[ "$OK" ] && echo -e "- Config file(s) are disabled:\n${OK# }"
+	if [ "$KO" ]; then
+		paste <(echo -e "--disable--\n$OK") <(echo -e "--enabled--\n$ENABLED") <(echo -e "--skipped--\n$KO")|column -tn
+	else
+		paste <(echo -e "--disable--\n$OK") <(echo -e "--enabled--\n$ENABLED")|column -tn
+	fi
+	[ "$OK" ] && echo -e "\nTo activate the new configuration, use 'haconf reload'"
+}
+
+
+# print list names of available configuration
+__list() {
+
+	_echoD "$FUNCNAME:$LINENO \$*='$*'"
+
+	# name to search
+	[ "$1" ] && SEARCH="-name $1"
+
+	NO="$(find $path_conf_available/ -type f $SEARCH|sort|sed "s|$path_conf_available/\(.*\).cfg|\1|")"
+	OK="$(find -L $path_conf_enabled/ -type f $SEARCH|sort|sed "s|$path_conf_enabled/\(.*\).cfg|\1|")"
+	KO="$(find -L $path_conf_enabled/ -type l $SEARCH|sort|sed "s|$path_conf_enabled/\(.*\).cfg|\1|")"
+
+	if [ "$OK" != "$AVAILABLE" ]; then
+	    for STR in $OK; do NO="${NO/$STR}"; done
+	    NO="$(echo -e "$NO"|sed "/^$/d")"
+	fi
+
+	#[ "$NO" ] && echo -e "- Disabled Configuration:\n${NO# }"
+	#[ "$OK" ] && echo -e "- Enabled Configuration:\n${OK# }"
+	if [ "$KO" ]; then
+		paste <(echo -e "--enabled--\n$OK") <(echo -e "--disabled--\n$NO") <(echo -e "--broken--\n$KO")|column -tn
+	else
+		paste <(echo -e "--enabled--\n$OK") <(echo -e "--disabled--\n$NO")|column -tn
+	fi
+	[ "$KO" ] && echo -e "\nTo clean broken links, use: 'haconf clear'"
+}
+
+
+# reload haproxy daemon
+__reload() {
+
+	_echoD "$FUNCNAME:$LINENO \$*='$*'"
+
+	_service reload haproxy && _echo "haproxy have been reloaded" || _echoE "error, something wrong"
+}
+
+
+################################  DATA
+
+! type haproxy >/dev/null 2>&1 && _exitE "Haproxy are not installed !"
+
+path_conf_enabled="/etc/haproxy/conf-enabled"
+path_conf_available="/etc/haproxy/conf-available"
+for path in "$path_conf_enabled" "$path_conf_available"; do
+	! [ -d "$path" ] && mkdir -p "$path"
+done
+
+
+################################  MAIN
+
+_echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
+
+
+opts_given="$@"
+opts_short="hdq"
+opts_long="help,debug,quiet"
+opts="$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- $* 2>/tmp/${0##*/})" || _exitE "Bad options '$(</tmp/${0##*/})'"
+eval set -- $opts
+
+_echoD "$FUNCNAME:$LINENO opts='$opts' opts_given='$opts_given'"
+while true; do
+	_echoD "$FUNCNAME:$LINENO 1='$1' \$*='$*' \$@='$@'"
+	_echoD "$FUNCNAME:$LINENO NAME='$NAME'"
+	case "$1" in
+		-h|--help)
+			_echo "$usage"; _exit
+			;;
+		-d|--debug)
+			debug=true
+			_redirect debug
+			;;
+		-q|--quiet)
+			quiet=true
+			_redirect quiet
+			;;
+		check|clear|reload)
+			action="$1"
+			__$action
+			break
+			;;
+		list)
+			action="$1"; shift
+			__$action "$*"
+			break
+			;;
+		enable|disable)
+			action="$1"; shift
+			! [ "$1" ] && _exitE "Action '$action' needs options\n${cclear}Use '$_SCRIPT -h' for help"
+			__$action "$*"
+			break
+			;;
+		--)
+			;;
+		*)
+			[ "$1" ] && _echoE "Bad options: '$1'" && _exitE "${cclear}Use '$_SCRIPT -h' for help"
+			_echo "$usage" && _exit
+			;;
+	esac
+	shift
+done
+_echoD "$FUNCNAME:$LINENO optsCMD='$optsCMD' \$*='$*' action='$action'"
+
+_exit 0

@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# global
+alias df="df -h"
+alias la="ls -a --color=auto"
+alias lsd="ls -d --color=auto */"
+alias ll="ls -al --color=auto"
+#alias nano="nano -w"
+alias nanoc="nano -wY conf"
+
+# server
+alias shutn="shutdown -h now"
+alias chw="chown -R www-data.www-data /var/www /var/log/apache2 /var/log/php"
+alias a2r="service httpd restart"
+alias m2r="service mysqld restart"
+
+# ssh
+alias sshcp="ssh-copy"
+alias sshc="ssh-connect"
+alias sshck="ssh-kvm"
+alias sshl="ssh-launch"
+alias sshvb="ssh-vb"
+
+# iptables
+alias iptl="iptables -nvL --line-number"
+alias iptln="iptables -nvL -t nat --line-number"
+alias iptlm="iptables -nvL -t mangle --line-number"
+alias iptla="iptables -nvL --line-number; iptables -nvL -t nat --line-number"
+alias ipts="iptables -S"
+
+###########################################  OPENVZ
+alias svz="ssh-openvz"
+alias nanoser="nano /etc/server/server.conf"
+alias nanofir="nano /etc/server/firewall.conf"
+
+# vzl
+alias vzl="vzl -o ctid,numproc,status,hostname,name,ip"
+alias vzla="vzl -ao ctid,numproc,status,hostname,name,ip"
+alias vzlS="vzl -So ctid,numproc,status,hostname,name,ip"
+alias vzl1="vzl -O hostname,cpuunits,diskspace,physpages"
+
+# vz
+alias vz+="vz create"
+alias vz+t="vz create --tutorial"
+alias vz-="vz destroy"
+alias vz1="vz start -y"
+alias vz0="vz stop -y"
+alias vz^="vz restart -y"
+
+# vzipt
+alias vziptl="vzipt list"
+alias vziptla="vzipt list -a"
+alias vziptlS="vzipt list -S"
+alias vzipt+="vzipt add"
+alias vzipt-="vzipt del"
+
+# vzip
+alias vzipl="vzip list"
+alias vzipla="vzip list -a"
+alias vziplS="vzip list -S"
+alias vzip+="vzip add"
+alias vzip-="vzip del"
+
+# vzd
+alias vzda="vzd --compress --all"
+alias vzd1="vzd --compress"
+alias vzd2="vzd --compress --template"
+
+# vzr
+alias vzrl="vzr --list"
+alias vzrla="vzr --list --all"
+alias vzr1="vzr --menu"
+alias vzr2="vzr --menu --template"
+
+# vzlaunch
+alias svzl="vzlaunch -v"
+alias svzlup="vzlaunch -v upgrade all"
+
+###########################################  KVM
+alias kvmr="/usr/local/bs/kvm-rights.sh"
+alias kvmexp="/usr/local/bs/kvm-export"
+alias l2r="/etc/init.d/libvirt-bin restart"
+
+###########################################  OVH
+alias f2r="service firewall restart"
+alias f2rn="service firewall restartnat"
+
+# rs
+alias rsb1="rs bin -avd"
+alias rsba1="rs backup -avd"
+alias rsz1="rs vz -av"
+
+###########################################  PERSO
+alias userexp="/usr/local/bs/user-export.sh"
+alias clean-k="/usr/local/bs/clean-keep"
+
+# aragon
+alias sshca="/usr/local/bs/ssh-aragon.sh"
+alias userexpa="/usr/local/bs/user-export-aragon.sh"
+
+# Monitor logs
+# alias syslog="tail -100f /var/log/syslog"
+# alias messages="tail -100f /var/log/messages"
+
+# Keep 1000 lines in .bash_history (default is 500)
+export HISTSIZE=2000
+export HISTFILESIZE=2000

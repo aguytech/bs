@@ -1,0 +1,196 @@
+#!/bin/bash
+#
+# Provides:             backup-vz
+# Short-Description:    backup vz configuration, dump & templates
+# Description:          backup vz configuration, dump & templates
+
+################################ GLOBAL FUNCTIONS
+#S_TRACE=debug
+
+! [[ "$S_GLOBAL_FUNCTIONS" && -f $S_GLOBAL_FUNCTIONS ]] && echo -e "\e[1;31merror - unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'\e[0;0m" && exit 1
+. $S_GLOBAL_FUNCTIONS
+
+################################  VARIABLES
+
+USAGE="backup-vz : backup vz configuration, dump & templates.
+Default backup all, equivalent to -ctduosl
+Use other options for a selected save
+backup-vz --help
+
+options:
+    -c, --conf          save only vz configuration files
+    -t, --template      save only vz templates
+    -d, --dump          save only vz dumps
+    -u, --suspend       save only vz suspend
+    -o, --snapshot      save only vz snapshot
+    -s, --share         save only /var/lib/vz/share
+    -l, --log           save only /var/lib/vz/node/*/log
+    -q, --quiet         don't show any infomations except interaction informations
+    --debug             output in screen & in file debug informations
+"
+
+
+################################################################  _SCRIPT
+
+# compress path
+# $1 path base
+# $2 sub path
+__compress() {
+	PATHFROM="$1"
+	PATHSUBS="$2"
+	PATH2="${PATHFROM#/}"; PATH2="$PATHSAVE/${PATH2//\//.}"; PATH2="${PATH2%/}"
+	_echoD "$FUNCNAME:$LINENO PATHFROM='$PATHFROM' PATHSUBS='$PATHSUBS' PATH2='$PATH2'"
+
+	# wrong path
+	! [ -d "$PATHFROM" ] && _exitE "Wrong path '$PATHFROM' for calling '$*'"
+
+	# create path
+	! [ -d "$PATH2" ] && mkdir -p "$PATH2"
+
+	cd "$PATHFROM"
+	_echoT "$PWD"
+
+	PATHSUBS=$(echo "$PATHSUBS")
+
+	for PATHSUB in $PATHSUBS
+	do
+		if [ -d "$PATHSUB" ]; then
+			FILE2="${PATHSUB#/}"
+			FILE2="${FILE2//\//.}"
+			FILE2="$PATH2/${FILE2%/}.$CMPEXT"
+
+			_echo "compress $PATHSUB"
+			_evalq "tar $CMPOPT $FILE2 $PATHSUB"
+		else
+			_echoE "wrong path '$PATHSUB'"
+			_echoD "$FUNCNAME:$LINENO ERROR| Wrong path '$PATHSUB'"
+		fi
+	done
+}
+
+# synchronize files
+# $1 path base
+# $2 sub path
+# $3 exclude path
+__sync() {
+	PATHFROM="$1"
+	PATHSUBS="$2"
+	EXCLUDES="lost+found $3"
+	PATH2="${PATHFROM#/}"; PATH2="$PATHSAVE/${PATH2//\//.}"; PATH2="${PATH2%/}"
+	_echoD "$FUNCNAME:$LINENO PATHFROM='$PATHFROM' PATHSUBS='$PATHSUBS' PATH2='$PATH2'"
+
+	# wrong path
+	! [ -d "$PATHFROM" ] && _exitE "Wrong path '$PATHFROM' for calling '$*'"
+
+	# create path
+	! [ -d "$PATH2" ] && mkdir -p "$PATH2"
+
+	cd "$PATH2"
+	_echoT "$PWD"
+
+	for PATHSUB in $PATHSUBS
+	do
+		if [ -d "$PATHFROM/$PATHSUB" ]; then
+			PATHSUB2="${PATH2}/${PATHSUB#/}"
+			! [ -d "$PATHSUB2" ] && mkdir -p "$PATHSUB2"
+
+			STR=; for exclude in $EXCLUDES; do STR+=" --exclude='$exclude'"; done
+			_echo "sync $PATHSUB"
+			_evalq "rsync -a $STR $PATHFROM/$PATHSUB/ $PATHSUB2/"
+		else
+			_echoE "wrong path '$PATHFROM/$PATHSUB'"
+			_echoD "$FUNCNAME:$LINENO ERROR| Wrong path '$PATHFROM/$PATHSUB'"
+		fi
+	done
+}
+
+
+################################  MAIN
+
+_echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
+
+DATE="$(date "+%Y%m%d")"
+PATHSAVE="$S_PATH_SAVE/$HOSTNAME/backup/$DATE/vz"
+CMPOPT=czf
+CMPEXT=tgz
+
+OPTSGIVEN="$@"
+OPTSSHORT="cdloqstu"
+OPTSLONG="help,debug,conf,dump,log,snapshot,quiet,share,template,suspend"
+OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+eval set -- "$OPTS"
+
+_echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
+while true; do
+	case "$1" in
+		--help)
+			_echo "$USAGE"; _exit
+			;;
+		--debug)
+			_redirect debug
+			;;
+		-c|--conf)
+			CONF=c
+			;;
+		-d|--dump)
+			DUMP=d
+			;;
+		-l|--log)
+			LOG=l
+			;;
+		-o|--snapshot)
+			SNAPSHOT=o
+			;;
+		-q|--quiet)
+			_redirect quiet
+			;;
+		-s|--share)
+			SHARE=s
+			;;
+		-t|--template)
+			TEMPLATE=t
+			;;
+		-u|--suspend)
+			SUSPEND=u
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+			;;
+	esac
+	shift
+done
+
+# all options
+# ; LOG=l
+if ! [ "$OPTSGIVEN" ]; then CONF=c; TEMPLATE=t; DUMP=d; SUSPEND=u; SNAPSHOT=o; SHARE=s; fi
+_echoD "$FUNCNAME:$LINENO CONF='$CONF' TEMPLATE='$TEMPLATE' DUMP='$DUMP' SUSPEND='$SUSPEND' SNAPSHOT='$SNAPSHOT' SHARE='$SHARE' LOG='$LOG'"
+
+# conf
+[ "$CONF" ] && __compress "/" "etc/vz etc root/.ssh root"
+
+# dump
+[ "$DUMP" ] && __sync "$S_HOSTING_PATH" "dump" "/suspend /snapshot /template"
+
+# template
+[ "$TEMPLATE" ] && __sync "$S_VZ_PATH_DUMP" "template"
+
+# suspend
+[ "$SUSPEND" ] && __sync "$S_VZ_PATH_DUMP" "suspend"
+
+# snapshot
+[ "$SNAPSHOT" ] && __sync "$S_VZ_PATH_DUMP" "snapshot"
+
+# share
+#[ "$SHARE" ] && __sync "$S_HOSTING_PATH" "share"
+_askno "Please shutdown server with SGBD to compress shared data"
+[ "$SHARE" ] && __compress "$S_HOSTING_PATH_SHARE" "*"
+_askno "Now you can restart server with SGBD"
+
+# log
+[ "$LOG" ] && __compress "$S_VZ_PATH_NODE" "*/log"
+
+_exit 0
