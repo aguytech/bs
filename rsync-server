@@ -208,22 +208,22 @@ case "$1" in
 	bdn1|bin-desktop-node1)
 		from="/usr/local/bs/"
 		to="root@node1:/usr/local/bs/"
-		excludefrom+="${exclude_bin}"
+		excludefrom+="${bin_exclude}"
 		;;
 	bn1d|bin-node1-desktop)
 		from="root@node1:/usr/local/bs/"
 		to="/usr/local/bs/"
-		excludefrom+="${exclude_bin}"
+		excludefrom+="${bin_exclude}"
 		;;
 	bdn2|bin-desktop-node2)
 		from="/usr/local/bs/"
 		to="root@node2:/usr/local/bs/"
-		excludefrom+="${exclude_bin}"
+		excludefrom+="${bin_exclude}"
 		;;
 	bn2d|bin-node2-desktop)
 		from="root@node2:/usr/local/bs/"
 		to="/usr/local/bs/"
-		excludefrom+="${exclude_bin}"
+		excludefrom+="${bin_exclude}"
 		;;
 	*)
 		_exitE "wrong command: '$1' in '${optsgiven}'"

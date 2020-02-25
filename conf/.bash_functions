@@ -85,7 +85,7 @@ _pwd32() { < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32; }
 __mysql-dump-all() {
 	local path db_user
 	db_user=root
-	[ -z ${db_pwd} ] && echo -n 'db pwd: ' && read db_pwd
+	[ -z "${db_pwd}" ] && echo -n 'db pwd: ' && read db_pwd
 	mysql -u$db_user -p$db_pwd -e 'quit' || return 1
 
 	path=/var/share/mariadb/default/dump-all-$(grep $HOSTNAME /etc/hosts|cut -d' ' -f1)-$(date +%s)
@@ -100,7 +100,7 @@ __mysql-dump-all() {
 __mysql-dump-dbs() {
 	local path db_user db_name $opt
 	db_user=root
-	[ -z ${db_pwd} ] && echo -n 'db pwd: ' && read db_pwd
+	[ -z "${db_pwd}" ] && echo -n 'db pwd: ' && read db_pwd
 	mysql -u$db_user -p$db_pwd -e 'quit' || return 1
 
 	path=/var/share/mariadb/default/dump-dbs-$(grep $HOSTNAME /etc/hosts|cut -d' ' -f1)-$(date +%s)
@@ -119,8 +119,8 @@ __mysql-dump-dbs() {
 __mysql-dump-tbs() {
 	local path db_user db_name tb_name
 	db_user=root
-	[ -z ${db_pwd} ] && echo -n 'db pwd: ' && read db_pwd
-	[ -z ${db_name} ] && echo -n 'db name: ' && read db_name
+	[ -z "${db_pwd}" ] && echo -n 'db pwd: ' && read db_pwd
+	[ -z "${db_name}" ] && echo -n 'db name: ' && read db_name
 	mysql -u$db_user -p$db_pwd $db_name -e 'quit' || return 1
 
 	path=/var/share/mariadb/default/dump-tbs-$(grep $HOSTNAME /etc/hosts|cut -d' ' -f1)-$(date +%s)

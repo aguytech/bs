@@ -14,7 +14,7 @@ for uri in $uris; do
         lastwid=${wid[*]: -1} # Get PID of newest active $app window.
 
         # if $wid is null launch app with filepath.
-        if [ -z $wid ]; then
+        if [ -z "$wid" ]; then
             echo -n "$(date +"%d-%m-%Y %T") - thunar $uri" >> "$file_log"
             $app "$uri" &
             sleep 0.5s
