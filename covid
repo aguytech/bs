@@ -1,0 +1,128 @@
+#!/bin/bash
+#
+# Provides:             covid
+# Short-Description:    extracts data from csv to graphical export
+# Description:          extracts data from csv to graphical export
+
+################################ GLOBAL FUNCTIONS
+S_TRACE=verbose
+
+! [[ "$S_GLOBAL_FUNCTIONS" && -f $S_GLOBAL_FUNCTIONS ]] && echo -e "\e[1;31merror - unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'\e[0;0m" && exit 1
+. $S_GLOBAL_FUNCTIONS
+
+################################  FUNCTION
+
+# $1
+! [ "$1" ] && _exite "you have to give a file"
+! [ -f "$1" ] && _exite "unable to find file '$1'"
+FILE_IN="$1"
+_echoD "FILE_IN=$FILE_IN"
+
+# change CR to LF
+sed -i 's/\r$//' "$FILE_IN"
+sed -i 's/"Bonaire, Saint Eustatius and Saba"/Bonaire_Saint_Eustatius_and_Saba/' "$FILE_IN"
+sed -i 's/United_States_of_America/USA/' "$FILE_IN"
+sed -i 's/United_Kingdom/UK/' "$FILE_IN"
+sed -i 's/Falkland_Islands_(Malvinas)/Falkland_Islands/' "$FILE_IN"
+
+declare -A pops_spe
+pops_spe=(['Anguilla']=14731 ['Bonaire_Saint_Eustatius_and_Saba']=21000 ['Czechia']=10625695  ['Eritrea']=3546421 ['Falkland_Islands']=3198 ['Saint_Barthelemy']=9877 ['Western_Sahara']=594416)
+
+world=`cut -d',' -f7 < "$FILE_IN" | sort -u`
+world="${world/countriesAndTerritories/}"
+world="${world/Cases_on_an_international_conveyance_Japan/}"
+
+# Deaths > 50/10 000 000
+declare -A groups
+groups["World"]="${world}"
+groups["Stars"]="Argentina Belgium Bolivia Brazil Chile Colombia Ecuador France Italy Mexico Panama Peru Spain UK USA"
+groups["Stars2"]="Argentina Armenia Belgium Bolivia Bosnia_and_Herzegovina Brazil Chile Colombia Czechia Ecuador France Iran Ireland Italy Kosovo Mexico Moldova Netherlands North_Macedonia Panama Peru Portugal Romania South_Africa Spain Sweden Switzerland UK USA"
+groups["Africa"]="Algeria Burkina_Faso Egypt Iran Iraq Israel Jamaica Mauritius Morocco South_Africa Tunisia Zambia Zimbabwe"
+groups["America"]="Argentina Bolivia Brazil Canada Chile Colombia Cuba Dominican_Republic Ecuador Honduras Mexico Panama  Peru Puerto_Rico Trinidad_and_Tobago Uruguay USA Venezuela"
+groups["Europe"]="Austria Belgium Denmark France Germany Ireland Italy Netherlands Portugal Slovenia Spain Sweden Switzerland UK"
+groups["Europe2"]="Albania  Austria Belgium Bosnia_and_Herzegovina Bulgaria Croatia Cyprus Czechia Denmark Estonia Finland France Germany Greece Hungary Iceland Ireland Italy Lithuania Luxembourg Malta Moldova Netherlands North_Macedonia Norway Poland Portugal Romania Russia Serbia Slovakia Slovenia Spain Sweden Switzerland Turkey UK Ukraine"
+groups["Asia"]="Azerbaijan Bahrain China India Indonesia Japan Lebanon Malaysia Philippines Qatar Saudi_Arabia Singapore South_Korea Syria Taiwan Thailand United_Arab_Emirates"
+groups["Australia"]="Australia New_Zealand"
+
+ddate="${FILE_IN%.csv}"
+ddate="${ddate##*worldwide-}"
+
+path="${PWD}/${ddate}"
+! [ -d "${path}" ] && mkdir "${path}"
+
+for group in ${!groups[*]}; do
+
+	_echoI "${group}"
+
+	file_data_case_tmp="${path}/${ddate}_${group}_case_data.tmp"
+	file_data_death_tmp="${path}/${ddate}_${group}_death_data.tmp"
+	file_data_case="${path}/${ddate}_${group}_case_data.csv"
+	file_data_death="${path}/${ddate}_${group}_death_data.csv"
+	file_graph_case="${path}/${ddate}_${group}_case_graph.csv"
+	file_graph_death="${path}/${ddate}_${group}_death_graph.csv"
+
+	#~file_tmp="${PWD}/tmp"
+	#echo > "$file_tmp"
+
+	# count dates
+	titles="date"
+	pops="population"
+	dates=
+	dates_count=0
+	for country in ${groups["$group"]}; do
+		dates_count_tmp=`grep -c ",${country}," "$FILE_IN"`
+		if [ "$dates_count_tmp" -gt "$dates_count" ]; then
+			dates_count="$dates_count_tmp"
+			dates=`grep ",${country}," "$FILE_IN"|cut -d',' -f1`
+		fi
+		titles="${titles},${country}"
+		if [[ " ${!pops_spe[*]} " = *" ${country} "* ]]; then
+			pops="${pops},${pops_spe[$country]}"
+		else
+			pops="${pops},$(grep ",${country}," "$FILE_IN"|tail -n1|cut -d',' -f10|xargs)"
+		fi
+	#	_echoD "dates_count|data_case|data_death=$dates_count|$data_case|$data_death"
+	done
+
+	_echoI "$dates_count"
+
+	for file in "$file_data_case" "$file_data_death" "$file_graph_case" "$file_graph_death"; do
+		echo "$pops" > "$file"
+		echo "$titles" >> "$file"
+	done
+
+	_echoD dates=$dates
+	_echoD "dates_count=$dates_count"
+
+	data_case="$dates"
+	data_death="$dates"
+	#data_count=
+	for country in ${groups["$group"]}; do
+		#data_case_tmp=`grep ",${country}," "$FILE_IN"|cut -d',' -f5`
+		#data_count="$data_count-$(wc -l <<<"$data_case_tmp")"
+		data_case=`paste -d',' <(echo "$data_case") <(grep ",${country}," "$FILE_IN"|cut -d',' -f5)`
+		data_death=`paste -d',' <(echo "$data_death") <(grep ",${country}," "$FILE_IN"|cut -d',' -f6)`
+		#echo "--$country" >> "$file_tmp"
+		#echo "$data_case" >> "$file_tmp"
+	done
+	#_echoD $data_count
+
+	echo "$data_case" >> "$file_data_case"
+	echo "$data_death" >> "$file_data_death"
+
+	echo "$data_case" > "$file_data_case_tmp"
+	echo "$data_death" > "$file_data_death_tmp"
+
+	tac "$file_data_case_tmp" >> "$file_graph_case"
+	tac "$file_data_death_tmp" >> "$file_graph_death"
+
+	rm "$file_data_case_tmp" "$file_data_death_tmp"
+
+	for file in "$file_data_case" "$file_data_death" "$file_graph_case" "$file_graph_death"; do
+		sed -i 's|^\([0-9]/.*\)$|0\1|' "$file"
+	done
+	#sed -i "s|/2020,|,|" "$file_data_case"
+	#sed -i "s|/2019,|,|" "$file_data_death"
+done
+
+_exit 0
