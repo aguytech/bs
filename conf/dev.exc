@@ -1,0 +1,7 @@
+lost+found
+.Trash*
+__pycache__
+/.git
+/.gitignore
+/eclipse-workspaces/*/.metadata
+/eclipse-workspaces/*/RemoteSystemsTempFiles/

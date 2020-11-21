@@ -53,7 +53,7 @@ __connect() {
 __exec() {
 	# require argument
 	_echoD "$FUNCNAME:$LINENO \$*='$*'}"
-	! [ "$*" ] && _exitE "Internal error, function need arguments"
+	! [ "$*" ] && _exite "Internal error, function need arguments"
 
 	# init
 	file_sql="/tmp/${_SCRIPT}-$(_pwd)"
@@ -134,7 +134,7 @@ __exec_add_percona() {
 __exec_percona() {
 	# require argument
 	_echoD "$FUNCNAME:$LINENO \$*='$*'}"
-	! [ "$*" ] && _exitE "Internal error, function need arguments"
+	! [ "$*" ] && _exite "Internal error, function need arguments"
 
 	# init
 	file_sql="/tmp/${_SCRIPT}-$(_pwd)"
@@ -254,7 +254,7 @@ db_pwd="?"
 percona=false
 force=false
 
-! type mysql >/dev/null 2>&1 && _exitE "mysql client is required !"
+! type mysql >/dev/null 2>&1 && _exite "mysql client is required !"
 
 
 ################################  MAIN
@@ -265,7 +265,7 @@ _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 opts_given="$@"
 opts_short="dfh:u:p:"
 opts_long="help,debug,force,percona,host:,user:,pwd:"
-opts="$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- $* 2>/tmp/${0##*/})" || _exitE "Bad options '$(</tmp/${0##*/})'"
+opts="$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- $* 2>/tmp/${0##*/})" || _exite "Bad options '$(</tmp/${0##*/})'"
 eval set -- $opts
 
 _echoD "$FUNCNAME:$LINENO opts='$opts' opts_given='$opts_given'"
@@ -282,23 +282,23 @@ while true; do
 			force=true
 			;;
 		--percona)
-			! type pt-show-grants >/dev/null 2>&1 && _exitE "Unable to find pt-show-grants (from percona-toolkit)"
+			! type pt-show-grants >/dev/null 2>&1 && _exite "Unable to find pt-show-grants (from percona-toolkit)"
 
 			percona=true
 			;;
 		-h|--host)
 			shift
-			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exitE "host requires an arguments\n${cclear}Use '$_SCRIPT --help' for help"
+			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exite "host requires an arguments\n${cclear}Use '$_SCRIPT --help' for help"
 			db_host="$1"
 			;;
 		-u|--user)
 			shift
-			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exitE "user requires an arguments\n${cclear}Use '$_SCRIPT --help' for help"
+			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exite "user requires an arguments\n${cclear}Use '$_SCRIPT --help' for help"
 			db_user="$1"
 			;;
 		-p|--pwd)
 			shift
-			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exitE "pwd requires an arguments\n${cclear}Use '$_SCRIPT --help' for help"
+			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exite "pwd requires an arguments\n${cclear}Use '$_SCRIPT --help' for help"
 			db_pwd="$1"
 			;;
 		--)
@@ -306,7 +306,7 @@ while true; do
 		update|update-up)
 			action="$1"
 			shift
-			! [ "$*" ] && _exitE "Action '$action' needs options\n${cclear}Use '$_SCRIPT -h' for help"
+			! [ "$*" ] && _exite "Action '$action' needs options\n${cclear}Use '$_SCRIPT -h' for help"
 			$percona && cmd="__exec_percona" || cmd="__exec"
 			args="$*"
 			break
@@ -326,7 +326,7 @@ while true; do
 		reset)
 			action="$1"
 			shift
-			! [ "$*" ] && _exitE "Action '$action' needs options\n${cclear}Use '$_SCRIPT -h' for help"
+			! [ "$*" ] && _exite "Action '$action' needs options\n${cclear}Use '$_SCRIPT -h' for help"
 			$percona && cmd="__exec_percona" || cmd="__exec"
 			args="$*"
 			break
@@ -344,7 +344,7 @@ while true; do
 			break
 			;;
 		*)
-			[ "$1" ] && _echoE "Bad options: '$1'" && _exitE "${cclear}Use '$_SCRIPT -h' for help"
+			[ "$1" ] && _echoE "Bad options: '$1'" && _exite "${cclear}Use '$_SCRIPT -h' for help"
 			_echo "$usage" && _exit
 			;;
 	esac

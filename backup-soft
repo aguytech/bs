@@ -86,7 +86,7 @@ _backup_one() {
 	# existing compressed file
 	[ -e "$file_to" ] && _echoE "warning - overwrite file '$file_to'"
 	cmd="sudo tar ${tar_opt_comp} '$file_to' ${paths_comp} 2>&6"
-	_eval $cmd || _exitE "executing '$cmd'"
+	_eval $cmd || _exite "executing '$cmd'"
 	_eval sudo chown ${USER}:${USER} "${file_to}"
 }
 
@@ -127,11 +127,11 @@ _restore_one() {
 	! [ -e "$path_tmp" ] && _eval sudo mkdir -p "$path_tmp"
 
 	# test existence of file to decompress
-	! [ -e "$file_from" ] && _exitE "unable to find '$file_from'"
+	! [ -e "$file_from" ] && _exite "unable to find '$file_from'"
 
 	# decompress
 	cmd="sudo tar ${tar_opt_uncomp} '$file_from' -C ${path_tmp}"
-	_eval $cmd || _exitE "executing '$cmd'"
+	_eval $cmd || _exite "executing '$cmd'"
 
 	# test & clean destination paths
 	while read path; do
@@ -148,7 +148,7 @@ _restore_one() {
 		fi
 		# move path
 		cmd="sudo mv ${path_from} ${path_to}"
-		_eval $cmd || _exitE "executing '$cmd'"
+		_eval $cmd || _exite "executing '$cmd'"
 
 		# clean temporary path
 	done <<< "$paths_comp"
@@ -219,7 +219,7 @@ _echoD "$FUNCNAME:$LINENO - $(date +"%d-%m-%Y %T : %N") ---- start"
 opts_given="$@"
 opts_short="hairR"
 opts_long="help,add,initial,restore,restore-after"
-opts="$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- $* 2>/tmp/${0##*/})" || _exitE "$(</tmp/${0##*/})"
+opts="$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- $* 2>/tmp/${0##*/})" || _exite "$(</tmp/${0##*/})"
 eval set -- $opts
 
 _echoD "$FUNCNAME:$LINENO opts='$opts' opts_given='$opts_given'"
@@ -254,7 +254,7 @@ _echoD "$FUNCNAME:$LINENO actions='$actions' suffix='$suffix' opts='$opts'"
 
 # test path to backup/restore
 if ! [ -d ${path_backup} ]; then
-	(sudo mkdir -p ${path_backup} && sudo chown 1000:1000 ${path_backup}) || _exitE "unable to create/modify rights to directory '${path_backup}'"
+	(sudo mkdir -p ${path_backup} && sudo chown 1000:1000 ${path_backup}) || _exite "unable to create/modify rights to directory '${path_backup}'"
 fi
 
 # initialize default softwares definition

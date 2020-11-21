@@ -19,6 +19,8 @@ _log() {
 	fi
 }
 
+_log -n "$*"
+
 # exit with no args
 [ -z "$*" ] && _log "$args - FAILED no command" && exit 1
 
@@ -39,12 +41,12 @@ if [ "$app" = "meld" ]; then
 		echo "$*" > "$file_tmp"
 		exit
 	elif [ "$arg1" = "with" ]; then
-		cmd="$app --newtab $(<$file_tmp) $*"
+		cmd="$app --newtab \"$(<$file_tmp)\" \"$*\""
 	else
-		cmd="$app --newtab $arg1 $*"
+		cmd="$app --newtab \"$arg1\" \"$*\""
 	fi
 else
-	cmd="$app $arg1 $*"
+	cmd="$app \"$arg1\" \"$*\""
 fi
 
 # launch command

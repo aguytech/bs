@@ -15,7 +15,7 @@
 # connect to server
 __ssh() {
     if [ "$2" == "$_IPTHIS" ]; then
-    	_exitE "You try to connect to yourself"
+    	_exite "You try to connect to yourself"
     else
     	ssh -o ConnectTimeout=$timeout "$1"@"$2" -p"$3"
     fi
@@ -69,6 +69,6 @@ for id in ${!S_CLUSTER[*]}; do
 
 done
 
-_menu "Select a VM" $(tr " " "\n" <<<${!ips[*]}|sort|xargs) || _exitE
+_menu "Select a VM" $(tr " " "\n" <<<${!ips[*]}|sort|xargs) || _exite
 
 __ssh "${users[$_ANSWER]}" "${ips[$_ANSWER]}" "${ports[$_ANSWER]}"

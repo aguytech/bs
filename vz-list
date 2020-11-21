@@ -81,7 +81,7 @@ vz-list [options] [CTIDs / all]
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exitE "unable to find vzctl command"
+type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -92,7 +92,7 @@ fields_list="bootorder cpulimit cpus cpuunits CTID description disabled features
 opts_given="$@"
 opts_short="daHjLSth:s:o:O:"
 opts_long="help,debug,all,no-header,json,list,stopped,no-trim,name:,sort:,output:,outfield:"
-opts=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+opts=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$opts"
 
 _echoD "$FUNCNAME:$LINENO opts_given='$opts_given' opts='$opts'"
@@ -151,7 +151,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '$opts_given'"
+			_exite "Bad options: '$1' in '$opts_given'"
 			;;
 	esac
 	shift
@@ -166,7 +166,7 @@ fi
 _echoD "$FUNCNAME:$LINENO ctids_list='$ctids_list'"
 
 # no ctids
-#[ ! "$ALL" ] && [ ! "$ctids_list" ] && _exitE "no containers found for your selection: $opts_given"
+#[ ! "$ALL" ] && [ ! "$ctids_list" ] && _exite "no containers found for your selection: $opts_given"
 
 # command
 _eval "vzlist ${opts_cmd}${ctids_list}|column -t"

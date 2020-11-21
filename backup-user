@@ -31,19 +31,20 @@ paths_comp["/home"]="$USER" # option 'all' take all /home subdirectories
 paths_comp["$HOME"]=".config
 .eclipse
 .FreeCAD
-.gitkraken
-.mozilla
 .squirrel-sql
 .ssh
 .sublime-project
-.thunderbird"
+.tmux
+.webclipse" # .gitkraken
 
 #paths_comp["/home/shared"]=".aMule Desktop dev Documents Downloads .gse-radio Help kdenlive keep .local .perso Pictures Public .rsync .themes Work www"
 paths_comp["/home/shared"]="*"
 paths_comp["/opt"]="*" # option 'all' take all /opt subdirectories
 
-paths_comp_exc["/home/shared"]="Archives
+paths_comp_exc["/home/shared"]=".torrent
+Archives
 Downloads
+Mooc
 tmp
 virtualbox
 vmware"
@@ -63,9 +64,9 @@ ddate=$(date +%Y%m%d)
 [ -d "/etc/gdm" ] && env="gnome"
 
 if [ -z "$env" ]; then
-	path_backup=${path_backup_base}/$HOSTNAME/export-$HOSTNAME-$USER-$ddate
+	path_backup=${path_backup_base}/${HOSTNAME}/export-${HOSTNAME}-${USER}-${S_RELEASE_NAME}-${ddate}
 else
-	path_backup=${path_backup_base}/$HOSTNAME/export-$HOSTNAME-$USER-$env-$ddate
+	path_backup=${path_backup_base}/${HOSTNAME}/export-${HOSTNAME}-${USER}-${S_RELEASE_NAME}-${env}-${ddate}
 fi
 
 
@@ -80,7 +81,7 @@ _compress() {
 	path_to="${path_backup}/${1##*/}"
 	path_to="${path_to%/}"
 	if ! [ -d "${path_to}" ]; then
-		mkdir -p "${path_to}" || _exitE "unable to create directory '${path_to}'"
+		mkdir -p "${path_to}" || _exite "unable to create directory '${path_to}'"
 	fi
 
 	# define subpaths
@@ -103,7 +104,7 @@ _compress() {
 			file_to="${path_to}/${path}.${tar_ext}"
 			[ -e "$file_to" ] && _echoa "warning - overwrite file $file_to"
 			cmd="sudo tar ${tar_opt} '$file_to' '${path}'"
-			eval $cmd || _exitE "executing '$cmd'"
+			eval $cmd || _exite "executing '$cmd'"
 			sudo chown ${USER}:${USER} "${file_to}"
 		else
 			_echoa "warning - skipped, unable to find '${1}/${path%/}'"
@@ -118,7 +119,7 @@ _rsync() {
 	path_to="${path_backup}/${1##*/}"
 	path_to="${path_to%/}"
 	if ! [ -d "${path_to}" ]; then
-		mkdir -p "${path_to}" || _exitE "unable to create directory '${path_to}'"
+		mkdir -p "${path_to}" || _exite "unable to create directory '${path_to}'"
 	fi
 
 	# define subpaths
@@ -138,7 +139,7 @@ _rsync() {
 
 			echo "-> $path"
 			cmd="sudo rsync $sync_opt '${1}/${path%/}/' '${path_to}/${path%/}/'"
-			eval $cmd || _exitE "while executing '$cmd'"
+			eval $cmd || _exite "while executing '$cmd'"
 		else
 			_echoa "warning - skipped, unable to find '${1}/${path%/}'"
 		fi
@@ -153,7 +154,7 @@ _echoT "###########################################################
 EXPORT to ${path_backup}\n"
 
 if ! [ -d ${path_backup} ]; then
-	(sudo mkdir -p ${path_backup} && sudo chown 1000:1000 ${path_backup}) || _exitE "unable to create/modify rights to directory '${path_backup}'"
+	(sudo mkdir -p ${path_backup} && sudo chown 1000:1000 ${path_backup}) || _exite "unable to create/modify rights to directory '${path_backup}'"
 fi
 
 
@@ -200,7 +201,7 @@ for path_sync in ${!paths_sync[*]}; do
 	if [ -e "$path_sync" ]; then
 		_rsync "$path_sync" "${paths_sync[$path_sync]}"
 	else
-		_exitE "warning - skipped unable to find '$path_comp'"
+		_exite "warning - skipped unable to find '$path_comp'"
 	fi
 done
 

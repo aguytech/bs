@@ -40,7 +40,7 @@ options:
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exitE "unable to find vzctl command"
+type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -52,7 +52,7 @@ PATHDUMPXTRA="$PATHDUMP/$S_PATH_VZ_DUMP_REL_XTRA"
 OPTSGIVEN="$@"
 OPTSSHORT="dalpqtyh:r:s:"
 OPTSLONG="help,debug,auto,list,process,quiet,template,confirm,search-hname:,search-regexp:,sort:"
-OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
 _echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -86,19 +86,19 @@ while true; do
 			;;
 		-h|--search-hname)
 			shift
-			[ ! "$1" ] && _exitE "Missing arguments for option '$1' in '$OPTSGIVEN'"
+			[ ! "$1" ] && _exite "Missing arguments for option '$1' in '$OPTSGIVEN'"
 			SEARCH=hname
 			SEARCHSTR=$1
 			;;
 		-r|--search-regexp)
 			shift
-			[ ! "$1" ] && _exitE "Missing arguments for option '$1' in '$OPTSGIVEN'"
+			[ ! "$1" ] && _exite "Missing arguments for option '$1' in '$OPTSGIVEN'"
 			SEARCH=regexp
 			SEARCHSTR=$1
 			;;
 		-s|--sort)
 			shift
-			[ ! "$1" ] && _exitE "Missing arguments for option '$1' in '$OPTSGIVEN'"
+			[ ! "$1" ] && _exite "Missing arguments for option '$1' in '$OPTSGIVEN'"
 			SORT="$1"
 			;;
 		--)
@@ -106,7 +106,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+			_exite "Bad options: '$1' in '$OPTSGIVEN'"
 			;;
 	esac
 	shift
@@ -115,13 +115,13 @@ _echoD "$FUNCNAME:$LINENO PATHDUMP='$PATHDUMP' PATHDUMPXTRA='$PATHDUMPXTRA'"
 _echoD "$FUNCNAME:$LINENO SEARCH='$SEARCH' SEARCHSTR='$SEARCHSTR' SORT='$SORT' LIST='$LIST'"
 
 # no value for containers
-#[[ ! "$*" && ! "$LIST" ]] && _exitE "Missing arguments for ctids '$*' for your call '$OPTSGIVEN'"
+#[[ ! "$*" && ! "$LIST" ]] && _exite "Missing arguments for ctids '$*' for your call '$OPTSGIVEN'"
 
 ################  SORT
 
 if [ "$SORT" ]; then
 	[[ "$SORT" =~ ^-.*$ ]] && SORTSTR="r" && SORT=${SORT#-} || SORTSTR=
-	! [[ "$SORT" =~ [12345] ]] && _exitE "Wrong option for sorting: '$SORT' for your call '$OPTSGIVEN'"
+	! [[ "$SORT" =~ [12345] ]] && _exite "Wrong option for sorting: '$SORT' for your call '$OPTSGIVEN'"
 	SORTSTR="-k$SORT,$SORT$SORTSTR"
 fi
 _echoD "$FUNCNAME:$LINENO SORTSTR='$SORTSTR'"
@@ -164,7 +164,7 @@ _echoD "$FUNCNAME:$LINENO CTIDSELECT='$CTIDSELECT'\n DUMPSELECT='$DUMPSELECT'"
 
 ################ no DUMPSELECT
 
-! [ "$DUMPSELECT" ] && _exitE "No containers for your selection '$OPTSGIVEN'"
+! [ "$DUMPSELECT" ] && _exite "No containers for your selection '$OPTSGIVEN'"
 
 
 ################  LIST

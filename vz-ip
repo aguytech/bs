@@ -19,7 +19,7 @@ __ctid_analyse()
 	[ "$*" == "all" ] && CTIDLIST="$CTIDSELECT" || CTIDLIST="$(_vz_ctids_clean "$*")"
 
 	# list empty
-	[ ! "$CTIDLIST" ] && _exitE "No valid containers for your selection '$*'"
+	[ ! "$CTIDLIST" ] && _exite "No valid containers for your selection '$*'"
 
 	# define final list
 	for CTID in $CTIDLIST
@@ -81,7 +81,7 @@ options:
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exitE "unable to find vzctl command"
+type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -92,7 +92,7 @@ CTIDIPEXIST="$(vzlist -aHo ctid,ip |grep ".*[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$"
 OPTSGIVEN="$@"
 OPTSSHORT="daqrSvy"
 OPTSLONG="help,debug,all,quiet,replace,stopped,view,confirm"
-OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
 _echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -131,7 +131,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+			_exite "Bad options: '$1' in '$OPTSGIVEN'"
 			;;
 	esac
 	shift
@@ -161,7 +161,7 @@ case "$ACTION" in
 		;;
 	add)
 		# analyse ctids
-		[ "$*" ] && __ctid_analyse $* || _exitE "Missing ctids in options '$OPTSGIVEN'"
+		[ "$*" ] && __ctid_analyse $* || _exite "Missing ctids in options '$OPTSGIVEN'"
 
 		# synthesis
 		_echoD "$FUNCNAME:$LINENO CTIDNOEXIST='$CTIDNOEXIST' CTIDIP='$CTIDIP' CTIDNOIP='$CTIDNOIP'"
@@ -180,7 +180,7 @@ case "$ACTION" in
 				_askyn "confirm ?" && [ "$_ANSWER" == "n" ] && _exit
 			fi
 		else
-			_exitE "No containers available with no iptables rules"
+			_exite "No containers available with no iptables rules"
 		fi
 
 		# commands
@@ -198,7 +198,7 @@ case "$ACTION" in
 	   ;;
 	del)
 		# analyse ctids
-		[ "$*" ] && __ctid_analyse $* || _exitE "Missing ctids in options '$OPTSGIVEN'"
+		[ "$*" ] && __ctid_analyse $* || _exite "Missing ctids in options '$OPTSGIVEN'"
 
 		# synthesis
 		_echoD "$FUNCNAME:$LINENO CTIDNOEXIST='$CTIDNOEXIST' CTIDNOIP='$CTIDNOIP' CTIDIP='$CTIDIP'"
@@ -213,7 +213,7 @@ case "$ACTION" in
 				_askyn "confirm ?" && [ "$_ANSWER" == "n" ] && _exit
 			fi
 		else
-			_exitE "No containers available with iptables rules"
+			_exite "No containers available with iptables rules"
 		fi
 
 		# commands
@@ -227,7 +227,7 @@ case "$ACTION" in
 		done
 		;;
 	* )
-		_exitE "Wrong action: '$ACTION' for arguments '$OPTSGIVEN'"
+		_exite "Wrong action: '$ACTION' for arguments '$OPTSGIVEN'"
 		;;
 esac
 

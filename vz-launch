@@ -27,7 +27,7 @@ launch command(s) in containers with ssh protocol
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exitE "unable to find vzctl command"
+type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
 
 ctids_run=$(vzlist -Ho ctid | xargs)
 ctids_all=$(vzlist -aHo ctid | xargs)
@@ -38,7 +38,7 @@ ctids_all=$(vzlist -aHo ctid | xargs)
 optsgiven="$@"
 optsshort="hyo:c:s:"
 optslong="help,options:,command:,file:"
-opts=$(getopt -o ${optsshort} -l ${optslong} -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "$(</tmp/${0##*/})'"
+opts=$(getopt -o ${optsshort} -l ${optslong} -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "$(</tmp/${0##*/})'"
 eval set -- "${opts}"
 opts=
 
@@ -68,7 +68,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '${optsgiven}'"
+			_exite "Bad options: '$1' in '${optsgiven}'"
 			;;
 	esac
 	shift
@@ -77,11 +77,11 @@ _echoD "\$*='$*' |  cmds_file='$cmds_file' | ctids_file='$ctids_file' | confirm=
 
 # commands
 if [ -n "$cmds_file" ]; then
-	! [ -f "$cmds_file" ] && _exitE "unable to find '$cmds_file'"
+	! [ -f "$cmds_file" ] && _exite "unable to find '$cmds_file'"
 	cmds="$(<$cmds_file)"
 	cmd="ssh -p${S_VM_SSH_PORT} ${S_VM_SSH_USER}@${_VM_IP_BASE}.\${ctid} bash${options:+ -$options} < \"$cmds_file\""
 else
-	[ -z "$1" ] && _exitE "you have to give commands if you don't give a string for it"
+	[ -z "$1" ] && _exite "you have to give commands if you don't give a string for it"
 	cmds="$1"
 	cmd="ssh -p${S_VM_SSH_PORT} ${S_VM_SSH_USER}@${_VM_IP_BASE}.\${ctid} bash${options:+ -$options} <<<\"$1\""
 	shift
@@ -89,10 +89,10 @@ fi
 
 # ctids
 if [ -n "$ctids_file" ]; then
-	! [ -f "$ctids_file" ] && _exitE "unable to find '$ctids_file'"
+	! [ -f "$ctids_file" ] && _exite "unable to find '$ctids_file'"
 	ctids=$(<$ctids_file)
 else
-	[ -z "$*" ] && _exitE "you have to give ctids if you don't give a string for it"
+	[ -z "$*" ] && _exite "you have to give ctids if you don't give a string for it"
 	ctids="$*"
 fi
 [ "$ctids" = "all" ] && ctids=$ctids_all || ctids=$(_vz_ctids_clean $ctids)

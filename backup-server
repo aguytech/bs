@@ -38,7 +38,7 @@ _compress() {
 	_echoD "$FUNCNAME:$LINENO path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
 
 	# wrong path
-	! [ -d "$path_from" ] && _exitE "Wrong path '$path_from' for calling '$*'"
+	! [ -d "$path_from" ] && _exite "Wrong path '$path_from' for calling '$*'"
 
 	# create path
 	! [ -d "$path_to" ] && mkdir -p "$path_to"
@@ -74,7 +74,7 @@ cmd_ext=tgz
 opts_given="$@"
 opts_short="dckqsv"
 opts_long="help,debug,conf,kvm,quiet,scripts,vz,exclude:"
-opts=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+opts=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$opts"
 
 if [ "${_CLUSTER_IPS/$_IPTHIS/}" == "${_CLUSTER_IPS}" ]; then
@@ -120,7 +120,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '$opts_given'"
+			_exite "Bad options: '$1' in '$opts_given'"
 			;;
 	esac
 	shift

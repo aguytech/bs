@@ -83,11 +83,12 @@ vzl [options] [ctids / all]
 cmd="__rsync"
 bin_exclude="/usr/local/bs/conf/rs-bin.exc"
 install_exclude="/usr/local/bs/conf/rs-install.exc"
+dev_exclude="/usr/local/bs/conf/dev.exc"
 
 optsgiven="$@"
 optsshort="dafnvrlptogD"
 optslong="help,debug,archive,force,dry-run,verbose,delete,exclude:,exclude-from:,include:,include-from:"
-opts=$(getopt -o ${optsshort} -l ${optslong} -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "$(</tmp/${0##*/})'"
+opts=$(getopt -o ${optsshort} -l ${optslong} -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "$(</tmp/${0##*/})'"
 eval set -- "${opts}"
 opts=
 
@@ -158,7 +159,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '${optsgiven}'"
+			_exite "Bad options: '$1' in '${optsgiven}'"
 			;;
 	esac
 	shift
@@ -170,18 +171,22 @@ case "$1" in
 	ddn1|dev-desktop-node1)
 		from="/home/shared/dev/"
 		to="root@node1:/save/sync/dev/"
+		excludefrom+="${dev_exclude}"
 		;;
 	dn1d|dev-node1-desktop)
 		from="root@node1:/save/sync/dev/"
 		to="/home/shared/dev/"
+		excludefrom+="${dev_exclude}"
 		;;
 	ddn2|dev-desktop-node2)
 		from="/home/shared/dev/"
 		to="root@node2:/save/sync/dev/"
+		excludefrom+="${dev_exclude}"
 		;;
 	dn2d|dev-node2-desktop)
 		from="root@node2:/save/sync/dev/"
 		to="/home/shared/dev/"
+		excludefrom+="${dev_exclude}"
 		;;
 	# install server
 	idn1|install-desktop-node1)
@@ -226,7 +231,7 @@ case "$1" in
 		excludefrom+="${bin_exclude}"
 		;;
 	*)
-		_exitE "wrong command: '$1' in '${optsgiven}'"
+		_exite "wrong command: '$1' in '${optsgiven}'"
 		;;
 esac
 shift

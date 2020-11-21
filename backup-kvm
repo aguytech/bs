@@ -36,7 +36,7 @@ __compress() {
 	_echoD "$FUNCNAME:$LINENO PATHFROM='$PATHFROM' PATHSUBS='$PATHSUBS' PATH2='$PATH2'"
 
 	# wrong path
-	! [ -d "$PATHFROM" ] && _exitE "Wrong path '$PATHFROM' for calling '$*'"
+	! [ -d "$PATHFROM" ] && _exite "Wrong path '$PATHFROM' for calling '$*'"
 
 	# create path
 	! [ -d "$PATH2" ] && mkdir -p "$PATH2"
@@ -74,7 +74,7 @@ __sync() {
 	_echoD "$FUNCNAME:$LINENO PATHFROM='$PATHFROM' PATHSUBS='$PATHSUBS' PATH2='$PATH2'"
 
 	# wrong path
-	! [ -d "$PATHFROM" ] && _exitE "Wrong path '$PATHFROM' for calling '$*'"
+	! [ -d "$PATHFROM" ] && _exite "Wrong path '$PATHFROM' for calling '$*'"
 
 	# create path
 	! [ -d "$PATH2" ] && mkdir -p "$PATH2"
@@ -117,7 +117,7 @@ PATHSAVE="$S_PATH_SAVE/backup/$DATE"
 OPTSGIVEN="$@"
 OPTSSHORT="dceiq"
 OPTSLONG="help,debug,conf,export,image,quiet"
-OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
 _echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -148,7 +148,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+			_exite "Bad options: '$1' in '$OPTSGIVEN'"
 			;;
 	esac
 	shift

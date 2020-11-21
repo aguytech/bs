@@ -52,7 +52,7 @@ options:
 # $2 : destination
 # $3 : options for command
 __confirm() {
-	[ "$#" != 3 ] && _exitE "Missing aguments for calling __confirm() : '$*'"
+	[ "$#" != 3 ] && _exite "Missing aguments for calling __confirm() : '$*'"
 	_echoD "$FUNCNAME:$LINENO \$*=$*"
 
 	_echo "-------------------------------------------------------------------------"
@@ -90,7 +90,7 @@ options:
      --delete-excluded	also delete excluded files from destination dirs
 "
 
-	[[ "$S_SERVER_TYPE" != "ovh" && "$S_SERVER_TYPE" != "home" ]] && _exitE "You can only run this command from ovh hosting server"
+	[[ "$S_SERVER_TYPE" != "ovh" && "$S_SERVER_TYPE" != "home" ]] && _exite "You can only run this command from ovh hosting server"
 
 	# options
 	optgiven="$*"
@@ -143,7 +143,7 @@ options:
 					optlist+="--$opt "
 					;;
 				*)
-					_exitE "Bad options '$opt' for call '$optgiven'"
+					_exite "Bad options '$opt' for call '$optgiven'"
 					;;
 			esac
 
@@ -222,7 +222,7 @@ options:
      --delete-excluded	also delete excluded files from destination dirs
 "
 
-	[[ "$S_SERVER_TYPE" != "ovh" ]] && _exitE "You can only run this command from ovh hosting server"
+	[[ "$S_SERVER_TYPE" != "ovh" ]] && _exite "You can only run this command from ovh hosting server"
 
 	# options
 	optgiven="$*"
@@ -275,7 +275,7 @@ options:
 					optlist+="--$opt "
 					;;
 				*)
-					_exitE "Bad options '$opt' for call '$optgiven'"
+					_exite "Bad options '$opt' for call '$optgiven'"
 					;;
 			esac
 
@@ -341,7 +341,7 @@ options:
      --delete-excluded	also delete excluded files from destination dirs
 "
 
-	[ "$S_SERVER_TYPE" != "ovh" ] && _exitE "You can only run this command from ovh or home"
+	[ "$S_SERVER_TYPE" != "ovh" ] && _exite "You can only run this command from ovh or home"
 
 	# options
 	optgiven="$*"
@@ -397,7 +397,7 @@ options:
 					optlist+="--$opt "
 					;;
 				*)
-					_exitE "Bad options '$opt' for call '$optgiven'"
+					_exite "Bad options '$opt' for call '$optgiven'"
 					;;
 			esac
 
@@ -460,7 +460,7 @@ case "$action" in
 		__backup "$@"
 		;;
 	* )
-		_exitE "'$action' for your call '$optgiven'"
+		_exite "'$action' for your call '$optgiven'"
 		_echo "Usage: $_SCRIPTNAME {bin|save|vz}"
 		;;
 esac

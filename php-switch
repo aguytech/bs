@@ -117,7 +117,7 @@ __debug() {
 
 ################################  INIT
 
-! type php >/dev/null 2>&1 && _exitE "Unable to find php on this computer"
+! type php >/dev/null 2>&1 && _exite "Unable to find php on this computer"
 
 ################################  VARIABLES
 

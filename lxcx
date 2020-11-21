@@ -72,7 +72,7 @@ lxcx cmd [commands] [image]
 # $3 : options for command
 __confirm()
 {
-	[ "$#" != 3 ] && _exitE "Missing aguments for calling __confirm() : '$*'"
+	[ "$#" != 3 ] && _exite "Missing aguments for calling __confirm() : '$*'"
 	_echoD "$FUNCNAME() \$*=$*"
 
 	_echoW "vz $1 ${cclear}${blueb}$2"
@@ -171,7 +171,7 @@ do
 				_redirect debug
 				;;
 			*)
-				_exitE "Wrong opt: '$opt' for arguments '$optgiven'"
+				_exite "Wrong opt: '$opt' for arguments '$optgiven'"
 				;;
 		esac
 
@@ -563,7 +563,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDnFKXq/EpNvuRovByhPH8OhbeRPmsE/Of6Bc+xT1+3
 		! [[ $ctsexe ]] && _echo "Nothing to do, no good containers founded !"
 		;;
 	* )
-		_exitE "Wrong action: '$action' for your call '$optgiven'"
+		_exite "Wrong action: '$action' for your call '$optgiven'"
 		;;
 esac
 

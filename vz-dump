@@ -23,8 +23,8 @@ __mount_dump() {
 
 	_echoD "$FUNCNAME:$LINENO \$*='$*'"
 	_echoD "$FUNCNAME:$LINENO CTID='$CTID' DATE='$DATE' HOSTNAMECT='$HOSTNAMECT' \$*='$*'"
-	[ ! "$CTID" ] && _exitE "Missing ctid for calling '$0 $*'"
-	[[ ! "$CTID" =~ ^[0-9]*$ && $CTID -ge $S_VM_CTID_MIN && $CTID -le $S_VM_CTID_MAX ]] && _exitE "Wrong '$CTID' must be between 101-254"
+	[ ! "$CTID" ] && _exite "Missing ctid for calling '$0 $*'"
+	[[ ! "$CTID" =~ ^[0-9]*$ && $CTID -ge $S_VM_CTID_MIN && $CTID -le $S_VM_CTID_MAX ]] && _exite "Wrong '$CTID' must be between 101-254"
 
 	# file for mounted device exist
 	if [ -e "$S_VZ_PATH_CT_CONF/$CTID.mount" ]; then
@@ -63,8 +63,8 @@ __rename_dump() {
 	DATEINIT="$DATE"
 
 	_echoD "$FUNCNAME:$LINENO CTID='$CTID' DATE='$DATE' HOSTNAMECT='$HOSTNAMECT' \$*='$*'"
-	[ "$#" -lt 3 ] && _exitE "Missing arguments for calling '$0 $*'"
-	! [[ "$CTID" && "$CTID" =~ ^[0-9]*$ && $CTID -ge $S_VM_CTID_MIN && $CTID -le $S_VM_CTID_MAX ]] && _exitE "Wrong '$CTID' must be between 101-254"
+	[ "$#" -lt 3 ] && _exite "Missing arguments for calling '$0 $*'"
+	! [[ "$CTID" && "$CTID" =~ ^[0-9]*$ && $CTID -ge $S_VM_CTID_MIN && $CTID -le $S_VM_CTID_MAX ]] && _exite "Wrong '$CTID' must be between 101-254"
 
 	if [ -e "$PATHDUMPXTRA/${CTID}_${HOSTNAMECT}_${DATE}.mount" ]; then
 		# search file
@@ -144,7 +144,7 @@ options:
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exitE "unable to find vzctl command"
+type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
 
 _echoD "$_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -158,7 +158,7 @@ OPTSGIVEN="$@"
 OPTSSHORT="dcfqnoRtuyx"
 OPTSLONG="help,debug,compress,force,quiet,newname,snapshot,running,template,suspend,confirm,stdexcludes"
 OPTSLONG+=",exclude:,exclude-path:,dumpdir:,maxfiles:,script:,storage:,tmpdir:,mailto:,size:,node:,lockwait:,stopwait:,bwlimit"
-OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
 _echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -221,7 +221,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+			_exite "Bad options: '$1' in '$OPTSGIVEN'"
 			;;
 	esac
 	shift
@@ -234,7 +234,7 @@ _echoD "$FUNCNAME:$LINENO PATHDUMP='$PATHDUMP' PATHDUMPXTRA='$PATHDUMPXTRA'"
 _echoD "$FUNCNAME:$LINENO OPTSCMD='$OPTSCMD' \$*='$*'"
 
 # argument missing
-[ ! "$*" ] && _exitE "Missing arguments"
+[ ! "$*" ] && _exite "Missing arguments"
 
 # list initialize
 [ "$*" == all ] && CTIDSELECT="$CTIDSALL" || CTIDSELECT="$(_vz_ctids_clean "$*")"
@@ -255,7 +255,7 @@ else
 fi
 
 # list empty
-[ ! "$CTIDCMD" ] && _exitE "No valid containers for your selection '$*'"
+[ ! "$CTIDCMD" ] && _exite "No valid containers for your selection '$*'"
 
 # synthesis
 _echoD "$FUNCNAME:$LINENO CTIDSKIP='$CTIDSKIP' CTIDRUN='$CTIDRUN' CTIDCMD='$CTIDCMD'"

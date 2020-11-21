@@ -36,7 +36,7 @@ options:
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exitE "unable to find vzctl command"
+type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -48,7 +48,7 @@ IPT="iptables -t nat"
 OPTSGIVEN="$@"
 OPTSSHORT="daqSvy"
 OPTSLONG="help,debug,all,quiet,stopped,view,confirm"
-OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
 _echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -80,7 +80,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+			_exite "Bad options: '$1' in '$OPTSGIVEN'"
 			;;
 	esac
 	shift
@@ -146,7 +146,7 @@ case "$ACTION" in
 		;;
 	add)
 		# no citd
-		! [ "$*" ] && _exitE "Missing ctids: '$*' for arguments '$OPTSGIVEN'"
+		! [ "$*" ] && _exite "Missing ctids: '$*' for arguments '$OPTSGIVEN'"
 
 		# exist
 		CTIDEXISTING="$(vzlist -aHo ctid|xargs)"
@@ -208,7 +208,7 @@ case "$ACTION" in
 	   ;;
 	del)
 		# no citd
-		! [ "$*" ] && _exitE "Missing ctids: '$*' for arguments '$OPTSGIVEN'"
+		! [ "$*" ] && _exite "Missing ctids: '$*' for arguments '$OPTSGIVEN'"
 
 		# rule exist
 		CTIDRULEEXIST="$(iptables-save|grep "^.* PREROUTING .* --dport $S_VM_PORT_SSH_PRE[0-9]* .* " |sed "s/^.* PREROUTING .* --dport $S_VM_PORT_SSH_PRE\([0-9]*\) .*$/\1/"|sort -u|xargs)"
@@ -266,7 +266,7 @@ case "$ACTION" in
 		_exit 0
 		;;
 	* )
-		_exitE "Wrong action: '$ACTION' for arguments '$OPTSGIVEN'"
+		_exite "Wrong action: '$ACTION' for arguments '$OPTSGIVEN'"
 		;;
 esac
 

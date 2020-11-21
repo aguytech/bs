@@ -17,7 +17,7 @@
 # $2 : CTIDs
 # $3 : options for command
 __confirm() {
-	[ "$#" != 3 ] && _exitE "$FUNCNAME:$LINENO missing parameters: '$#'"
+	[ "$#" != 3 ] && _exite "$FUNCNAME:$LINENO missing parameters: '$#'"
 	_echoD "$FUNCNAME:$LINENO \$*=$*"
 
 	_echoT "vz-ctl $1 $2"
@@ -32,7 +32,7 @@ __confirm() {
 # $3 : options
 # $4 : iptables action
 __execute() {
-	[ "$#" -lt 2 ] && _exitE "$FUNCNAME:$LINENO missing parameters: '$#'"
+	[ "$#" -lt 2 ] && _exite "$FUNCNAME:$LINENO missing parameters: '$#'"
 	_echoD "$FUNCNAME:$LINENO \$*='$*'"
 
 	for __CTID in $2
@@ -93,7 +93,7 @@ options:
 
 	OPTSSHORT="hdqy"
 	OPTSLONG="help,debug,quiet,confirm,force,wait,skip-fsck,skip-remount"
-	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 	eval set -- "$OPTS"
 
 	_echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -121,7 +121,7 @@ options:
 				break
 				;;
 			*)
-				_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+				_exite "Bad options: '$1' in '$OPTSGIVEN'"
 				;;
 		esac
 		shift
@@ -179,7 +179,7 @@ options:
 
 	OPTSSHORT="hdqy"
 	OPTSLONG="help,debug,quiet,confirm,fast,skip-umount"
-	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 	eval set -- "$OPTS"
 
 	_echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -206,7 +206,7 @@ options:
 				break
 				;;
 			*)
-				_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+				_exite "Bad options: '$1' in '$OPTSGIVEN'"
 				;;
 		esac
 		shift
@@ -270,7 +270,7 @@ options:
 
 	OPTSSHORT="hdqy"
 	OPTSLONG="help,debug,quiet,confirm,fast,skip-umount,force,wait,skip-fsck,skip-remount"
-	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 	eval set -- "$OPTS"
 
 	_echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -298,7 +298,7 @@ options:
 				break
 				;;
 			*)
-				_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+				_exite "Bad options: '$1' in '$OPTSGIVEN'"
 				;;
 		esac
 		shift
@@ -311,7 +311,7 @@ options:
 	_echoD "$FUNCNAME:$LINENO CTIDLIST='$CTIDLIST'"
 
 	# list empty
-	[ ! "$CTIDLIST" ] && _exitE "No valid containers for your selection '$OPTS'"
+	[ ! "$CTIDLIST" ] && _exite "No valid containers for your selection '$OPTS'"
 
 	# define final list
 	for CTID in $CTIDLIST; do
@@ -359,7 +359,7 @@ options:
 
 	OPTSSHORT="hdqs:"
 	OPTSLONG="help,debug,quiet,script:"
-	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 	eval set -- "$OPTS"
 
 	_echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -385,7 +385,7 @@ options:
 				break
 				;;
 			*)
-				_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+				_exite "Bad options: '$1' in '$OPTSGIVEN'"
 				;;
 		esac
 		shift
@@ -456,7 +456,7 @@ options:
 
 	OPTSSHORT="hdqy"
 	OPTSLONG="help,debug,quiet,confirm"
-	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+	OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- $OPTSGIVEN 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 	eval set -- "$OPTS"
 
 	_echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -481,7 +481,7 @@ options:
 				break
 				;;
 			*)
-				_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+				_exite "Bad options: '$1' in '$OPTSGIVEN'"
 				;;
 		esac
 		shift
@@ -495,7 +495,7 @@ options:
 	_echoD "$FUNCNAME:$LINENO CTIDLIST='$CTIDLIST'"
 
 	# list empty
-	[ ! "$CTIDLIST" ] && _exitE "No valid containers for your selection '$OPTS'"
+	[ ! "$CTIDLIST" ] && _exite "No valid containers for your selection '$OPTS'"
 
 	# define final list
 	for CTID in $CTIDLIST; do
@@ -580,7 +580,7 @@ In case the limit is not given it is set to the same value as the barrier.
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exitE "unable to find vzctl command"
+type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -607,7 +607,7 @@ _echoD "$FUNCNAME:$LINENO ACTION='$ACTION' CMD='$CMD' OPTSGIVEN='$OPTSGIVEN'"
 #################  ACTION
 
 # no good action found
-[ ! "$ACTION" ] && _exitE "unable to find a good action to do in '$OPTSGIVEN'"
+[ ! "$ACTION" ] && _exite "unable to find a good action to do in '$OPTSGIVEN'"
 
 # source action script file
 #_source "$_PATH_BASE/inc-$_SCRIPT-$SOURCE"
@@ -622,9 +622,9 @@ _exit 0
 __mount() {
 	__CTID=$@
 	_echoD "$FUNCNAME:$LINENO __CTID='$__CTID'"
-	! [ "$__CTID" ] && _exitE "Missing ctid for calling '$0 $*'"
+	! [ "$__CTID" ] && _exite "Missing ctid for calling '$0 $*'"
 	if ! [[ "$__CTID" =~ ^[0-9]*$ && $__CTID -ge $S_VM_CTID_MIN && $__CTID -le $S_VM_CTID_MAX ]]; then
-		_exitE "Wrong '$__CTID' must be between $S_VM_CTID_MIN - $S_VM_CTID_MAX"
+		_exite "Wrong '$__CTID' must be between $S_VM_CTID_MIN - $S_VM_CTID_MAX"
 	fi
 
 	PATHLOG="$S_VZ_PATH_NODE/$__CTID/log"

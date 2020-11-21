@@ -20,8 +20,8 @@ __restore_mount() {
 	FILE="$2"
 
 	_echoD "$FUNCNAME:$LINENO CTID2='$CTID2' FILE='$FILE' \$*='$*'"
-	[ "$#" -lt 2 ] && _exitE "$FUNCNAME:$LINENO missing parameters: '$#'"
-	! [[ "$CTID2" && "$CTID2" =~ ^[0-9]*$ && $CTID2 -ge $S_VM_CTID_MIN && $CTID2 -le $S_VM_CTID_MAX ]] && _exitE "$FUNCNAME:$LINENO wrong '$CTID2' not in $S_VM_CTID_MIN - $S_VM_CTID_MAX"
+	[ "$#" -lt 2 ] && _exite "$FUNCNAME:$LINENO missing parameters: '$#'"
+	! [[ "$CTID2" && "$CTID2" =~ ^[0-9]*$ && $CTID2 -ge $S_VM_CTID_MIN && $CTID2 -le $S_VM_CTID_MAX ]] && _exite "$FUNCNAME:$LINENO wrong '$CTID2' not in $S_VM_CTID_MIN - $S_VM_CTID_MAX"
 
 	CTIDFROM="$(echo $FILE|sed "s|^vzdump_\([0-9]*\)_.*$|\1|")"
 	FILENODE="$(echo $FILE|sed "s~^vzdump_\(.*\)\.\(tgz\|tar\)$~\1~")"
@@ -57,7 +57,7 @@ __restore_mount() {
 			_evalq mkdir -p "$PATH2"
 
 			# dump file for device
-			! [ -f "$FILEDUMP" ] && _exitE "Missing dump file '$FILEDUMP' for device '$PATHTMP' for container '$CTIDFROM'" \
+			! [ -f "$FILEDUMP" ] && _exite "Missing dump file '$FILEDUMP' for device '$PATHTMP' for container '$CTIDFROM'" \
 				|| _echoT "restore device '$PATHTMP' of container '$CTIDFROM' to '$CTID2'"
 
 			# restore dump device
@@ -126,7 +126,7 @@ options:
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exitE "unable to find vzctl command"
+type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
 
 _echoD "$_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -139,7 +139,7 @@ PATHDUMPXTRA="$PATHDUMP/$S_PATH_VZ_DUMP_REL_XTRA"
 OPTSGIVEN="$@"
 OPTSSHORT="dacfh:Klmn:N:oqrstuy"
 OPTSLONG="help,debug,all,force-conf,force,keep-name,list,menu,new-name:,snapshot,quiet,template,suspend,confirm,new:,search-hname:,search-regexp:,sort:"
-OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exitE "wrong options '$(</tmp/${0##*/})'"
+OPTS=$(getopt -o $OPTSSHORT -l $OPTSLONG -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
 _echoD "$FUNCNAME:$LINENO OPTSGIVEN='$OPTSGIVEN' OPTS='$OPTS'"
@@ -218,7 +218,7 @@ while true; do
 			break
 			;;
 		*)
-			_exitE "Bad options: '$1' in '$OPTSGIVEN'"
+			_exite "Bad options: '$1' in '$OPTSGIVEN'"
 			;;
 	esac
 	shift
@@ -231,11 +231,11 @@ _echoD "$FUNCNAME:$LINENO SEARCH='$SEARCH' SEARCHSTR='$SEARCHSTR' SORT='$SORT'"
 _echoD "$FUNCNAME:$LINENO SNAPSHOT='$SNAPSHOT' CONFIRM='$CONFIRM'"
 
 # no value for containers
-#[[ ! "$*" && ! "$LIST" ]] && _exitE "Missing arguments for ctids '$*' for your call '$OPTSGIVEN'"
+#[[ ! "$*" && ! "$LIST" ]] && _exite "Missing arguments for ctids '$*' for your call '$OPTSGIVEN'"
 
 ################################  SORT
 
-[ "$NEW" ] && ! [ "$SEARCH" ] && ! [[ "$*" =~ ^[0-9]{3}$ ]] && _exitE "'$CTIDSNEW' ? You have to give just one single ctid to select the container to restore !"
+[ "$NEW" ] && ! [ "$SEARCH" ] && ! [[ "$*" =~ ^[0-9]{3}$ ]] && _exite "'$CTIDSNEW' ? You have to give just one single ctid to select the container to restore !"
 
 
 ################################  SORT
@@ -250,7 +250,7 @@ fi
 
 if [ "$SORT" ]; then
 	[[ "$SORT" =~ ^-.*$ ]] && SORTSTR="r" && SORT=${SORT#-} || SORTSTR=
-	! [[ "$SORT" =~ [12345] ]] && _exitE "Wrong option for sorting: '$SORT' for your call '$OPTSGIVEN'"
+	! [[ "$SORT" =~ [12345] ]] && _exite "Wrong option for sorting: '$SORT' for your call '$OPTSGIVEN'"
 	SORTSTR="-k$SORT,$((SORT + SORTADD))$SORTSTR"
 fi
 _echoD "$FUNCNAME:$LINENO SORTSTR='$SORTSTR'"
@@ -314,7 +314,7 @@ _echoD "$FUNCNAME:$LINENO DUMPSELECT='$DUMPSELECT'"
 
 ################################ no DUMPSELECT
 
-! [ "$DUMPSELECT" ] && _exitE "No containers for your selection '$OPTSGIVEN'"
+! [ "$DUMPSELECT" ] && _exite "No containers for your selection '$OPTSGIVEN'"
 
 
 ################################  LIST

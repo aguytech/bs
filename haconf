@@ -174,7 +174,7 @@ __reload() {
 
 ################################  DATA
 
-! type haproxy >/dev/null 2>&1 && _exitE "Haproxy are not installed !"
+! type haproxy >/dev/null 2>&1 && _exite "Haproxy are not installed !"
 
 path_conf_enabled="/etc/haproxy/conf-enabled"
 path_conf_available="/etc/haproxy/conf-available"
@@ -191,7 +191,7 @@ _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 opts_given="$@"
 opts_short="hdq"
 opts_long="help,debug,quiet"
-opts="$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- $* 2>/tmp/${0##*/})" || _exitE "Bad options '$(</tmp/${0##*/})'"
+opts="$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- $* 2>/tmp/${0##*/})" || _exite "Bad options '$(</tmp/${0##*/})'"
 eval set -- $opts
 
 _echoD "$FUNCNAME:$LINENO opts='$opts' opts_given='$opts_given'"
@@ -222,14 +222,14 @@ while true; do
 			;;
 		enable|disable)
 			action="$1"; shift
-			! [ "$1" ] && _exitE "Action '$action' needs options\n${cclear}Use '$_SCRIPT -h' for help"
+			! [ "$1" ] && _exite "Action '$action' needs options\n${cclear}Use '$_SCRIPT -h' for help"
 			__$action "$*"
 			break
 			;;
 		--)
 			;;
 		*)
-			[ "$1" ] && _echoE "Bad options: '$1'" && _exitE "${cclear}Use '$_SCRIPT -h' for help"
+			[ "$1" ] && _echoE "Bad options: '$1'" && _exite "${cclear}Use '$_SCRIPT -h' for help"
 			_echo "$usage" && _exit
 			;;
 	esac

@@ -10,7 +10,7 @@ user_pref("browser.cache.disk.capacity", 524288);
 # dark theme
 user_pref("svg.context-properties.content.enabled", true);
 # gesturefly
-user_pref("privacy.resistFingerprinting", true);
+# user_pref("privacy.resistFingerprinting", true);
 
 #
 user_pref("browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts.searchEngines", "");
