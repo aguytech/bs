@@ -5,3 +5,5 @@ __pycache__
 /.gitignore
 /eclipse-workspaces/*/.metadata
 /eclipse-workspaces/*/RemoteSystemsTempFiles/
+/eclipse*workspaces/*/.metadata
+/eclipse*workspaces/*/RemoteSystemsTempFiles/
