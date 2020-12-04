@@ -1,41 +1,42 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Provides:               php-switch
 # Short-Description:      modify environnement parameters to switch between dev/pro platform & debugger
 # Description:            modify environnement parameters to switch between dev/pro platform & debugger
 
-# require env.conf without shell environnement
-if ! [ "$S_GLOBAL_CONF" ]; then FILE=/etc/server/env.conf; ! [ -f "$FILE" ] && echo -e "\e[1;31munable to load file '$FILE'\e[0;0m" && __exit 1 || . "$FILE"; fi
-
-# required source
-FILES="$S_GLOBAL_CONF $S_GLOBAL_FUNCTIONS_LITE"
-for FILE in $FILES; do ! [ -f "$FILE" ] && -echoE "unable to load file '$FILE'" && exit 1 || . "$FILE"; done
-
 ################################  FUNCTION
 
 # reload php-fpm or apache service
 __reload() {
-	local CMD
-	$PHPFPM && CMD="systemctl reload ${PHPFPM_SERVICE}.service" || CMD="systemctl reload apache2.service"
-	echo "$CMD"
-	$CMD
+	local cmd
+	if [ $RELEASE = alpine ]; then
+		cmd="rc-service ${phpfpm_service} reload"
+	else
+		cmd="systemctl reload ${phpfpm_service}.service"
+	fi
+	echo "$cmd"
+	$cmd
 }
 
 # restart php-fpm or apache service
 __restart() {
-	local CMD
-	$PHPFPM && CMD="systemctl restart ${PHPFPM_SERVICE}.service" || CMD="systemctl restart apache2.service"
-	echo "$CMD"
-	$CMD
+	local cmd
+	if [ $RELEASE = alpine ]; then
+		cmd="rc-service ${phpfpm_service} restart"
+	else
+		cmd="systemctl restart ${phpfpm_service}.service"
+	fi
+	echo "$cmd"
+	$cmd
 }
 
 # active or desactive phpinf.php files
 __phpinf() {
 	case "$1" in
 		on )
-			while read LINE; do mv $LINE ${LINE%.keep}; done < <( find /var -name phpinf.php.keep ) ;;
+			for line in `find /var/www -name phpinf.php.keep`; do mv $line ${line%.keep}; done ;;
 		off|* )
-			while read LINE; do mv $LINE ${LINE}.keep; done < <( find /var -name phpinf.php ) ;;
+			for line in `find /var/www -name phpinf.php.keep`; do mv $line ${line}.keep; done ;;
 	esac
 }
 
@@ -43,24 +44,24 @@ __phpinf() {
 __cache_worker() {
 	case "$1" in
 		on )
-			sed -i 's|^;\?\(catch_workers_output =\).*|\1 yes|' /etc/php/*/fpm/pool.d/* ;;
+			grep catch_workers_output /etc/php* -rl | xargs sed -i "s|^;\?\(catch_workers_output =\).*|\1 yes|" ;;
 		off|* )
-			sed -i 's|^;\?\(catch_workers_output =\).*|\1 no|' /etc/php/*/fpm/pool.d/* ;;
+			grep catch_workers_output /etc/php* -rl | xargs sed -i "s|^;\?\(catch_workers_output =\).*|\1 no|" ;;
 	esac
 }
 
 __dev() {
-	echo -n "conf $ACTION"
-	SCH='error_reporting';         STR='E_ALL';        sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='display_errors';          STR='On';           sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='display_startup_errors';  STR='On';           sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='log_errors';              STR='On';           sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='log_errors_max_len';      STR='1024';         sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='report_zend_debug';       STR='On';           sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='track_errors';            STR='On';           sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='html_errors';             STR='On';           sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='session\.gc_maxlifetime'; STR='14400';        sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='session.use_strict_mode'; STR='0';            sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
+	echo -n "conf $action"
+	sch='error_reporting';         str='E_ALL';        sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='display_errors';          str='On';           sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='display_startup_errors';  str='On';           sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='log_errors';              str='On';           sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='log_errors_max_len';      str='1024';         sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='report_zend_debug';       str='On';           sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='track_errors';            str='On';           sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='html_errors';             str='On';           sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='session\.gc_maxlifetime'; str='14400';        sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='session.use_strict_mode'; str='0';            sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
 	echo " - ok"
 
 	__phpinf "on"
@@ -75,17 +76,17 @@ __dev() {
 }
 
 __pro() {
-	echo -n "conf $ACTION"
-	# SCH='error_reporting';         STR="E_ALL \& \~E_DEPRECATED \& \~E_STRICT";        sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='display_errors';          STR='Off';          sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='display_startup_errors';  STR='Off';          sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='log_errors';              STR='On';           sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='log_errors_max_len';      STR='1024';         sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='report_zend_debug';       STR='Off';          sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='track_errors';            STR='Off';          sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='html_errors';             STR='On';           sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='session\.gc_maxlifetime'; STR='1800';         sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
-	SCH='session.use_strict_mode'; STR='1';            sed -i "s|^.\?\($SCH\s*=\).*$|\1 $STR|" "$PHPCONF"
+	echo -n "conf $action"
+	sch='error_reporting';         str='E_ALL \& ~E_DEPRECATED \& ~E_STRICT';        sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='display_errors';          str='Off';          sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='display_startup_errors';  str='Off';          sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='log_errors';              str='On';           sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='log_errors_max_len';      str='1024';         sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='report_zend_debug';       str='Off';          sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='track_errors';            str='Off';          sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='html_errors';             str='On';           sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='session\.gc_maxlifetime'; str='1800';         sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
+	sch='session.use_strict_mode'; str='1';            sed -i "s|^.\?\($sch\s*=\).*|\1 $str|" "$php_conf"
 	echo " - ok"
 
 	__phpinf "off"
@@ -99,15 +100,23 @@ __pro() {
 	esac
 }
 
+__phpenmod () {
+	grep "$1" /etc/php* -rl | xargs sed -i "/^;zend_extension/ s|^;||"
+}
+
+__phpdismod () {
+	grep "$1" /etc/php* -rl | xargs sed -i "/^zend_extension/ s|^|;|"
+}
+
 __debug() {
 
 	case "$1" in
 		xdebug|zend_debugger )
-			for DEBUGGER in $DEBUGGERS; do phpdismod $DEBUGGER; done
-			phpenmod "$1"
+			for debuguer in $debuguers; do __phpdismod $debuguer; done
+			__phpenmod "$1"
 			;;
 		off|* )
-			for DEBUGGER in $DEBUGGERS; do phpdismod $DEBUGGER; done
+			for debuguer in $debuguers; do __phpdismod $debuguer; done
 			;;
 	esac
 
@@ -121,17 +130,21 @@ __debug() {
 
 ################################  VARIABLES
 
-PHPVER=$(php -v |xargs |sed "s/^PHP \([0-9]\.[0-9]\).*/\1/")
-PHPFPM_SERVICE="php${PHPVER}-fpm"
-systemctl -q is-active "$PHPFPM_SERVICE" && PHPFPM="true" || PHPFPM="false"
+php_ver=$(php -v |xargs |sed "s/^PHP \([0-9]\.[0-9]\).*/\1/")
+if [ $RELEASE = alpine ]; then
+	phpfpm_service=`rc-service --list|grep php`
+	php_conf="/etc/php7/php.ini"
+else
+	phpfpm_service="php${php_ver}-fpm"
+	php_conf="/etc/php/${php_ver}/fpm/php.ini"
+fi
 
-$PHPFPM && PHPCONF=/etc/php/$PHPVER/fpm/php.ini || PHPCONF="/etc/php/$PHPVER/apache2/php.ini"
 
 # WARNNING: let space before & after debugger names
-DEBUGGERS=" xdebug zend_debugger "
+debuguers=" xdebug zend_debugger "
 
 
-USAGE="php-switch : modify environnement parameters to switch between dev/pro platform & debugger
+usage="php-switch : modify environnement parameters to switch between dev/pro platform & debugger
 php-switch <command> <options>
 php-switch --help
 
@@ -153,33 +166,27 @@ php-switch debug <debugger> <off>  switch to selected debugger : xdebug / zend_d
 ################################  MAIN
 #_clean && _redirect debug
 
-ACTION="$1"
+action="$1"
 case "$1" in
 	help|--help )
-		echo "$USAGE"
+		echo "$usage"
 		exit
 		;;
 	dev )
 		shift
-		__$ACTION "$@"
+		__$action "$@"
 		;;
 	pro )
 		shift
-		__$ACTION "$@"
+		__$action "$@"
 		;;
 	debug )
 		shift
-		__$ACTION "$@"
+		__$action "$@"
 		;;
 	phpinf )
 		shift
-		__$ACTION "$@"
+		__$action "$@"
 		;;
 	* )
-		_menu "select a configuration" "dev pro debug phpinf"
-		ACTION="$_ANSWER"
-		if [ "$ACTION" == "debug" ]; then _menu "select a debugger" "xdebug zend_debugger" && __$ACTION $_ANSWER; _exit; fi
-		if [ "$ACTION" == "phpinf" ]; then _menu "active or desactive phpinf" "on off" && __$ACTION $_ANSWER; _exit; fi
-		__$_ANSWER
-		;;
 esac
