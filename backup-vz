@@ -196,7 +196,7 @@ if ! [ "$opts_given" ]; then conf=c; template=t; dump=d; suspend=u; snapshot=o; 
 _echoD "$FUNCNAME:$LINENO conf='$conf' template='$template' dump='$dump' suspend='$suspend' snapshot='$snapshot' share='$share' log='$log'"
 
 # dump all containers, force to stop if not
-vz-dump -cyf all
+${S_PATH_SCRIPT}/vz-dump -cyf all
 
 # conf
 [ "$conf" ] && __compress "/" "etc/vz etc root/.ssh root"

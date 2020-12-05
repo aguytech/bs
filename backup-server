@@ -14,19 +14,18 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
 
 ################################  VARIABLES
 
-usage="backup-server : backup server, vz & kvm files & configuration. By default save all, use options for a selected save
+usage="Make a backup of server configuration files & server scripts. In options call backup-vz & backup-kvm
 backup-server --help
 
-options:
-    -c, --conf       save only vz configuration files
-    -s, --scripts     save only scripts
-    -v, --vz         save only vz files
-    -l, --libvirt    save only kvm files
-    -q, --quiet      don't show any infomations except interaction informations
-    --exclude ''     exclude parts in double quote: vz kvm conf scripts
+backup-server vim [arguments]
+
+arguments:
+    -a --all             backup all parts: conf scripts vz kvm
+    --vz                  call bakup vz
+    --kvm              call bakup kvm
+    -q, --quiet       don't show any infomations except interaction informations
     --debug          output in screen & in file debug informations
 "
-
 
 ################################################################  _SCRIPT
 
@@ -63,19 +62,52 @@ _compress() {
 	done
 }
 
+_bc_conf() {
+	_echoW "conf"
+	path_from="/"
+	paths_sub="boot/grub etc root"
+	_compress "$path_from" "$paths_sub"
+}
+
+_bc_scripts() {
+	_echoW "scripts"
+	path_from="/"
+	paths_sub="usr/local/bs"
+	_compress "$path_from" "$paths_sub"
+}
+
+_main() {
+	# conf
+	_bc_conf
+
+	# script
+	_bc_scripts
+
+	# vz
+	if [ "$vz" ]; then
+		_echoW "launch vz"
+		${S_PATH_SCRIPT}/backup-vz
+	fi
+
+	# kvm
+	if [ "$kvm" ]; then
+		_echoW "launch kvm"
+		_echo "Do nothing..."
+		#backup-kvm
+	fi
+}
 
 ################################  MAIN
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
-all=a
 path_save="$S_PATH_SAVE_BACKUP/$DDATE"
 cmd_opt=" --exclude='.cache' -czf"
 cmd_ext=tgz
 
 opts_given="$@"
-opts_short="dckqsv"
-opts_long="help,debug,conf,kvm,quiet,scripts,vz,exclude:"
+opts_short="adq"
+opts_long="all,help,debug,kvm,quiet,vz"
 opts=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$opts"
 
@@ -97,24 +129,14 @@ while true; do
 			_redirect quiet
 			_echoD "_redirect quiet"
 			;;
-		-x|--exclude)
-			shift
-			exclude="$1"
-			;;
-		-c|--conf)
-			all=
-			conf=c
-			;;
-		-s|--scripts)
-			all=
-			scripts=s
+		-a|--all)
+			vz=v
+			#kvm=k
 			;;
 		-v|--vz)
-			all=
 			vz=v
 			;;
 		-k|--kvm)
-			all=
 			kvm=k
 			;;
 		--)
@@ -128,44 +150,8 @@ while true; do
 	shift
 done
 
-# all
-if [ "$all" ]; then conf=c; kvm=k; scripts=s; vz=v; fi
-
-# exclude part
-if [ "$exclude" ]; then
-	for str in $exclude; do unset $str; done
-fi
-
 _echoD "$FUNCNAME:$LINENO conf='$conf' scripts='$scripts' kvm='$kvm' vz='$vz' \$*='$*'"
 
-# script
-if [ "$scripts" ]; then
-	_echoW "scripts"
-	path_from="/"
-	paths_sub="usr/local/bs"
-	_compress "$path_from" "$paths_sub"
-fi
-
-# conf
-if [ "$conf" ]; then
-	_echoW "conf"
-	path_from="/"
-	paths_sub="boot/grub etc root"
-	_compress "$path_from" "$paths_sub"
-fi
-
-# vz
-if [ "$vz" ]; then
-	_echoW "vz"
-	backup-vz
-fi
-
-<<KEEP
-# kvm
-if [ "$kvm" ]; then
-	_echoW "kvm"
-	backup-kvm
-fi
-KEEP
+_main
 
 _exit 0
