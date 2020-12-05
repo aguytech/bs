@@ -14,17 +14,18 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
 
 ################################  VARIABLES
 
-usage="Make a backup of server configuration files & server scripts. In options call backup-vz & backup-kvm
-backup-server --help
-
-backup-server vim [arguments]
+usage="Usage: backup-server [arguments]
 
 arguments:
     -a --all             backup all parts: conf scripts vz kvm
     --vz                  call bakup vz
+    --vz-dump      call bakup vz with dumping containers before backup
     --kvm              call bakup kvm
+    -h, --help        show this
     -q, --quiet       don't show any infomations except interaction informations
     --debug          output in screen & in file debug informations
+
+ Make a backup of server configuration files & server scripts. In options call backup-vz & backup-kvm
 "
 
 ################################################################  _SCRIPT
@@ -32,7 +33,7 @@ arguments:
 # compress path
 # $1 path base
 # $2 sub path
-_compress() {
+__compress() {
 	path_from="$1"
 	paths_sub="$2"
 	path_to="${path_from#/}"; path_to="$path_save/${path_to//\//.}"; path_to="${path_to%/}"
@@ -62,31 +63,31 @@ _compress() {
 	done
 }
 
-_bc_conf() {
+__bc_conf() {
 	_echoW "conf"
 	path_from="/"
 	paths_sub="boot/grub etc root"
 	_compress "$path_from" "$paths_sub"
 }
 
-_bc_scripts() {
+__bc_scripts() {
 	_echoW "scripts"
 	path_from="/"
 	paths_sub="usr/local/bs"
 	_compress "$path_from" "$paths_sub"
 }
 
-_main() {
+__main() {
 	# conf
-	_bc_conf
+	__bc_conf
 
 	# script
-	_bc_scripts
+	__bc_scripts
 
 	# vz
 	if [ "$vz" ]; then
 		_echoW "launch vz"
-		${S_PATH_SCRIPT}/backup-vz
+		${S_PATH_SCRIPT}/backup-vz $vz-dump
 	fi
 
 	# kvm
@@ -107,7 +108,7 @@ cmd_ext=tgz
 
 opts_given="$@"
 opts_short="adq"
-opts_long="all,help,debug,kvm,quiet,vz"
+opts_long="all,help,debug,kvm,quiet,vz,vz-dump"
 opts=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$opts"
 
@@ -133,10 +134,13 @@ while true; do
 			vz=v
 			#kvm=k
 			;;
-		-v|--vz)
+		--vz)
 			vz=v
 			;;
-		-k|--kvm)
+		--vz-dump)
+			vz-dump=--dump
+			;;
+		--kvm)
 			kvm=k
 			;;
 		--)
@@ -152,6 +156,6 @@ done
 
 _echoD "$FUNCNAME:$LINENO conf='$conf' scripts='$scripts' kvm='$kvm' vz='$vz' \$*='$*'"
 
-_main
+__main
 
 _exit 0

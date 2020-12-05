@@ -14,23 +14,16 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
 
 ################################  VARIABLES
 
-usage="backup-vz : backup vz configuration, dump & templates.
-Default backup all, equivalent to -ctduosl
-Use other options for a selected save
-backup-vz --help
+usage="Usage: backup-vz[arguments]
+backup openvz elements: configuration, logs, dump containers & suspend, snapshot
+with options dump containers before backup
 
-options:
-    -c, --conf          save only vz configuration files
-    -t, --template      save only vz templates
-    -d, --dump          save only vz dumps
-    -u, --suspend       save only vz suspend
-    -o, --snapshot      save only vz snapshot
-    -s, --share         save only /var/lib/vz/share
-    -l, --log           save only /var/lib/vz/node/*/log
-    -q, --quiet         don't show any infomations except interaction informations
-    --debug             output in screen & in file debug informations
+arguments:
+    --dump          save only vz dumps
+    -h, --help       show this
+    -q, --quiet      don't show any infomations except interaction informations
+    -d, --debug    output in screen & in file debug informations
 "
-
 
 ################################################################  _SCRIPT
 
@@ -110,7 +103,6 @@ __sync() {
 	done
 }
 
-
 __comp_share() {
 	local paths path
 
@@ -120,17 +112,46 @@ __comp_share() {
 		__compress "${S_HOSTING_PATH_SHARE}" "${path}"
 	done
 	# for mariadb & www
-	#_echoT "STOP CONTAINER FROM 101 to 199"
-	#vz-ctl stop 101-199
-	#_echoT "Container stopped"
-	for path in www; do
+	_echoT "STOP CONTAINER FROM 101 to 199"
+	${S_PATH_SCRIPT}/vz-ctl stop 101-199
+	_echoT "Container stopped"
+	for path in www mariadb; do
 		[ -d "${S_HOSTING_PATH_SHARE}/${path}" ] && __compress "${S_HOSTING_PATH_SHARE}/${path}" "*"
 	done
-	#_echoT "START CONTAINER FROM 101 to 199"
-	#vz-ctl start 101-199
-	#_echoT "Container started"
+	_echoT "START CONTAINER FROM 101 to 199"
+	${S_PATH_SCRIPT}/vz-ctl start 101-199
+	_echoT "Container started"
 }
 
+__main() {
+
+	# dump all containers, force to stop if not
+	if [ "$dump" ]; then
+		_echoT "force dumping to each containers"
+		${S_PATH_SCRIPT}/vz-dump -cyf all
+	fi
+
+	# conf
+	__compress "/" "etc/vz etc root/.ssh root"
+
+	# log
+	__compress "$S_VZ_PATH_NODE" "*/log"
+
+	# dump
+	__sync "$S_HOSTING_PATH" "dump" "/suspend /snapshot /template"
+
+	# template
+	__sync "$S_VZ_PATH_DUMP" "template"
+
+	# suspend
+	__sync "$S_VZ_PATH_DUMP" "suspend"
+
+	# snapshot
+	__sync "$S_VZ_PATH_DUMP" "snapshot"
+
+	# share
+	__comp_share
+}
 
 ################################  MAIN
 
@@ -141,43 +162,25 @@ comp_opt=czf
 comp_ext=tgz
 
 opts_given="$@"
-opts_short="cdloqstu"
-opts_long="help,debug,conf,dump,log,snapshot,quiet,share,template,suspend"
+opts_short="dhq"
+opts_long="debug,dump,help,quiet"
 OPTS=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
 _echoD "$FUNCNAME:$LINENO opts_given='$opts_given' OPTS='$OPTS'"
 while true; do
 	case "$1" in
-		--help)
-			_echo "$usage"; _exit
-			;;
-		--debug)
-			_redirect debug
-			;;
-		-c|--conf)
-			conf=c
-			;;
-		-d|--dump)
+		--dump)
 			dump=d
 			;;
-		-l|--log)
-			log=l
+		-h, --help)
+			_echo "$usage"; _exit
 			;;
-		-o|--snapshot)
-			snapshot=o
+		-d, --debug)
+			_redirect debug
 			;;
 		-q|--quiet)
 			_redirect quiet
-			;;
-		-s|--share)
-			share=s
-			;;
-		-t|--template)
-			template=t
-			;;
-		-u|--suspend)
-			suspend=u
 			;;
 		--)
 			shift
@@ -192,31 +195,8 @@ done
 
 # all options
 # ; log=l
-if ! [ "$opts_given" ]; then conf=c; template=t; dump=d; suspend=u; snapshot=o; share=s; fi
 _echoD "$FUNCNAME:$LINENO conf='$conf' template='$template' dump='$dump' suspend='$suspend' snapshot='$snapshot' share='$share' log='$log'"
 
-# dump all containers, force to stop if not
-${S_PATH_SCRIPT}/vz-dump -cyf all
-
-# conf
-[ "$conf" ] && __compress "/" "etc/vz etc root/.ssh root"
-
-# log
-[ "$log" ] && __compress "$S_VZ_PATH_NODE" "*/log"
-
-# dump
-[ "$dump" ] && __sync "$S_HOSTING_PATH" "dump" "/suspend /snapshot /template"
-
-# template
-[ "$template" ] && __sync "$S_VZ_PATH_DUMP" "template"
-
-# suspend
-[ "$suspend" ] && __sync "$S_VZ_PATH_DUMP" "suspend"
-
-# snapshot
-[ "$snapshot" ] && __sync "$S_VZ_PATH_DUMP" "snapshot"
-
-# share
-[ "$share" ] && __comp_share
+__main
 
 _exit 0
