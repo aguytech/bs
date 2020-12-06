@@ -5,7 +5,7 @@
 # Description:          functions over lxc to manipulate containers
 
 ################################ GLOBAL FUNCTIONS
-#S_TRACE=debug
+S_TRACE=verbose
 
 ! [[ "$S_GLOBAL_FUNCTIONS" && -f $S_GLOBAL_FUNCTIONS ]] && echo -e "\e[1;31merror - unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'\e[0;0m" && exit 1
 . $S_GLOBAL_FUNCTIONS
@@ -16,556 +16,202 @@ usage="lxcx : manage containers
 the container name can be one or few name (separate with space)
 and a special name 'all' to select all containers
 
-lxcx <options> [action] [ct name]
 Options:
-	--help			show usage of functions
-	-r, --regexp		the selection for container name is made with regexp
-	-f, --force		force certain actions (delete, stop, restart...)
-	--delete		force replacment for certain actions (publish)
-	-d, --debug		output in screen & in file debug informations
-	-q, --quiet		don't show any infomations except interaction informations
+	-a,--all             select all containers for action
+	-r, --regexp     the selection for container name is made with regexp.
+	                       BE CAREFUL: limit the begin & the end of regexp
+	-f, --force         force certain actions (delete, stop, restart, publish...)
+	-h, --help        show usage of functions
+	-q, --quiet       don't show any infomations except interaction informations
+	-d, --debug     output in screen & in file debug informations
 
-Commands:
-	init    <name> <ip id> <image>
-		Initialize a container with his name, IP id from image
-		if name, ip id & image don't pass to function, it will asking
-
-	copy    <source name> <ip id> <destination name>
-		Initialize a container with his name, IP id from image
-		if name, ip id & image don't pass to function, it will asking
-
+Global usage:    lxcx <options> [action] [containers]
 	start   <ct name>
 	stop    <ct name>
+		if option '--force' is given, stopped container are running
 	restart <ct name>
 		if option '--force' is given, stopped container are running
 	delete	<ct name>
 		if option '--force' is given, running container are also deleted
+
+Init usage:    lxcx init <options> [image] [containers]
+		Initialize a container from an image for a name
+
+	copy <source name> <ip id> <destination name>
+		Initialize a container with his name, IP id from image
+		if name, ip id & image don't pass to function, it will asking
+
 	publish	<ct name>
 		Create an image from container, if image already exists, add '_Ymd' to name
 		if option '--force' is given, running container are stopped before
 		if option '--delete' is given, existing image will be replaced
-
-
-lxcx <options> [action] [image]
-Available commands:
-
-	export	<image name>
-		export image of container to path 'S_HOSTING_PATH_EXPORT'
-		if image already exist the old one are replaced
-
-	import	<file name>
-		import image of container from file (default path is 'S_HOSTING_PATH_EXPORT')
-
-lxcx launch [script file] [image]
-		If option '--force' is given, the stoped container is started for execution
-
-lxcx cmd [commands] [image]
-		If option '--force' is given, the stoped container is started for execution
 "
 
 
 ################################  FUNCTION
 
-# confirmation
-# $1 : command
-# $2 : ctids
-# $3 : options for command
-__confirm()
-{
-	[ "$#" != 3 ] && _exite "Missing aguments for calling __confirm() : '$*'"
-	_echoD "$FUNCNAME() \$*=$*"
+# $1 container names to select
+# $2 available container names
+__select() {
+	local cts cts_tmp
+	_echoD "${FUNCNAME}() \$1=$1"
+	_echoD "${FUNCNAME}() \$2=$2"
 
-	_echoW "vz $1 ${cclear}${blueb}$2"
-	[ "$3" ] && _echoW "with options :${cclear}${blueb}$3"
-	_echoI -n "Please confirm : y(n) ? "
-	read confirm >&4
-	[ "$confirm" != "y" ] && _exit
-}
-
-# test matching element fit with one of list
-# $1 : string
-# $* : list of strings
-__any()
-{
-	_echoD "$FUNCNAME() \$*='$*'"
-	string=$1
-	shift
-	for str in $*; do [[ $str == $string ]] && return 0; done
-	return 1
-}
-
-# test matching element fit with all of list
-# $1 : string
-# $* : list of strings
-__notin()
-{
-	_echoD "$FUNCNAME() \$*='$*'"
-	string=$1
-	shift
-	for str in $*; do [[ $str == $string ]] && return 1; done
-	return 0
-}
-
-# test matching element fit with one of list with regexp
-# $1 : regexp
-# $* : list of strings
-__anyregexp()
-{
-	_echoD "$FUNCNAME() \$*='$*'"
-	regexp=$1
-	shift
-	for str in $*; do [[ $str =~ $regexp ]] && return 0; done
-	return 1
-}
-
-
-################################  MAIN
-
-_echoD "$_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
-
-optgiven="$*"
-cmdopt=
-regexp=
-all=
-force=
-delete=
-
-# options
-while [[ "$1" =~ ^(-[0-9a-zA-Z]*|--[a-z]+[-a-z]+)$ ]]
-do
-	if [[ "$1" =~ ^-[0-9a-zA-Z]*$ ]]; then
-		opts=${1#-}
-		opt=${opts:0:1}
-		optgrp=1
+	# all
+	if [ "${LXCX_ALL}" = "all" ]; then
+		cts_tmp="$2"
 	else
-		opts=${1#--}
-		opt=$opts
-		optgrp=
+		# named containers
+		cts_tmp="$1"
+		_echoD "${FUNCNAME}() named cts_tmp=${cts_tmp}"
+		# regexped containers
+		for regexp in $LXCX_REGEXP; do
+			cts_tmp="${cts_tmp} $(lxc list --format=json ${regexp} | jq -r '.[].name' |xargs)"
+		done
+		_echoD "${FUNCNAME}() all cts_tmp=${cts_tmp}"
+		cts_tmp=`echo ${cts_tmp} | tr " " "\n" | sort -u | xargs`
+		for ct in $cts_tmp; do
+			[[ " $2 " = *" $ct "* ]] && cts="${cts} ${ct}"
+		done
+		_echoD "${FUNCNAME}() unique cts=${cts}"
+		echo "$cts"
 	fi
-	_echoD "$FUNCNAME() \$1='$1' | opts='$opts' | opt='$opt' | optgrp='$optgrp'"
+}
 
-	while [ "$opts" ]
+__start() {
+	local cmd cts cts_selected
+	_echoD "${FUNCNAME}() \$@=$@"
+	_echoD "${FUNCNAME}() LXCX_ALL=$LXCX_ALL LXCX_FORCE=$LXCX_FORCE LXCX_REGEXP=$LXCX_REGEXP"
+
+	cts_selected="$(lxc list --format=json | jq -r '.[] | select(.status == "Stopped").name' |xargs)"
+	cts=`__select "$*" "$cts_selected"`
+	_echoD "${FUNCNAME}() cts=${cts}"
+
+	if [ "${cts}" ];then
+		cmd="lxc start ${cts}"
+		_echoD "${FUNCNAME}() cmd=${cmd}"
+		exit
+		$cmd
+	fi
+}
+
+__stop() {
+	local cmd cts cts_selected
+	_echoD "${FUNCNAME}() \$@=$@"
+	_echoD "${FUNCNAME}() LXCX_ALL=$LXCX_ALL LXCX_FORCE=$LXCX_FORCE LXCX_REGEXP=$LXCX_REGEXP"
+
+	cts_selected="$(lxc list --format=json | jq -r '.[] | select(.status == "Running").name' |xargs)"
+	cts=`__select "$*" "$cts_selected"`
+	_echoD "${FUNCNAME}() cts=${cts}"
+
+	if [ "${cts}" ];then
+		cmd="lxc stop ${cts}"
+		_echoD "${FUNCNAME}() cmd=${cmd}"
+		exit
+		$cmd
+	fi
+}
+
+__restart() {
+	local cmd cts cts_selected
+	_echoD "${FUNCNAME}() \$@=$@"
+	_echoD "${FUNCNAME}() LXCX_ALL=$LXCX_ALL LXCX_FORCE=$LXCX_FORCE LXCX_REGEXP=$LXCX_REGEXP"
+
+	cts_selected="$(lxc list --format=json | jq -r '.[] | select(.status == "Running").name' |xargs)"
+	cts=`__select "$*" "$cts_selected"`
+	_echoD "${FUNCNAME}() cts=${cts}"
+
+	if [ "${cts}" ];then
+		cmd="lxc restart ${cts}"
+		_echoD "${FUNCNAME}() cmd=${cmd}"
+		exit
+		$cmd
+	fi
+}
+
+__delete() {
+	local cmd cts cts_selected
+	_echoD "${FUNCNAME}() \$@=$@"
+	_echoD "${FUNCNAME}() LXCX_ALL=$LXCX_ALL LXCX_FORCE=$LXCX_FORCE LXCX_REGEXP=$LXCX_REGEXP"
+
+	if [ "${LXCX_FORCE}" ]; then
+		cts_selected="$(lxc list --format=json | jq -r '.[].name' |xargs)"
+	else
+		cts_selected="$(lxc list --format=json | jq -r '.[] | select(.status == "Stopped").name' |xargs)"
+	fi
+	cts=`__select "$*" "$cts_selected"`
+	_echoD "${FUNCNAME}() cts=${cts}"
+
+	if [ "${cts}" ];then
+		cmd="lxc delete ${LXCX_FORCE:+--$LXCX_FORCE} ${cts}"
+		_echoD "${FUNCNAME}() cmd=${cmd}"
+		exit
+		$cmd
+	fi
+}
+
+__main() {
+
+	cmd_opts=
+	ddate=`date +%s`
+	opts_given="$@"
+	opts_short="afr:hdq"
+	opts_long="all,force,regexp:,help,quiet,debug"
+	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}-${ddate}) || _exite "$(</tmp/${0##*/}-${ddate})'"
+	eval set -- "${opts}"
+
+	_echoD "opts_given=$opts_given opts=$opts"
+
+	while [ "$1" != "--" ]
 	do
-		_echoD "$FUNCNAME() opt=$opt | opts=$opts"
-		case "$opt" in
-			help)
-				_echo "$usage"; _exit
+		case "$1" in
+			-a|--all)
+				LXCX_ALL="all"
 				;;
-			r|regexp)
-				regexp=r
+			-f|--force)
+				force=force
+				LXCX_FORCE="force"
 				;;
-			a|all)
-				all=a
+			-r|--regexp)
+				shift
+				LXCX_REGEXP="${LXCX_REGEXP} $1"
 				;;
-			f|force)
-				force=f
-				cmdopt+=" --force"
+			--help)
+				echo "$usage"
 				;;
-			delete)
-				delete=d
-				;;
-			q|quiet)
+			-q|--quiet)
 				_redirect quiet
 				;;
-			d|debug)
+			-d|--debug)
 				_redirect debug
 				;;
 			*)
-				_exite "Wrong opt: '$opt' for arguments '$optgiven'"
+				_exite "Wrong argument: '$1' for arguments '$opts_given'"
 				;;
 		esac
-
-		# option group
-		[ "$optgrp" ] && opts=${opts:1} && opt=${opts:0:1} || opts=
-	done
-
-	shift
-done
-
-action=$1
-shift
-_echoD "$FUNCNAME() optgiven=$optgiven | action=$action | \$*=$*"
-
-ctsexe=
-ctskip=
-ctstop="$(lxc list --format=json | jq -r '.[] | select(.status == "Stopped").name' |xargs)"
-ctstart="$(lxc list --format=json | jq -r '.[] | select(.status == "Running").name' |xargs)"
-ctexist="$(lxc list --format=json | jq -r '.[].name' |xargs)"
-
-_echoD "ctstop='$ctstop' | ctstart='$ctstart' | ctexist='$ctexist'"
-
-case "$action" in
-	init)
-		_ANSWER=${1:-+}
-		while ! [[ $_ANSWER =~ ^[a-zA-Z0-9_-]+$ ]] || __any $_ANSWER "$ctexist"; do
-			_ask "Give the name of ct [a-zA-Z0-9_-] (not already exists $_ANSWER): "
-		done
-		ct=$_ANSWER
-
-		_ANSWER=${2:-}
-		while ! [[ $_ANSWER =~ ^[0-9]+$ && 1 -lt $_ANSWER && $_ANSWER -lt 255 && ! $(lxc list --format=json | jq -r '.[] | select(.state.network.eth0.addresses[0].address == "'${_VM_IP_BASE}.$_ANSWER'")') ]]; do
-			_ask "Give the ctid of ct 1 < ctid < 255 (already exists): "
-		done
-		ctid=$_ANSWER
-
-		if [[ $3 ]]; then
-			_ANSWER=${3:-_}
-			while ! [[ $_ANSWER =~ .*-init$ && $(lxc image info $_ANSWER 2>/dev/null) ]]; do
-				_ask "Give the alias or fingerprint of image (not already exists $_ANSWER): "
-			done
-		else
-			ctiexist=$(lxc image list |grep "\-init" |awk -F '|' '{print $2}' |xargs)
-			[[ $ctiexist ]] && _menu "select an image: " $ctiexist || _wopt "Unable to find a good 'init' image !"
-		fi
-		ctimage=$_ANSWER
-
-		_eval "lxc init $ctimage $ct"
-		_eval "lxc start $ct"
-		sleep 2
-
-		_echoT "----------  root passwd"
-		_eval "lxc exec $ct -- passwd root"
-
-		_echoT "----------  ssh keygen"
-		_eval "lxc exec $ct -- ssh-keygen -t rsa"
-
-		_echoT "----------  ssh autorized keys"
-		file=/root/.ssh/authorized_keys
-
-		echo "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDkdsK8TBTZyV+fUBwe09NnxBUipZwOjd1AMm2sAepdC/+GB/coueeHIkIY5rdX962c+mEhV9OqyasfqEEELdt/04Xtj5fclIdLH859xWMFBy+NQpKhCVK5mOCf16xNCOShJphxLBFupKL7wfg5YZVF7zqCXB+iyobMXATAmQYyc5aowPT3X+cG4OyjmE+I13bmY2hDvs/WUicVBSB5/Bn8KSqftOZX71OvHqV90VBvAY71G3UOKydgplfcFeVszEON4J00vEAbrWKWObEypzaatEqkpPmkqNyZ0swevXhfIpIOwWgXhP0OYyXJxdi/bD+5IdLG7ePfie96Pty8vtXH trusty@fx8320e
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDbFbuc3xmdGsWXaBIInZWkL8ugmsGfa0oVb/K3b75f7xjNxMxQBsz0L4Oc+ir3eOSb3XvCKwlBNX5ixd9ljPj7KxJpzhut5HYDMtF4f5cn86hVhSk3+GhLtCpxOamilBVOgCq9pQpJzU8DeMPHgNfHyWSeU8mK4mnET14mBNMghbFpumhAXW+Qjc32DvnNw6NtyE2REQQRbsac6UIo/xgIClnuhkYURv9pGLqYCL31BYJV39P0CNwarprJR8FnKTzR/QSbBtwHdZVezGHdFhXPcE7+Oh/kcjNO8p8uqbtlfWalSNNoVH2PhuT0EdY77me2cnQucNfCsBlAxsChIvxT xenial@fx8320e
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDnFKXq/EpNvuRovByhPH8OhbeRPmsE/Of6Bc+xT1+39yD2qK9kT2Wt3RR2UlmzEThTuHt1f5GFiz9sxzWO1Rg5mcYoysl0JXrjxKb08xCjb81fnqJXaPfFUOv7e3JCwRVC2HIDf1DuZUAHRWpr9rPg8DrHfmq7nozEtGppZWzfY29PVSbytdcceUkbSKNWFSLfFGLmQDlj08ZZvfGnUVnBl+N0bWcZkoyLrKjMR230JMC+9HAThxxBv4MqtArdjZOC4q3gDZb/5yVm/6DowxTLvUZuLKlgEvelALZYDoYvXMIRa1sckOgexVGb3UjuFot0oXDWpgaqDAxiircwFWbN root@fx8320e' > $file" |lxc exec $ct bash -
-
-		_echoT "----------  ssh know_hosts"
-		_eval "ssh-keygen -R $ct"
-		_eval "ssh-keygen -R ${_VM_IP_BASE}.$ctid"
-
-		_echoT "----------  add ct in hosts"
-		file=/etc/hosts
-		! grep -q "^${_VM_IP_BASE}.$ctid" "$file" && echo -e "${_VM_IP_BASE}.$ctid\t$ct" >> $file
-
-		_echoT "----------  network static ip"
-		file=/etc/network/interfaces
-		echo "echo '# static ip
-		auto eth0
-		iface eth0 inet static
-		address ${_VM_IP_BASE}.$ctid
-		broadcast ${_VM_IP_BASE}.255
-		netmask 255.255.255.0
-		gateway ${_VM_IP_BASE}.1' > $file
-		" |lxc exec $ct bash -
-
-		_eval "lxc exec $ct -- cat $file"
-
-
-		_echoT "----------  update"
-		_eval "lxc exec $ct -- apt update"
-
-		_echoT "----------  upgrade"
-		_eval "lxc exec $ct -- apt upgrade -y"
-
-		_echoT "----------  install"
-		_eval "lxc exec $ct -- apt install -y rsync openssh-server nano wget man"
-
-		_eval "lxc exec $ct -- sed -i \"s|^\(127\.0\.1\.1 *\).*|\1$ct|\" /etc/hosts"
-		_eval "lxc exec $ct -- sed -i \"s|.*|$ct|\" /etc/hostname"
-
-		_echoT "----------  ct hostname"
-		file=/etc/hosts
-		# grep -q "${_VM_IP_BASE}.$ctid" "$file" && sed -i "/${_VM_IP_BASE}.$ctid.*/d" $file
-		! grep -q "${_VM_IP_BASE}.$ctid" "$file)" && echo -e "${_VM_IP_BASE}.$ctid\t$ct" >> $file
-
-		_echoT "----------  ct restart"
-		_eval "lxc restart $ct"
-
-		_echoT "----------  update /usr/local/bs"
-		_eval "rsync -av --delete /usr/local/bs/ root@$ct:/usr/local/bs/"
-
-		_echoT "----------  end successfully"
-		_eval "lxc list"
-		;;
-	copy)
-		_ANSWER=${1:-}
-		while ! [[ $(lxc info $_ANSWER 2>/dev/null) ]]; do
-			[[ $ctexist ]] && _menu "select an image: " $ctexist || _wopt "Unable to find a contaioner !"
-		done
-		ctfrom=$_ANSWER
-
-		_ANSWER=${2:-}
-		while ! [[ $_ANSWER =~ ^[0-9]+$ && 1 -lt $_ANSWER && $_ANSWER -lt 255 && ! $(lxc list --format=json | jq -r '.[] | select(.state.network.eth0.addresses[0].address == "'${_VM_IP_BASE}.$_ANSWER'")') ]]; do
-			_ask "Give the ctid of ct 1 < ctid < 255 (not already exists $_ANSWER): "
-		done
-		ctid=$_ANSWER
-
-		_ANSWER=${3:-}
-		while [[ $(lxc info $_ANSWER 2>/dev/null) ]]; do
-			_ask "Give the name for new container (not already exists $_ANSWER): "
-		done
-		ct=$_ANSWER
-
-		_eval "lxc copy $ctfrom $ct"
-		_eval "lxc start $ct"
-		sleep 2
-		lxc list
-
-		_echoT "----------  root passwd"
-		_eval "lxc exec $ct -- passwd root"
-
-		_echoT "----------  ssh keygen"
-		_eval "lxc exec $ct -- ssh-keygen -t rsa"
-
-		_echoT "----------  ssh know_hosts"
-		_eval "ssh-keygen -R $ct"
-		_eval "ssh-keygen -R ${_VM_IP_BASE}.$ctid"
-
-		_echoT "----------  add ct in hosts"
-		file=/etc/hosts
-		! grep -q "^${_VM_IP_BASE}.$ctid" "$file" && echo -e "${_VM_IP_BASE}.$ctid\t$ct" >> $file
-
-		_echoT "----------  network static ip"
-		file=/etc/network/interfaces
-		echo "echo '# static ip
-		auto eth0
-		iface eth0 inet static
-		address ${_VM_IP_BASE}.$ctid
-		broadcast ${_VM_IP_BASE}.255
-		netmask 255.255.255.0
-		gateway ${_VM_IP_BASE}.1' > $file
-		" |lxc exec $ct bash -
-
-		_eval "lxc exec $ct -- cat $file"
-
-		_eval "lxc exec $ct -- sed -i \"s|^\(127\.0\.1\.1 *\).*|\1$ct|\" /etc/hosts"
-		_eval "lxc exec $ct -- sed -i \"s|.*|$ct|\" /etc/hostname"
-
-		_echoT "----------  ct hostname"
-		file=/etc/hosts
-		# grep -q "${_VM_IP_BASE}.$ctid" "$file" && sed -i "/${_VM_IP_BASE}.$ctid.*/d" | sudo tee -a $file
-		! grep -q "${_VM_IP_BASE}.$ctid" "$file" && echo -e "${_VM_IP_BASE}.$ctid\t$ct" | sudo tee -a $file
-
-		_echoT "----------  ct restart"
-		_eval "lxc restart $ct"
-
-		_echoT "----------  update /usr/local/bs"
-		_eval "rsync -av --delete /usr/local/bs/ root@$ct:/usr/local/bs/"
-
-		_echoT "----------  end successfully"
-		_eval "lxc list"
-		;;
-	start)
-		if [[ $* == all ]]; then
-			ctsexe=$ctstop
-		else
-			cts=$*
-			[[ $regexp ]] && cmd=__anyregexp || cmd=__any
-			for ct in $cts; do
-				if _eval "$cmd $ct $ctstop"; then ctsexe+="$ct "
-				elif _eval "$cmd $ct $ctstart"; then ctskip+="$ct "
-				else ctwrong+="$ct "
-				fi
-			done
-		fi
-
-		_echoD "ctsexe='$ctsexe'"
-		cmd="lxc start$cmdopt"
-		for ct in $ctsexe; do
-			_eval "$cmd $ct"
-		done
-
-		[[ $ctskip ]] && _echoE "Containers skipped: $ctskip"
-		[[ $ctskip ]] && _echoE "Nothing to do, no good containers founded !"
-		;;
-	stop)
-		if [[ $* == all ]]; then
-			ctsexe=$ctstart
-		else
-			cts=$*
-			[[ $regexp ]] && cmd=__anyregexp || cmd=__any
-			for ct in $cts; do
-				if eval "$cmd $ct $ctstart"; then ctsexe+="$ct "
-				elif eval "$cmd $ct $ctstop"; then ctskip+="$ct "
-				else ctwrong+="$ct "
-				fi
-			done
-		fi
-
-		_echoD "ctsexe='$ctsexe'"
-		cmd="lxc stop$cmdopt"
-		for ct in $ctsexe; do
-			_eval "$cmd $ct"
-		done
-
-		[[ $ctskip ]] && _echoE "Containers skipped: $ctskip"
-		! [[ $ctsexe ]] && _echo "Nothing to do, no good containers founded !"
-		;;
-	restart)
-		ctsexestart=
-
-		if [[ $* == all ]]; then
-			[[ $force ]] && ctskip=$ctstop || ctsexe=$ctstart
-		else
-			cts=$*
-			[[ $regexp ]] && cmd=__anyregexp || cmd=__any
-			for ct in $cts; do
-				if eval "$cmd $ct $ctstart"; then ctsexe+="$ct "
-				elif eval "$cmd $ct $ctstop"; then ctskip+="$ct "
-				else ctwrong+="$ct "
-				fi
-			done
-		fi
-
-		_echoD "ctsexe='$ctsexe'"
-		cmd="lxc restart$cmdopt"
-		for ct in $ctsexe; do
-			_eval "$cmd $ct"
-		done
-		if [[ $force ]]; then
-			cmd="lxc start$cmdopt"
-			for ct in $ctskip; do
-				_eval "$cmd $ct"
-			done
-		fi
-
-		[[ $ctskip && ! $force ]] && _echoE "Containers skipped: $ctskip"
-		! [[ $ctsexe || ctskip ]] && _echo "Nothing to do, no good containers founded !"
-		;;
-	delete)
-		if [[ $* == all ]]; then
-			[[ $force ]] && ctskip=$ctexist || ctsexe=$ctstop
-		else
-			cts=$*
-			[[ $regexp ]] && cmd=__anyregexp || cmd=__any
-			for ct in $cts; do
-				if eval "$cmd $ct $ctstop"; then ctsexe+="$ct "
-				elif eval "$cmd $ct $ctstart"; then ctskip+="$ct "
-				else ctwrong+="$ct "
-				fi
-			done
-		fi
-		[[ $force ]] && ctsexe+=" $ctskip"
-
-		_echoD "ctsexe='$ctsexe'"
-		cmd="lxc delete$cmdopt"
-		for ct in $ctsexe; do
-			_eval "$cmd $ct"
-		done
-
-		[[ $ctskip && ! $force ]] && _echoE "Containers skipped: $ctskip"
-		! [[ $ctskip || $ctsexe ]] && _echo "Nothing to do, no good containers founded !"
-		;;
-	publish)
-		ctiexist=
-
-		if [[ $* == all ]]; then
-			[[ $force ]] && ctskip=$ctexist || ctsexe=$ctstop
-		else
-			cts=$*
-			[[ $regexp ]] && cmd=__anyregexp || cmd=__any
-			for ct in $cts; do
-				if eval "$cmd $ct $ctstop"; then ctsexe+="$ct "
-				elif eval "$cmd $ct $ctstart"; then ctskip+="$ct "
-				else ctwrong+="$ct "
-				fi
-			done
-		fi
-		[[ $force ]] && ctsexe+=" $ctskip"
-
-		_echoD "ctsexe='$ctsexe'"
-		cmd="lxc publish$cmdopt"
-		for ct in $ctsexe; do
-			[[ $(lxc image info $ct 2>/dev/null) ]] && [[ $delete ]] && _eval "lxc image delete $ct"
-			[[ $(lxc image info $ct 2>/dev/null) ]] && ctname=${ct}_$(date '+%Y%m%d') || ctname=$ct
-			_eval "$cmd $ct --alias=$ctname"
-		done
-
-		[[ $ctiexist ]] && _echoE "Containers skipped, image already exists for : $ctiexist"
-		[[ $ctskip && ! $force ]] && _echoE "Containers skipped: $ctskip"
-		! [[ $ctskip || $ctsexe ]] && _echo "Nothing to do, no good containers founded !"
-		;;
-	export)
-		ctiskip=
-
-		if [[ $* == all ]]; then
-			#ctis=$(lxc image list |grep x86_64 |awk -F '|' '{print $2}' |sed 's| ||g' |grep -vE "^.*-[0-9]{8}$" |xargs)
-			ctisexe=$(lxc image list |grep x86_64 |awk -F '|' '{print $2}' |xargs)
-		else
-			ctis=$*
-			[[ $regexp ]] && cmd=__anyregexp || cmd=__any
-			for cti in $ctis; do
-				[[ $(lxc image info $cti 2>/dev/null) ]] && ctisexe+="$cti "
-			done
-		fi
-
-		###################### export with name_hash_date
-
-		_echoD "ctsexe='$ctsexe'"
-		cmd="lxc image export"
-		for cti in $ctisexe; do
-			date=$(date '+%Y%m%d')
-			description=$(lxc image list |grep " $cti " |awk -F '|' '{print $5}' |xargs |sed 's/[()]//g' |sed 's/ /-/g' |sed -e 's/\(.*\)/\L\1/')
-			fingerprint=$(lxc image list |grep " $cti " |awk -F '|' '{print $3}'| xargs)
-			hash=$(lxc image info $cti |grep Fingerprint |sed "s|^Fingerprint: \(.*\)$|\1|")
-			_eval "$cmd $hash $S_HOSTING_PATH_EXPORT"
-			if [ -f $S_HOSTING_PATH_EXPORT/$hash.tar.gz ]; then
-				mv ${S_HOSTING_PATH_EXPORT}/${hash}.tar.gz ${S_HOSTING_PATH_EXPORT}/${cti}_${date}_${hash}.tar.gz
-			elif [ -f $S_HOSTING_PATH_EXPORT/$hash.tar.xz ]; then
-				mv ${S_HOSTING_PATH_EXPORT}/${hash}.tar.xz ${S_HOSTING_PATH_EXPORT}/${cti}_${date}_${hash}.tar.xz
-				mv $S_HOSTING_PATH_EXPORT/meta-$hash.tar.xz $S_HOSTING_PATH_EXPORT/${cti}_${date}_${hash}.meta.tar.xz
-			else
-				_wopt "Unable to find files ${S_HOSTING_PATH_EXPORT}/*${hash}*"
-			fi
-		done
-
-		[[ $ctiskip ]] && _echoE "Containers skipped: $ctiskip"
-		! [[ $ctisexe ]] && _echo "Nothing to do, no good containers founded !"
-		;;
-	launch)
-		! [[ $2 ]] && _wopt "Invalide nimber of arguments for launch !"
-		cmd=$1
 		shift
+	done
+	shift
 
-		if [[ $* == all ]]; then
-			ctsexe=$ctstart
-		else
-			cts=$*
-			[[ $regexp ]] && cmd=__anyregexp || cmd=__any
-			for ct in $cts; do
-				if eval "$cmd $ct $ctstart"; then ctsexe+="$ct "
-				elif eval "$cmd $ct $ctstop"; then ctskip+="$ct "
-				else ctwrong+="$ct "
-				fi
-			done
-		fi
+	action="$1"
+	shift
+	_echoD "${FUNCNAME}() LXCX_ALL='$LXCX_ALL' LXCX_FORCE='$LXCX_FORCE' LXCX_REGEXP='$LXCX_REGEXP' "
+	_echoD "${FUNCNAME}() action='$action' cmd_opts='$cmd_opts'"
 
-		# force started
-		if [[ $force ]]; then
-			ctsexe+="$ctskip"
-			for ct in $ctskip; do _eval "lxc start $ct"; done
-		fi
+	if [[ " delete init publish restart start stop " = *" $action "* ]]; then
+		# call action with arguments
+		__$action "$@"
+	else
+		_exite "Wrong action: '$action'. select in: delete init publish restart start stop"
+	fi
+}
 
-		_echoD "ctsexe='$ctsexe'"
-		for ct in $ctsexe; do
-			ctip=$(lxc list --format=json | jq -r '.[] | select(.name =="'$ct'").state.network.eth0.addresses[0].address')
-			_echoT "$ct"
-			if [ -f "$cmd" ]; then
-				_eval "ssh -p${S_SSH_PORT} ${S_VM_SSH_USER}@${ctip} bash < $cmd"
-			else
-				_eval "ssh -p${S_SSH_PORT} ${S_VM_SSH_USER}@${ctip} '$cmd'"
-			fi
-		done
+################################  MAIN
 
-		# force stoped
-		if [[ $force ]]; then
-			for ct in $ctskip; do _eval "lxc stop $ct"; done
-		fi
+LXCX_REGEXP=
+LXCX_FORCE=
+LXCX_ALL=
 
-		[[ $ctskip ]] && _echoE "Containers skipped: $ctskip"
-		! [[ $ctsexe ]] && _echo "Nothing to do, no good containers founded !"
-		;;
-	* )
-		_exite "Wrong action: '$action' for your call '$optgiven'"
-		;;
-esac
+__main "$@"
 
 _exit 0
-

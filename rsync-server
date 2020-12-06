@@ -85,15 +85,16 @@ bin_exclude="/usr/local/bs/conf/rs-bin.exc"
 install_exclude="/usr/local/bs/conf/rs-install.exc"
 dev_exclude="/usr/local/bs/conf/dev.exc"
 
-optsgiven="$@"
-optsshort="dafnvrlptogD"
-optslong="help,debug,archive,force,dry-run,verbose,delete,exclude:,exclude-from:,include:,include-from:"
-opts=$(getopt -o ${optsshort} -l ${optslong} -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "$(</tmp/${0##*/})'"
+ddate=`date +%s`
+opts_given="$@"
+opts_short="dafnvrlptogD"
+opts_long="help,debug,archive,force,dry-run,verbose,delete,exclude:,exclude-from:,include:,include-from:"
+opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}-${ddate}) || _exite "$(</tmp/${0##*/}-${ddate})'"
 eval set -- "${opts}"
 opts=
 
 # options
-_echoD "$FUNCNAME:$LINENO optsgiven='${optsgiven}' opts='${opts}'"
+_echoD "$FUNCNAME:$LINENO opts_given='${opts_given}' opts='${opts}'"
 while true; do
 	case "$1" in
 		--help)
@@ -159,7 +160,7 @@ while true; do
 			break
 			;;
 		*)
-			_exite "Bad options: '$1' in '${optsgiven}'"
+			_exite "Bad options: '$1' in '${opts_given}'"
 			;;
 	esac
 	shift
@@ -231,15 +232,15 @@ case "$1" in
 		excludefrom+="${bin_exclude}"
 		;;
 	*)
-		_exite "wrong command: '$1' in '${optsgiven}'"
+		_exite "wrong command: '$1' in '${opts_given}'"
 		;;
 esac
 shift
 
 # OUT: no command found
-[ ! "${cmd}" ] && _echoE "no command found in '${optsgiven}'" && exit 1
+[ ! "${cmd}" ] && _echoE "no command found in '${opts_given}'" && exit 1
 # rest options
-[ "$*" ] && _echoE "malformed command or too long, rest '$*' in '${optsgiven}'" && exit 1
+[ "$*" ] && _echoE "malformed command or too long, rest '$*' in '${opts_given}'" && exit 1
 
 # call command
 eval ${cmd}

@@ -181,7 +181,7 @@ __exec_percona() {
 __exec_sql() {
 	_echoD "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
 
-	results="$(_evalc "mysql -Ns -h${db_host} -u${db_user} -p${db_pwd} -e \"$*\"|tr '\t' ' '")"
+	results="$(_evalq "mysql -Ns -h${db_host} -u${db_user} -p${db_pwd} -e \"$*\"|tr '\t' ' '")"
 }
 
 __exec_sql_file() {
@@ -190,7 +190,7 @@ __exec_sql_file() {
 
 	for FILE in $*; do
 		if [ -f "$FILE" ]; then
-			! _evalc "mysql -Ns -h${db_host} -u${db_user} -p${db_pwd} < '$FILE'" && _echoE "Error during executing sql file '$file_sql'"
+			! _evalq "mysql -Ns -h${db_host} -u${db_user} -p${db_pwd} < '$FILE'" && _echoE "Error during executing sql file '$file_sql'"
 		else
 			ERROR="$FILE\n$ERROR"
 		fi
