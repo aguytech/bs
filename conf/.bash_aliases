@@ -183,8 +183,8 @@ alias vzlcr='vz-list -Ho ctid|xargs'
 alias vzc='vz-clean'
 
 # vz-ctl
-alias vz+='vz-ctl create'
-alias vz+t='vz-ctl create --tutorial'
+#alias vz+='vz-ctl create'
+#alias vz+t='vz-ctl create --tutorial'
 alias vz-='vz-ctl destroy'
 alias vz1='vz-ctl start -y'
 alias vz0='vz-ctl stop -y'
@@ -206,75 +206,71 @@ alias vzip-='vz-ip del'
 
 # vz-dump
 alias vzd='vz-dump'
-alias vzd1='vz-dump -y --compress'
-alias vzd1t='vz-dump -y --compress --template'
-alias vzd2='vz-dump -y --compress --force'
-alias vzd2t='vz-dump -y --compress --template'
+#alias vzd1='vz-dump -y --compress'
+#alias vzd1t='vz-dump -y --compress --template'
+#alias vzd2='vz-dump -y --compress --force'
+#alias vzd2t='vz-dump -y --compress --template'
 
 # vz-dump-all
-alias vzdall='vz-dump-all'
+#alias vzdall='vz-dump-all'
 
 # vz-restore
 alias vzr='vz-restore'
 alias vzrl='vz-restore --list'
-alias vzrla='vz-restore --list --all'
-alias vzr1='vz-restore --menu'
-alias vzr2='vz-restore --menu --template'
+#alias vzrla='vz-restore --list --all'
+#alias vzr1='vz-restore --menu'
+#alias vzr2='vz-restore --menu --template'
 
 # vz-launch
-alias vzlaunchup='vz-launch -v upgrade all'
+#alias vzlaunchup='vz-launch -v upgrade all'
 
 ###########################################  LXC
-alias jqp='jq .[]'
+alias lxcla="lxc list --format=json | jq -r '.[].name' "
+alias lxcl0="lxc list --format=json | jq -r '.[] | select(.status == \"Stopped\").name' "
+alias lxcl1="lxc list --format=json | jq -r '.[] | select(.status == \"Running\").name' "
 alias lxcl="lxc list -c nsP4tSc"
-alias lxcl1="lxc list -c nsP4tSc | jq -r '.[] | select(.status == \"Running\") .name'"
-#alias lxclj="lxc list --format=json | python -m json.tool"
-alias lxclj="lxc list --format=json"
-alias lxcljq="lxc list --format=json | jq .[]"
-alias lxcln="lxc list --format=json | jq -r '.[] .name'"
-alias lxclnn="lxc list --format=json | jq -r '.[] | select(.name | contains(\"'$name'\")) .name'"
-alias lxclr="lxc list --format=json | jq -r '.[] | select(.status == \"Running\") .name'"
-alias lxcls="lxc list --format=json | jq -r '.[] | select(.status == \"Stopped\") .name'"
-alias lxcls="lxc list --format=json | jq '.[] | select(.profiles | any(contains(\"'$profile'\"))) .name'"
 
-alias lxci='lxc info'
-alias lxcpl='lxc profile list'
-alias lxcps='lxc profile show'
-alias lxccl='lxc config trust list'
-alias lxc1='lxc start'
-alias lxc0='lxc stop'
-alias lxc^='lxc restart'
-alias lxc-='lxc delete'
-alias lxc-f='lxc delete --force'
-alias lxce='lxc exec'
-alias lxcil='lxc image list'
-alias lxcii='lxc image info'
-alias lxci-='lxc image delete'
+#alias lxcln="lxc list --format=json | jq -r '.[] | select(.name | contains(\"'$name'\")) .name'"
+#alias lxclp="lxc list --format=json | jq '.[] | select(.profiles | any(contains(\"'$profile'\"))) .name'"
 
-alias lxcxi='lxcx init'
-alias lxcxid='lxcx init debian8'
-alias lxcx1='lxcx start'
-alias lxcx0='lxcx stop'
-alias lxcx^='lxcx restart'
-alias lxcx-='lxcx delete'
-alias lxcx-f='lxcx -f delete'
-alias lxcxp='lxcx publish'
-alias lxcxpf='lxcx --force publish'
+#alias lxci='lxc info'
+#alias lxcpl='lxc profile list'
+#alias lxcps='lxc profile show'
+#alias lxccl='lxc config trust list'
+#alias lxc1='lxc start'
+#alias lxc0='lxc stop'
+#alias lxc^='lxc restart'
+#alias lxc-='lxc delete'
+#alias lxc-f='lxc delete --force'
+#alias lxce='lxc exec'
+#alias lxcil='lxc image list'
+#alias lxcii='lxc image info'
+#alias lxci-='lxc image delete'
+
+#alias lxcxi='lxcx init'
+#alias lxcxid='lxcx init debian8'
+#alias lxcx1='lxcx start'
+#alias lxcx0='lxcx stop'
+#alias lxcx^='lxcx restart'
+#alias lxcx-='lxcx delete'
+#alias lxcx-f='lxcx -f delete'
+#alias lxcxp='lxcx publish'
+#alias lxcxpf='lxcx --force publish'
 
 ###########################################  BTRFS
 alias btrfsf='btrfs filesystem'
 alias btrfss='btrfs subvolume'
 alias btrfssl='btrfs subvolume list -to'
-alias btrfssl1='btrfs subvolume list . |column -t |sort -k 9'
-alias btrfssc='btrfs subvolume create'
-alias btrfssd='btrfs subvolume delete'
-alias btrfsss='btrfs subvolume snapshot'
-alias btrfsfs='btrfs filesystem show'
-alias btrfsfu='btrfs filesystem usage'
-alias btrfsfdf='btrfs filesystem df'
-alias btrfsfd='btrfs filesystem defragment'
-alias btrfsfl='btrfs filesystem label'
-alias btrfsp='btrfs property -t s'
+#alias btrfssl1='btrfs subvolume list . |column -t |sort -k 9'
+#alias btrfssc='btrfs subvolume create'
+#alias btrfssd='btrfs subvolume delete'
+#alias btrfsss='btrfs subvolume snapshot'
+#alias btrfsfs='btrfs filesystem show'
+#alias btrfsfu='btrfs filesystem usage'
+#alias btrfsfdf='btrfs filesystem df'
+#alias btrfsfd='btrfs filesystem defragment'
+#alias btrfsfl='btrfs filesystem label'
+#alias btrfsp='btrfs property -t s'
 
 ###########################################  ZFS
 alias zpl='zpool list'
@@ -291,8 +287,8 @@ alias zfsg1='zfs get -o property,value creation,used,available,referenced,compre
 #alias snaplc='snapper list-configs'
 
 ###########################################  KVM
-alias kvmexp='export-kvm'
-alias slvr='/etc/init.d/libvirt-bin restart'
+#alias kvmexp='export-kvm'
+#alias slvr='/etc/init.d/libvirt-bin restart'
 
 ###########################################  PERSO
 # Monitor logs
