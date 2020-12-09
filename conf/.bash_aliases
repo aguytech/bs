@@ -166,69 +166,18 @@ alias iptlsn='iptables -S -t nat'
 alias iptlm='iptables -nvL -t mangle --line-number'
 alias iptla='iptables -nvL --line-number; iptables -nvL -t nat --line-number'
 
-###########################################  OPENVZ
-alias nanoser='nano /etc/server/server.conf'
-alias nanofir='nano /etc/server/firewall.conf'
-
-# vz-list
-alias vzl='vz-list -o ctid,numproc,status,hostname,name,ip'
-alias vzla='vz-list -ao ctid,numproc,status,hostname,name,ip'
-alias vzlS='vz-list -So ctid,numproc,status,hostname,name,ip'
-alias vzld='vz-list -O diskspace,diskinodes'
-alias vzlm='vz-list -O kmemsize,physpages,swappages'
-alias vzlm2='vz-list -O oomguarpages,vmguarpages'
-alias vzlcr='vz-list -Ho ctid|xargs'
-
-# vz-clean
-alias vzc='vz-clean'
-
-# vz-ctl
-#alias vz+='vz-ctl create'
-#alias vz+t='vz-ctl create --tutorial'
-alias vz-='vz-ctl destroy'
-alias vz1='vz-ctl start -y'
-alias vz0='vz-ctl stop -y'
-alias vz^='vz-ctl restart -y'
-
-# vz-iptables
-alias vziptl='vz-iptables list'
-alias vziptla='vz-iptables list -a'
-alias vziptlS='vz-iptables list -S'
-alias vzipt+='vz-iptables add'
-alias vzipt-='vz-iptables del'
-
-# vz-ip
-alias vzipl='vz-ip list'
-alias vzipla='vz-ip list -a'
-alias vziplS='vz-ip list -S'
-alias vzip+='vz-ip add'
-alias vzip-='vz-ip del'
-
-# vz-dump
-alias vzd='vz-dump'
-#alias vzd1='vz-dump -y --compress'
-#alias vzd1t='vz-dump -y --compress --template'
-#alias vzd2='vz-dump -y --compress --force'
-#alias vzd2t='vz-dump -y --compress --template'
-
-# vz-dump-all
-#alias vzdall='vz-dump-all'
-
-# vz-restore
-alias vzr='vz-restore'
-alias vzrl='vz-restore --list'
-#alias vzrla='vz-restore --list --all'
-#alias vzr1='vz-restore --menu'
-#alias vzr2='vz-restore --menu --template'
-
-# vz-launch
-#alias vzlaunchup='vz-launch -v upgrade all'
-
 ###########################################  LXC
+alias lxc1="lxc start"
+alias lxc0="lxc stop"
+alias lxc^="lxc restart"
+
+# list
 alias lxcla="lxc list --format=json | jq -r '.[].name' "
 alias lxcl0="lxc list --format=json | jq -r '.[] | select(.status == \"Stopped\").name' "
 alias lxcl1="lxc list --format=json | jq -r '.[] | select(.status == \"Running\").name' "
 alias lxcl="lxc list -c nsP4tSc"
+
+alias lxcil="lxc image list -c Lfptsu" # Lfpdtsu
 
 #alias lxcln="lxc list --format=json | jq -r '.[] | select(.name | contains(\"'$name'\")) .name'"
 #alias lxclp="lxc list --format=json | jq '.[] | select(.profiles | any(contains(\"'$profile'\"))) .name'"
@@ -298,3 +247,62 @@ alias zfsg1='zfs get -o property,value creation,used,available,referenced,compre
 # Keep 1000 lines in .bash_history (default is 500)
 #export HISTSIZE=2000
 #export HISTFILESIZE=2000
+
+###########################################  OPENVZ
+alias nanoser='nano /etc/server/server.conf'
+alias nanofir='nano /etc/server/firewall.conf'
+
+# vz-list
+alias vzl='vz-list -o ctid,numproc,status,hostname,name,ip'
+alias vzla='vz-list -ao ctid,numproc,status,hostname,name,ip'
+alias vzlS='vz-list -So ctid,numproc,status,hostname,name,ip'
+alias vzld='vz-list -O diskspace,diskinodes'
+alias vzlm='vz-list -O kmemsize,physpages,swappages'
+alias vzlm2='vz-list -O oomguarpages,vmguarpages'
+alias vzlcr='vz-list -Ho ctid|xargs'
+
+# vz-clean
+alias vzc='vz-clean'
+
+# vz-ctl
+#alias vz+='vz-ctl create'
+#alias vz+t='vz-ctl create --tutorial'
+alias vz-='vz-ctl destroy'
+alias vz1='vz-ctl start -y'
+alias vz0='vz-ctl stop -y'
+alias vz^='vz-ctl restart -y'
+
+# vz-iptables
+alias vziptl='vz-iptables list'
+alias vziptla='vz-iptables list -a'
+alias vziptlS='vz-iptables list -S'
+alias vzipt+='vz-iptables add'
+alias vzipt-='vz-iptables del'
+
+# vz-ip
+alias vzipl='vz-ip list'
+alias vzipla='vz-ip list -a'
+alias vziplS='vz-ip list -S'
+alias vzip+='vz-ip add'
+alias vzip-='vz-ip del'
+
+# vz-dump
+alias vzd='vz-dump'
+#alias vzd1='vz-dump -y --compress'
+#alias vzd1t='vz-dump -y --compress --template'
+#alias vzd2='vz-dump -y --compress --force'
+#alias vzd2t='vz-dump -y --compress --template'
+
+# vz-dump-all
+#alias vzdall='vz-dump-all'
+
+# vz-restore
+alias vzr='vz-restore'
+alias vzrl='vz-restore --list'
+#alias vzrla='vz-restore --list --all'
+#alias vzr1='vz-restore --menu'
+#alias vzr2='vz-restore --menu --template'
+
+# vz-launch
+#alias vzlaunchup='vz-launch -v upgrade all'
+

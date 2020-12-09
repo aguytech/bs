@@ -14,54 +14,72 @@ _echo() {
 _echo-() {
 	echo -e $* >&4
 }
+_echod() {
+	_echoD "$*"
+	echo -e "$(date +"%Y%m%d %T") $*" >> "${_SF_INF}"
+}
 
 # debug
 _echoD() {
-	echo "$(date +"%Y%m%d-%H%M%S") $*" >&6
+	echo "$(date +"%Y%m%d %T") $*" >&6
 }
 # error
 _echoe() {
-	_echoD "error - $*"
-	echo -e "error - ${red}${*}${cclear}" >&2
+	_echoD "[error] $*"
+	echo -e "[error] ${red}${*}${cclear}" >&2
 }
 _echoE() {
-	_echoD "error - $*"
-	echo -e "error - ${redb}${*}${cclear}" >&2
+	_echoD "[error] $*"
+	echo -e "[error] ${redb}${*}${cclear}" >&2
 }
 
 # information
 _echoi() {
-	_echoD "info - $*"
+	_echoD "[info] $*"
 	echo -e "${yellow}${*}${cclear}" >&4
 }
 _echoI() {
-	_echoD "info - $*"
+	_echoD "[info] $*"
 	echo -e "${yellowb}${*}${cclear}" >&4
 }
 
 # title
 _echot() {
-	_echoD "title - $*"
+	_echoD "[title] $*"
 	echo -e "${blue}${*}${cclear}" >&4
 }
 _echoT() {
-	_echoD "title - $*"
+	_echoD "[title] $*"
 	echo -e "${blueb}${*}${cclear}" >&4
 }
 
 # alert
 _echoa() {
-	_echoD "alert - $*"
+	_echoD "[alert] $*"
 	echo -e "${magenta}${*}${cclear}" >&4
 }
 _echoA() {
-	_echoD "alert - $*"
+	_echoD "[alert] $*"
 	echo -e "${magentab}${*}${cclear}" >&4
 }
 
 # echo white bold
 _echoW() {
 	echo -e "${whiteb}${*}${cclear}" >&4
+}
+
+##############  EXIT
+
+# exit
+_exit() {
+	_echoD "exit - $*"
+	[ "$*" ] && exit $* || exit
+}
+# exit, with default error 1
+_exite() {
+	[ "$1" ] && _echoE "$1" || _echoE "error - ${_SCRIPTFILE}"
+	_echoD "exit - $*"
+	[ "$2" ] && exit $2 || exit 1
 }
 
 ##############  ASK
@@ -147,26 +165,12 @@ _menur() {
 ##############  EVAL
 
 _eval() {
-	_echoD "eval $*"
+	_echoD "${FUNCNAME}() $*"
 	eval $* >&1
 }
 _evalq() {
-	_echoD "evalq $*"
+	_echoD "${FUNCNAME}() $*"
 	eval $* >&4
-}
-
-##############  EXIT
-
-# exit
-_exit() {
-	_echoD "exit - $*"
-	[ "$*" ] && exit $* || exit
-}
-# exit, with default error 1
-_exite() {
-	[ "$1" ] && _echoE "$1" || _echoE "error - ${_SCRIPTFILE}"
-	_echoD "exit - $*"
-	[ "$2" ] && exit $2 || exit 1
 }
 
 ##############  SOURCE
@@ -498,6 +502,7 @@ _reenter() {
 ##############  REDIRECT
 
 _redirect() {
+	local opt
 
 	# return if fd are already open
 	[[ `_fd_io 4` = "0"* ]] && return 1
@@ -508,24 +513,27 @@ _redirect() {
 	fi
 	! [ -d "$_PATH_LOG" ] && mkdir -p "$_PATH_LOG"
 
-	f_info="$_PATH_LOG/${_SCRIPTNAME}.info"
-	f_err="$_PATH_LOG/${_SCRIPTNAME}.err"
-	f_debug="$_PATH_LOG/${_SCRIPTNAME}.debug"
+	_SF_INF="$_PATH_LOG/${_SCRIPTNAME}.info"
+	_SF_ERR="$_PATH_LOG/${_SCRIPTNAME}.err"
+	_SF_BUG="$_PATH_LOG/${_SCRIPTNAME}.debug"
 
 	opt=${1:-$S_TRACE}
 	opt=${opt:-$S_TRACEOPT}
 
 	case "$opt" in
-		#				stderror																	sdtout							info									debug
-		#				2																				1									4										6
-		quiet)		exec 2> >(tee -a "$f_err" "$f_info")							1>&								4>>"$f_info"					6>/dev/null;;
-		info)			exec 2> >(tee -a "$f_err" "$f_info")							1> >(tee -a "$f_info")	4> >(tee -a "$f_info")		6>/dev/null;;
-		verbose)	exec 2> >(tee -a "$f_err" "$f_info" "$f_debug")		1> >(tee -a "$f_info")	4> >(tee -a "$f_info")		6>>"$f_debug";;
-		debug)	exec 2> >(tee -a "$f_err" "$f_info" "$f_debug")		1> >(tee -a "$f_info")	4> >(tee -a "$f_info")		6> >(tee -a "$f_debug");;
+		#				stderror														sdtout													info														debug
+		#				2																	1															4															6
+		quiet)		exec 2> >(tee -a "$_SF_ERR")						1>>"$_SF_INF"									4>>"$_SF_INF"									6>/dev/null;;
+		info)			exec 2> >(tee -a "$_SF_ERR" "$_SF_INF" )	1> >(tee -a "$_SF_INF")						4>&1													6>/dev/null;;
+		debug)	exec 2> >(tee -a "$_SF_ERR" "$_SF_BUG")	1> >(tee -a "$_SF_INF" "$_SF_BUG")	4> >(tee -a "$_SF_INF" "$_SF_BUG")	6>>"$_SF_BUG";;
+		full)			exec 2> >(tee -a "$_SF_ERR" "$_SF_BUG")	1> >(tee -a "$_SF_INF" "$_SF_BUG")	4> >(tee -a "$_SF_INF" "$_SF_BUG")	6> >(tee -a "$_SF_BUG");;
 	esac
 }
 
 ################################  MAIN
+
+# singleton
+S_INC_FUNCTIONS="true"
 
 # colors
 white='\e[0;0m'; red='\e[0;31m'; green='\e[0;32m'; blue='\e[0;34m'; magenta='\e[0;35m'; yellow='\e[0;33m'

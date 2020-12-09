@@ -1,14 +1,18 @@
 #!/bin/bash
 #
-# Provides:             lxcx
-# Short-Description:    functions over lxc to manipulate containers
-# Description:          functions over lxc to manipulate containers
+# Provides:						lxcx
+# Short-Description:		functions over lxc to manipulate containers
+# Description:					functions over lxc to manipulate containers
 
 ################################ GLOBAL FUNCTIONS
-S_TRACE=verbose
+S_TRACE=debug
 
-! [[ "$S_GLOBAL_FUNCTIONS" && -f $S_GLOBAL_FUNCTIONS ]] && echo -e "\e[1;31merror - unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'\e[0;0m" && exit 1
-. $S_GLOBAL_FUNCTIONS
+if [ -z $S_INC_FUNCTIONS ]; then
+	S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
+	! [ -f "$S_GLOBAL_FUNCTIONS" ] && echo -e "error - Unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'" && exit 1
+	. "$S_GLOBAL_FUNCTIONS"
+	. "$S_PATH_SCRIPT/inc-lxc"
+fi
 
 ################################  VARIABLES
 
@@ -16,37 +20,22 @@ usage="lxcx : manage containers
 the container name can be one or few name (separate with space)
 and a special name 'all' to select all containers
 
-Options:
-	-a,--all             select all containers for action
-	-r, --regexp     the selection for container name is made with regexp.
-	                       BE CAREFUL: limit the begin & the end of regexp
-	-f, --force         force certain actions (delete, stop, restart, publish...)
-	-h, --help        show usage of functions
-	-q, --quiet       don't show any infomations except interaction informations
-	-d, --debug     output in screen & in file debug informations
+Global usage:    lxcx <args> [action] [containers]
+	start			<ct name>
+	stop			<ct name>
+	restart		<ct name>
+	delete		<ct name>	if option '--force' is given, running container are also deleted
 
-Global usage:    lxcx <options> [action] [containers]
-	start   <ct name>
-	stop    <ct name>
-		if option '--force' is given, stopped container are running
-	restart <ct name>
-		if option '--force' is given, stopped container are running
-	delete	<ct name>
-		if option '--force' is given, running container are also deleted
+args:
+	-r, --regexp <regexp>    the selection for container name is made with regexp.
+							BE CAREFUL: limit the begin & the end of regexp
+	-a,--all				select all containers for action
+	-f, --force         	force certain actions (delete, stop, restart, publish...)
 
-Init usage:    lxcx init <options> [image] [containers]
-		Initialize a container from an image for a name
-
-	copy <source name> <ip id> <destination name>
-		Initialize a container with his name, IP id from image
-		if name, ip id & image don't pass to function, it will asking
-
-	publish	<ct name>
-		Create an image from container, if image already exists, add '_Ymd' to name
-		if option '--force' is given, running container are stopped before
-		if option '--delete' is given, existing image will be replaced
+	-h, --help			show usage of functions
+	-q, --quiet		don't show any infomations except interaction informations
+	-d, --debug		output in screen & in file debug informations
 "
-
 
 ################################  FUNCTION
 
@@ -58,39 +47,39 @@ __select() {
 	_echoD "${FUNCNAME}() \$2=$2"
 
 	# all
-	if [ "${LXCX_ALL}" = "all" ]; then
-		cts_tmp="$2"
+	if [ "${ALL}" = "all" ]; then
+		cts="$2"
 	else
 		# named containers
 		cts_tmp="$1"
-		_echoD "${FUNCNAME}() named cts_tmp=${cts_tmp}"
+		#_echoD "${FUNCNAME}() named cts_tmp=${cts_tmp}"
 		# regexped containers
-		for regexp in $LXCX_REGEXP; do
+		for regexp in $REGEXP; do
 			cts_tmp="${cts_tmp} $(lxc list --format=json ${regexp} | jq -r '.[].name' |xargs)"
 		done
-		_echoD "${FUNCNAME}() all cts_tmp=${cts_tmp}"
+		#_echoD "${FUNCNAME}() all cts_tmp=${cts_tmp}"
 		cts_tmp=`echo ${cts_tmp} | tr " " "\n" | sort -u | xargs`
+		# filters containers
 		for ct in $cts_tmp; do
 			[[ " $2 " = *" $ct "* ]] && cts="${cts} ${ct}"
 		done
-		_echoD "${FUNCNAME}() unique cts=${cts}"
-		echo "$cts"
 	fi
+	_echoD "${FUNCNAME}() unique cts=${cts}"
+	echo "$cts"
 }
 
 __start() {
 	local cmd cts cts_selected
 	_echoD "${FUNCNAME}() \$@=$@"
-	_echoD "${FUNCNAME}() LXCX_ALL=$LXCX_ALL LXCX_FORCE=$LXCX_FORCE LXCX_REGEXP=$LXCX_REGEXP"
+	_echoD "${FUNCNAME}() ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
-	cts_selected="$(lxc list --format=json | jq -r '.[] | select(.status == "Stopped").name' |xargs)"
+	cts_selected=`__lxc_list_stopped`
 	cts=`__select "$*" "$cts_selected"`
 	_echoD "${FUNCNAME}() cts=${cts}"
 
 	if [ "${cts}" ];then
 		cmd="lxc start ${cts}"
 		_echoD "${FUNCNAME}() cmd=${cmd}"
-		exit
 		$cmd
 	fi
 }
@@ -98,16 +87,15 @@ __start() {
 __stop() {
 	local cmd cts cts_selected
 	_echoD "${FUNCNAME}() \$@=$@"
-	_echoD "${FUNCNAME}() LXCX_ALL=$LXCX_ALL LXCX_FORCE=$LXCX_FORCE LXCX_REGEXP=$LXCX_REGEXP"
+	_echoD "${FUNCNAME}() ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
-	cts_selected="$(lxc list --format=json | jq -r '.[] | select(.status == "Running").name' |xargs)"
+	cts_selected=`__lxc_list_running`
 	cts=`__select "$*" "$cts_selected"`
 	_echoD "${FUNCNAME}() cts=${cts}"
 
 	if [ "${cts}" ];then
 		cmd="lxc stop ${cts}"
 		_echoD "${FUNCNAME}() cmd=${cmd}"
-		exit
 		$cmd
 	fi
 }
@@ -115,16 +103,15 @@ __stop() {
 __restart() {
 	local cmd cts cts_selected
 	_echoD "${FUNCNAME}() \$@=$@"
-	_echoD "${FUNCNAME}() LXCX_ALL=$LXCX_ALL LXCX_FORCE=$LXCX_FORCE LXCX_REGEXP=$LXCX_REGEXP"
+	_echoD "${FUNCNAME}() ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
-	cts_selected="$(lxc list --format=json | jq -r '.[] | select(.status == "Running").name' |xargs)"
+	cts_selected=`__lxc_list_running`
 	cts=`__select "$*" "$cts_selected"`
 	_echoD "${FUNCNAME}() cts=${cts}"
 
 	if [ "${cts}" ];then
 		cmd="lxc restart ${cts}"
 		_echoD "${FUNCNAME}() cmd=${cmd}"
-		exit
 		$cmd
 	fi
 }
@@ -132,49 +119,48 @@ __restart() {
 __delete() {
 	local cmd cts cts_selected
 	_echoD "${FUNCNAME}() \$@=$@"
-	_echoD "${FUNCNAME}() LXCX_ALL=$LXCX_ALL LXCX_FORCE=$LXCX_FORCE LXCX_REGEXP=$LXCX_REGEXP"
+	_echoD "${FUNCNAME}() ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
-	if [ "${LXCX_FORCE}" ]; then
-		cts_selected="$(lxc list --format=json | jq -r '.[].name' |xargs)"
+	if [ "${FORCE}" ]; then
+		cts_selected=`__lxc_list_existing`
 	else
-		cts_selected="$(lxc list --format=json | jq -r '.[] | select(.status == "Stopped").name' |xargs)"
+		cts_selected=`__lxc_list_stopped`
 	fi
 	cts=`__select "$*" "$cts_selected"`
 	_echoD "${FUNCNAME}() cts=${cts}"
 
 	if [ "${cts}" ];then
-		cmd="lxc delete ${LXCX_FORCE:+--$LXCX_FORCE} ${cts}"
+		cmd="lxc delete ${FORCE:+--$FORCE} ${cts}"
 		_echoD "${FUNCNAME}() cmd=${cmd}"
-		exit
 		$cmd
 	fi
 }
 
 __main() {
+	_echod "$0 ${FUNCNAME}()"
+	local opts_given opts_short opts_long opts action
+	local  ALL FORCE REGEXP
 
-	cmd_opts=
-	ddate=`date +%s`
 	opts_given="$@"
 	opts_short="afr:hdq"
 	opts_long="all,force,regexp:,help,quiet,debug"
-	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}-${ddate}) || _exite "$(</tmp/${0##*/}-${ddate})'"
+	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@")
 	eval set -- "${opts}"
 
-	_echoD "opts_given=$opts_given opts=$opts"
+	_echoD "${FUNCNAME}() opts_given=$opts_given opts=$opts"
 
 	while [ "$1" != "--" ]
 	do
 		case "$1" in
 			-a|--all)
-				LXCX_ALL="all"
+				ALL="all"
 				;;
 			-f|--force)
-				force=force
-				LXCX_FORCE="force"
+				FORCE="force"
 				;;
 			-r|--regexp)
 				shift
-				LXCX_REGEXP="${LXCX_REGEXP} $1"
+				REGEXP="${REGEXP} $1"
 				;;
 			--help)
 				echo "$usage"
@@ -195,10 +181,11 @@ __main() {
 
 	action="$1"
 	shift
-	_echoD "${FUNCNAME}() LXCX_ALL='$LXCX_ALL' LXCX_FORCE='$LXCX_FORCE' LXCX_REGEXP='$LXCX_REGEXP' "
-	_echoD "${FUNCNAME}() action='$action' cmd_opts='$cmd_opts'"
+	_echoD "${FUNCNAME}() ALL='$ALL' FORCE='$FORCE' REGEXP='$REGEXP' "
+	_echoD "${FUNCNAME}() action='$action'"
 
-	if [[ " delete init publish restart start stop " = *" $action "* ]]; then
+	[ -z "$action" ] && _exite "You have to give an action to execute"
+	if [[ " start stop restart delete " = *" $action "* ]]; then
 		# call action with arguments
 		__$action "$@"
 	else
@@ -207,10 +194,6 @@ __main() {
 }
 
 ################################  MAIN
-
-LXCX_REGEXP=
-LXCX_FORCE=
-LXCX_ALL=
 
 __main "$@"
 
