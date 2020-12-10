@@ -5,12 +5,10 @@
 # Description:          backup server, vz & kvm files & configuration
 
 ################################ GLOBAL FUNCTIONS
-#S_TRACE=debug
+S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
-
-! [ -f "$S_GLOBAL_FUNCTIONS" ] && echo -e "\e[1;31merror - unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'\e[0;0m" && exit 1
-. "$S_GLOBAL_FUNCTIONS"
+! . "$S_GLOBAL_FUNCTIONS" && echo -e "[error] - Unable to source file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'" && exit 1
 
 ################################  VARIABLES
 
@@ -34,10 +32,10 @@ arguments:
 # $1 path base
 # $2 sub path
 __compress() {
-	path_from="$1"
-	paths_sub="$2"
-	path_to="${path_from#/}"; path_to="$path_save/${path_to//\//.}"; path_to="${path_to%/}"
-	_echoD "$FUNCNAME:$LINENO path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
+	local path_from="$1"
+	local path_subs="$2"
+	local path_to="${path_from#/}"; path_to="${path_save}/${path_to//\//.}"; path_to="${path_to%/}"
+	_echoD "${FUNCNAME}() :$LINENO path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
 
 	# wrong path
 	! [ -d "$path_from" ] && _exite "Wrong path '$path_from' for calling '$*'"
@@ -49,6 +47,7 @@ __compress() {
 	_echoT "$PWD"
 
 	for path_sub in $paths_sub; do
+		path_sub=$(echo "$path_sub")
 		if [ -d "$path_sub" ]; then
 			file_to="${path_sub#/}"
 			file_to="${file_to//\//.}"
@@ -58,7 +57,7 @@ __compress() {
 			_evalq "tar $cmd_opt $file_to $path_sub"
 		else
 			_echoE "wrong path '$path_sub'"
-			_echoD "$FUNCNAME:$LINENO wrong path '$path_sub'"
+			_echoD "${FUNCNAME}() :$LINENO wrong path '$path_sub'"
 		fi
 	done
 }
@@ -67,14 +66,14 @@ __bc_conf() {
 	_echoW "conf"
 	path_from="/"
 	paths_sub="boot/grub etc root"
-	_compress "$path_from" "$paths_sub"
+	__compress "$path_from" "$paths_sub"
 }
 
 __bc_scripts() {
 	_echoW "scripts"
 	path_from="/"
 	paths_sub="usr/local/bs"
-	_compress "$path_from" "$paths_sub"
+	__compress "$path_from" "$paths_sub"
 }
 
 __main() {
@@ -87,7 +86,7 @@ __main() {
 	# vz
 	if [ "$vz" ]; then
 		_echoW "launch vz"
-		${S_PATH_SCRIPT}/backup-vz $vz-dump
+		${S_PATH_SCRIPT}/backup-vz ${vzdump}
 	fi
 
 	# kvm
@@ -100,9 +99,10 @@ __main() {
 
 ################################  MAIN
 
-_echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
+_echod "---------------------------------------------------------------------"
+_echod "$0 ${FUNCNAME}()"
 
-path_save="$S_PATH_SAVE_BACKUP/$DDATE"
+path_save="$S_PATH_SAVE_BACKUP/$_DDATE"
 cmd_opt=" --exclude='.cache' -czf"
 cmd_ext=tgz
 
@@ -117,7 +117,7 @@ if [ "${_CLUSTER_IPS/$_IPTHIS/}" == "${_CLUSTER_IPS}" ]; then
 	[ "$_ANSWER" == "n" ] && _exit
 fi
 
-_echoD "$FUNCNAME:$LINENO opts_given='$opts_given' opts='$opts'"
+_echoD "${FUNCNAME}() :$LINENO opts_given='$opts_given' opts='$opts'"
 while true; do
 	case "$1" in
 		--help)
@@ -138,7 +138,7 @@ while true; do
 			vz=v
 			;;
 		--vz-dump)
-			vz-dump=--dump
+			vzdump="--dump"
 			;;
 		--kvm)
 			kvm=k
@@ -154,7 +154,7 @@ while true; do
 	shift
 done
 
-_echoD "$FUNCNAME:$LINENO conf='$conf' scripts='$scripts' kvm='$kvm' vz='$vz' \$*='$*'"
+_echoD "${FUNCNAME}() :$LINENO conf='$conf' scripts='$scripts' kvm='$kvm' vz='$vz' \$*='$*'"
 
 __main
 

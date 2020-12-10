@@ -5,14 +5,11 @@
 # Description:					command to initalize container with options like apache, php-conf, mariadb
 
 ################################ GLOBAL FUNCTIONS
-S_TRACE=debug
+#S_TRACE=debug
 
-if [ -z $S_INC_FUNCTIONS ]; then
-	S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
-	! [ -f "$S_GLOBAL_FUNCTIONS" ] && echo -e "error - Unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'" && exit 1
-	. "$S_GLOBAL_FUNCTIONS"
-	. "$S_PATH_SCRIPT/inc-lxc"
-fi
+S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
+! . "$S_GLOBAL_FUNCTIONS" && echo -e "[error] - Unable to source file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'" && exit 1
+! . "$S_PATH_SCRIPT/inc-lxc" && echo -e "[error] - Unable to source file '$S_PATH_SCRIPT/inc-lxc' from '${BASH_SOURCE[0]}'" && exit 1
 
 ################################  VARIABLES
 
@@ -37,8 +34,8 @@ Init usage:    lxcx init <options> [image] [containers]
 ################################  FUNCTION
 
 __common() {
-	_echoD "${FUNCNAME}() IN"
-	_echoD "${FUNCNAME}() S_PATH_INSTALL=${S_PATH_INSTALL} S_PATH_SCRIPT=${S_PATH_SCRIPT}"
+	_echoD "${FUNCNAME}() :$LINENO IN"
+	_echoD "${FUNCNAME}() :$LINENO S_PATH_INSTALL=${S_PATH_INSTALL} S_PATH_SCRIPT=${S_PATH_SCRIPT}"
 
 	# start the container if needed
 	__lxc_is_stopped "$CTNAME" && lxc start "$CTNAME"
@@ -53,7 +50,7 @@ __common() {
 }
 
 __alpine312() {
-	_echoD "${FUNCNAME}() IN"
+	_echoD "${FUNCNAME}() :$LINENO IN"
 
 	local PATH_PROFILE="/etc/profile.d"
 
@@ -71,7 +68,7 @@ __alpine312() {
 }
 
 __buster() {
-	_echoD "${FUNCNAME}() IN"
+	_echoD "${FUNCNAME}() :$LINENO IN"
 
 	# conf
 	lxc file push "${S_PATH_INSTALL_CONF}/.bashrc-lxc-debian" "${CTNAME}/root/.bashrc"
@@ -86,12 +83,12 @@ __buster() {
 }
 
 __focal() {
-	_echoD "${FUNCNAME}() IN"
+	_echoD "${FUNCNAME}() :$LINENO IN"
 
 }
 
 __alpine312_apache() {
-	_echoD "${FUNCNAME}() IN"
+	_echoD "${FUNCNAME}() :$LINENO IN"
 
 	# profile www
 	profile="www"
@@ -127,7 +124,7 @@ __alpine312_apache() {
 }
 
 __alpine312_php() {
-	_echoD "${FUNCNAME}() IN"
+	_echoD "${FUNCNAME}() :$LINENO IN"
 
 	# apache
 	__alpine312_apache
@@ -179,7 +176,7 @@ rc-service apache2 restart && rc-service php-fpm7 restart'
 }
 
 __alpine312_mariadb() {
-	_echoD "${FUNCNAME}() IN"
+	_echoD "${FUNCNAME}() :$LINENO IN"
 
 	# profile sgbd
 	profile="sgbd"
@@ -250,7 +247,7 @@ __main() {
 	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@")
 	eval set -- "${opts}"
 
-	_echoD "${FUNCNAME}() opts_given=$opts_given opts=$opts"
+	_echoD "${FUNCNAME}() :$LINENO opts_given=$opts_given opts=$opts"
 
 	while [ "$1" != "--" ]
 	do
@@ -286,13 +283,13 @@ __main() {
 	IMAGE="$1"
 	IMAGE="${IMAGE/debian10/buster}"
 	IMAGE="${IMAGE/ubuntu2004/focal}"
-	_echoD "${FUNCNAME}() IMAGE='$IMAGE'"
+	_echoD "${FUNCNAME}() :$LINENO IMAGE='$IMAGE'"
 
 	shift
 	# no container name given
 	[ -z "$1" ] && _exite "You have to give a container name to initialize it"
 	CTNAME="$1"
-	_echoD "${FUNCNAME}() CTNAME='$CTNAME'"
+	_echoD "${FUNCNAME}() :$LINENO CTNAME='$CTNAME'"
 
 	# check method are implemented
 	__check

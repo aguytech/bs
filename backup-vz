@@ -8,9 +8,7 @@
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
-
-! [ -f "$S_GLOBAL_FUNCTIONS" ] && echo -e "\e[1;31merror - unable to find file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'\e[0;0m" && exit 1
-. "$S_GLOBAL_FUNCTIONS"
+! . "$S_GLOBAL_FUNCTIONS" && echo -e "[error] - Unable to source file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'" && exit 1
 
 ################################  VARIABLES
 
@@ -33,10 +31,8 @@ arguments:
 __compress() {
 	local path_from="$1"
 	local path_subs="$2"
-	local path_to
-
-	path_to="${path_from#/}"; path_to="${path_save}/${path_to//\//.}"; path_to="${path_to%/}"
-	_echoD "$FUNCNAME:$LINENO path_from='$path_from' path_subs='$path_subs' path_to='$path_to'"
+	local path_to="${path_from#/}"; path_to="${path_save}/${path_to//\//.}"; path_to="${path_to%/}"
+	_echoD "${FUNCNAME}() :$LINENO path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
 
 	# wrong path
 	! [ -d "$path_from" ] && _exite "Wrong path '$path_from' for calling '$*'"
@@ -47,20 +43,18 @@ __compress() {
 	cd "$path_from"
 	_echoT "$PWD"
 
-	path_subs=$(echo "$path_subs")
-
-	for path_sub in $path_subs
-	do
+	for path_sub in $paths_sub; do
+		path_sub=$(echo "$path_sub")
 		if [ -d "$path_sub" ]; then
-			file2="${path_sub#/}"
-			file2="${file2//\//.}"
-			file2="$path_to/${file2%/}.$comp_ext"
+			file_to="${path_sub#/}"
+			file_to="${file_to//\//.}"
+			file_to="$path_to/${file_to%/}.$cmd_ext"
 
 			_echo "compress $path_sub"
-			_evalq "tar $comp_opt $file2 $path_sub"
+			_evalq "tar $cmd_opt $file_to $path_sub"
 		else
 			_echoE "wrong path '$path_sub'"
-			_echoD "$FUNCNAME:$LINENO ERROR| Wrong path '$path_sub'"
+			_echoD "${FUNCNAME}() :$LINENO wrong path '$path_sub'"
 		fi
 	done
 }
@@ -76,7 +70,7 @@ __sync() {
 	local path_to="${path_from#/}"
 
 	path_to="${path_save}/${path_to//\//.}"; path_to="${path_to%/}"
-	_echoD "$FUNCNAME:$LINENO path_from='$path_from' path_subs='$path_subs' path_to='$path_to'"
+	_echoD "${FUNCNAME}() :$LINENO path_from='$path_from' path_subs='$path_subs' path_to='$path_to'"
 
 	# wrong path
 	! [ -d "$path_from" ] && _exite "Wrong path '$path_from' for calling '$*'"
@@ -87,6 +81,8 @@ __sync() {
 	cd "$path_to"
 	_echoT "$PWD"
 
+	path_subs=$(echo "$path_subs")
+	_echoD "${FUNCNAME}() :$LINENO path_subs='$path_subs'"
 	for path_sub in $path_subs
 	do
 		if [ -d "$path_from/$path_sub" ]; then
@@ -98,7 +94,7 @@ __sync() {
 			_evalq "rsync -a $str $path_from/$path_sub/ $path_sub_to/"
 		else
 			_echoE "wrong path '$path_from/$path_sub'"
-			_echoD "$FUNCNAME:$LINENO ERROR| Wrong path '$path_from/$path_sub'"
+			_echoD "${FUNCNAME}() :$LINENO ERROR| Wrong path '$path_from/$path_sub'"
 		fi
 	done
 }
@@ -155,9 +151,10 @@ __main() {
 
 ################################  MAIN
 
-_echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
+_echod "---------------------------------------------------------------------"
+_echod "$0 ${FUNCNAME}()"
 
-path_save="$S_PATH_SAVE_BACKUP/$DDATE/vz"
+path_save="$S_PATH_SAVE_BACKUP/$_DDATE/vz"
 comp_opt=czf
 comp_ext=tgz
 
@@ -167,16 +164,17 @@ opts_long="debug,dump,help,quiet"
 OPTS=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
-_echoD "$FUNCNAME:$LINENO opts_given='$opts_given' OPTS='$OPTS'"
+_echoD "${FUNCNAME}() :$LINENO opts_given='$opts_given' OPTS='$OPTS'"
 while true; do
 	case "$1" in
 		--dump)
 			dump=d
 			;;
-		-h, --help)
-			_echo "$usage"; _exit
+		-h| --help)
+			_echo "$usage"
+			_exit
 			;;
-		-d, --debug)
+		-d| --debug)
 			_redirect debug
 			;;
 		-q|--quiet)
@@ -195,7 +193,7 @@ done
 
 # all options
 # ; log=l
-_echoD "$FUNCNAME:$LINENO conf='$conf' template='$template' dump='$dump' suspend='$suspend' snapshot='$snapshot' share='$share' log='$log'"
+_echoD "${FUNCNAME}() :$LINENO conf='$conf' template='$template' dump='$dump' suspend='$suspend' snapshot='$snapshot' share='$share' log='$log'"
 
 __main
 
