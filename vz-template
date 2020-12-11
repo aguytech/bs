@@ -13,7 +13,14 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
+type vzctl &>/dev/null && VZCTL="vzctl" || VZCTL="/usr/sbin/vzctl"
+type ${VZCTL} &>/dev/null || _exite "unable to find vzctl command"
+
+type vzlist &>/dev/null && VZLIST="vzlist" || VZLIST="/usr/sbin/vzlist"
+type ${VZLIST} &>/dev/null || _exite "unable to find vzlist command"
+
+type vz-ctl &>/dev/null && VZ_CTL="vz-ctl" || VZ_CTL="/usr/local/bs/vz-ctl"
+type ${VZ_CTL} &>/dev/null || _exite "unable to find vz-ctl command"
 
 #part=vz-template
 #_echoT "==========================================  $part"
@@ -39,7 +46,7 @@ while [ "$_ANSWER" != y ]; do
 	opt=ctid
 	names+="$opt "
 	_ANSWER=0
-	ctidexist=" $(vzlist -Ho ctid |xargs) "
+	ctidexist=" $(${VZLIST} -Ho ctid |xargs) "
 	_echo "------------------------------------------------------------------------------"
 	#_echoi "$opts"
 	_echo "ctid already used: $ctidexist"
@@ -139,27 +146,27 @@ done
 
 _echoT "----------  creation"
 
-_eval "vzctl create ${datas[ctid]} --ostemplate ${datas[template]}"
+_eval "${VZCTL} create ${datas[ctid]} --ostemplate ${datas[template]}"
 
 
 _echoT "----------  configuration"
 
-[ "${datas[noatime]}" == y ] && _eval"vzctl set ${datas[ctid]} --noatime yes --save"
-_eval "vzctl set ${datas[ctid]} --ipadd ${datas[ip]} --save"
-_eval "vzctl set ${datas[ctid]} --hostname ${datas[hostname]} --save"
-_eval "vzctl set ${datas[ctid]} --name ${datas[name]} --save"
-_eval "vzctl set ${datas[ctid]} --physpages ${datas[ram]} --save"
-_eval "vzctl set ${datas[ctid]} --swappages ${datas[swap]} --save"
-_eval "vzctl set ${datas[ctid]} --diskspace ${datas[disk]} --save"
+[ "${datas[noatime]}" == y ] && _eval"${VZCTL} set ${datas[ctid]} --noatime yes --save"
+_eval "${VZCTL} set ${datas[ctid]} --ipadd ${datas[ip]} --save"
+_eval "${VZCTL} set ${datas[ctid]} --hostname ${datas[hostname]} --save"
+_eval "${VZCTL} set ${datas[ctid]} --name ${datas[name]} --save"
+_eval "${VZCTL} set ${datas[ctid]} --physpages ${datas[ram]} --save"
+_eval "${VZCTL} set ${datas[ctid]} --swappages ${datas[swap]} --save"
+_eval "${VZCTL} set ${datas[ctid]} --diskspace ${datas[disk]} --save"
 for dns in ${S_DNS_SERVER[opendns]}; do
-	_eval "vzctl set ${datas[ctid]} --nameserver $dns --save"
+	_eval "${VZCTL} set ${datas[ctid]} --nameserver $dns --save"
 done
 
 
 _echoT "----------  start"
 
-_eval "vz-ctl start -y ${datas[ctid]}"
-_eval "vzctl set ${datas[ctid]} --userpasswd 'root:${datas[pwd]}' --save"
+_eval "${VZ_CTL} start -y ${datas[ctid]}"
+_eval "${VZCTL} set ${datas[ctid]} --userpasswd 'root:${datas[pwd]}' --save"
 
 
 _echoT "----------  remove autorized key"

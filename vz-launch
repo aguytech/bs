@@ -27,10 +27,11 @@ launch command(s) in containers with ssh protocol
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
+type vzlist &>/dev/null && VZLIST="vzlist" || VZLIST="/usr/sbin/vzlist"
+type ${VZLIST} &>/dev/null || _exite "unable to find vzlist command"
 
-ctids_run=$(vzlist -Ho ctid | xargs)
-ctids_all=$(vzlist -aHo ctid | xargs)
+ctids_run="$(${VZLIST} -Ho ctid | xargs)"
+ctids_all="$(${VZLIST} -aHo ctid | xargs)"
 
 # OUT: no options given
 [ -z "$*" ] && _echoE "no options given" && exit 1

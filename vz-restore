@@ -126,13 +126,20 @@ options:
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
+type vzrestore &>/dev/null && VZRESTORE="vzrestore" || VZRESTORE="/usr/sbin/vzrestore"
+type ${VZRESTORE} &>/dev/null || _exite "unable to find vzrestore command"
+
+type vzctl &>/dev/null && VZCTL="vzctl" || VZCTL="/usr/sbin/vzctl"
+type ${VZCTL} &>/dev/null || _exite "unable to find vzctl command"
+
+type vzlist &>/dev/null && VZLIST="vzlist" || VZLIST="/usr/sbin/vzlist"
+type ${VZLIST} &>/dev/null || _exite "unable to find vzlist command"
 
 _echoD "$_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
 SORTSTRL="-k2,2 -k4,4r"
 SORTSTR="-k4,4 -k5,5r"
-CTIDexist="$(vzlist -aHo ctid|xargs)"
+CTIDexist="$(${VZLIST} -aHo ctid|xargs)"
 PATHDUMP="$S_VZ_PATH_DUMP"
 PATHDUMPXTRA="$PATHDUMP/$S_PATH_VZ_DUMP_REL_XTRA"
 
@@ -345,7 +352,7 @@ else
 		assocs=
 		while ! [[ "$assocs" =~ ^q|p$ ]]; do
 			#refresh existings ctid
-			CTIDexist="$(vzlist -aHo ctid|xargs)"
+			CTIDexist="$(${VZLIST} -aHo ctid|xargs)"
 
 			# list of temporary associations
 			ASSOCLIST=
@@ -469,7 +476,7 @@ fi
 for CTID in ${!DUMPSPROC[*]}; do
 	# restore container
 	_echoI "create $CTID"
-	_eval "vzrestore \"$PATHDUMP/${DUMPSPROC[$CTID]}\" $CTID"
+	_eval "${VZRESTORE} \"$PATHDUMP/${DUMPSPROC[$CTID]}\" $CTID"
 
 	_echoD "$FUNCNAME:$LINENO SUSPEND='$SUSPEND' SNAPSHOT='$SNAPSHOT'"
 	if ! [[ $SUSPEND || $SNAPSHOT ]]; then
@@ -482,25 +489,25 @@ done
 for CTID in ${!DUMPSPROC[*]}; do
     _echoI "adjust $CTID"
 
-    NAME="$(vzlist -aHo hostname $CTID)"
+    NAME="$(${VZLIST} -aHo hostname $CTID)"
     NAME=${NEWNAME:-$NAME}
     ! [[ "$NEWNAME" || "$KEEPNAME" ]] && _askno "Give a new hostname for container '$CTID' ($NAME) "
 
     # rename ct
     _echoi "Renaming $CTID"
-    _evalq "vzctl set $CTID --hostname ${_ANSWER:-$NAME} --save"
+    _evalq "${VZCTL} set $CTID --hostname ${_ANSWER:-$NAME} --save"
 
     # start ct
     _echoi "start $CTID"
-    _evalq "vzctl start $CTID"
+    _evalq "${VZCTL} start $CTID"
 
     # ajust mailname
     _echoi "Adjust $CTID"
     FILE=/etc/mailname
-    _evalq "vzctl exec $CTID 'echo \$HOSTNAME > $FILE'"
+    _evalq "${VZCTL} exec $CTID 'echo \$HOSTNAME > $FILE'"
     # ajust exim4
     FILE=/etc/exim4/update-exim4.conf.conf
-    _evalq "vzctl exec $CTID '[ -f "$FILE" ] && sed -i \"s|^dc_readhost=.*|dc_readhost='\''\$HOSTNAME'\''|\" $FILE'"
+    _evalq "${VZCTL} exec $CTID '[ -f "$FILE" ] && sed -i \"s|^dc_readhost=.*|dc_readhost='\''\$HOSTNAME'\''|\" $FILE'"
 done
 
 _exit 0

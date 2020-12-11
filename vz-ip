@@ -81,7 +81,8 @@ options:
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
+type vzctl &>/dev/null && VZCTL="vzctl" || VZCTL="/usr/sbin/vzctl"
+type ${VZCTL} &>/dev/null || _exite "unable to find vzctl command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -186,7 +187,7 @@ case "$ACTION" in
 		# commands
 		for CTID in $CTIDCMD
 		do
-			CMD="vzctl set $CTID"
+			CMD="${VZCTL} set $CTID"
 			[ "$replace" ] && CMD+=" --ipdel all"
 			CMD+=" --ipadd ${_VM_IP_BASE}.${CTID} --save"
 			_echoT "$CTID - $ACTION ${_VM_IP_BASE}.${CTID}"
@@ -220,7 +221,7 @@ case "$ACTION" in
 		for CTID in $CTIDIP
 		do
 			_echoT "$CTID - $ACTION all ips"
-			_eval "vzctl set $CTID --ipdel all --save"
+			_eval "${VZCTL} set $CTID --ipdel all --save"
 
 			# ipt
 			_eval "vz-iptables $ACTION -y$ALL$DEBUG$QUIET $CTID"

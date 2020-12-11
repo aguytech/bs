@@ -36,7 +36,8 @@ options:
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
+type vzlist &>/dev/null && VZLIST="vzlist" || VZLIST="/usr/sbin/vzlist"
+type ${VZLIST} &>/dev/null || _exite "unable to find vzlist command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -98,7 +99,7 @@ case "$ACTION" in
 		;;
 	list)
 		# exist
-		CTIDEXISTING="$(vzlist -aHo ctid|xargs)"
+		CTIDEXISTING="$(VZLIST -aHo ctid|xargs)"
 		if [[ "$*" == "all" || ! "$*" ]]; then
 			CTIDEXIST="$CTIDEXISTING"
 			CTIDNOEXIST=
@@ -111,7 +112,7 @@ case "$ACTION" in
 		fi
 
 		# running
-		CTIDRUNNING="$(vzlist -Ho ctid 2>/dev/null|xargs)"
+		CTIDRUNNING="$(VZLIST -Ho ctid 2>/dev/null|xargs)"
 		if [ "$ALL" ]; then
 			CTIDRUN="$CTIDEXIST"
 			CTIDNORUN=
@@ -149,7 +150,7 @@ case "$ACTION" in
 		! [ "$*" ] && _exite "Missing ctids: '$*' for arguments '$OPTSGIVEN'"
 
 		# exist
-		CTIDEXISTING="$(vzlist -aHo ctid|xargs)"
+		CTIDEXISTING="$(VZLIST -aHo ctid|xargs)"
 		if [ "$*" == "all" ]; then
 			CTIDEXIST="$CTIDEXISTING"
 			CTIDNOEXIST=
@@ -172,7 +173,7 @@ case "$ACTION" in
 		_echoD "$FUNCNAME:$LINENO CTIDRULE='$CTIDRULE' CTIDNORULE='$CTIDNORULE'"
 
 		# running
-		CTIDRUNNING="$(vzlist -Ho ctid 2>/dev/null|xargs)"
+		CTIDRUNNING="$(${VZLIST} -Ho ctid 2>/dev/null|xargs)"
 		if [ "$ALL" ]; then
 			CTIDRUN="$CTIDNORULE"
 			CTIDNORUN=
@@ -225,7 +226,7 @@ case "$ACTION" in
 		_echoD "$FUNCNAME:$LINENO CTIDRULE='$CTIDRULE' CTIDNORULE='$CTIDNORULE'"
 
 		# stopped
-		CTIDSSTOPPED="$(vzlist -SHo ctid|xargs)"
+		CTIDSSTOPPED="$(${VZLIST} -SHo ctid|xargs)"
 		if [ "$ALL" ]; then
 			CTIDSTOP="$CTIDRULE"
 			CTIDNOSTOP=

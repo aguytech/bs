@@ -12,11 +12,7 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
 
 ################################  MAIN
 
-# openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
-
 _echoD "$_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
-
 
 path=$S_VZ_PATH_DUMP
 
@@ -27,7 +23,6 @@ for str in $(ls -1 $path/xtra/*.conf| sed "s|.*_\([0-9]\+-[0-9]\+\)\.conf$|\1|")
 		find $path/xtra -name "*$str*" -exec rm {} \;
 	fi
 done
-
 
 path=$S_VZ_PATH_DUMP_TEMPLATE
 

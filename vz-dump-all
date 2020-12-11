@@ -6,16 +6,15 @@
 
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
-
-! type vzdump >/dev/null 2>&1 && echo "Missing command vzdump" && exit 1
+type vz-dump &>/dev/null && VZDUMP="vz-dump" || VZDUMP="/usr/local/bs/vz-dump"
+type ${VZDUMP} &>/dev/null || _exite "unable to find vz-dump command"
 
 blueb='\e[1;34m'; cclear='\e[0;0m'
 
 echo -e "${blueb}start vzdump for all containers\n$(vzlist -Ho ctid|xargs)${cclear}"
 
-#vz-ctl stop -y all && vz-dump -cy 101-199 && vz-dump -cty 200-254 && vz-ctl start -y all
-vz-dump -cfy 101-199
+#vz-ctl stop -y all && ${VZDUMP} -cy 101-199 && ${VZDUMP} -cty 200-254 && vz-ctl start -y all
+${VZDUMP} -cfy 101-199
 
 # template
-vz-dump -cfty 200-254
+${VZDUMP} -cfty 200-254

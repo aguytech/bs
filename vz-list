@@ -81,12 +81,13 @@ vz-list [options] [CTIDs / all]
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
+type vzlist &>/dev/null && VZLIST="vzlist" || VZLIST="/usr/sbin/vzlist"
+type ${VZLIST} &>/dev/null || _exite "unable to find vzlist command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
-ctids_all="$(vzlist -aHo ctid | xargs)"
-ctids_run="$(vzlist -Ho ctid 2>/dev/null | xargs)"
+ctids_all="$(${VZLIST} -aHo ctid | xargs)"
+ctids_run="$(${VZLIST} -Ho ctid 2>/dev/null | xargs)"
 fields_list="bootorder cpulimit cpus cpuunits CTID description disabled features hostname iolimit ioprio iopslimit ip laverage layout mount_opts name nameserver onboot origin_sample ostemplate private root searchdomain smart_name status uptime veid vm_overcommit vpsid vswap"
 
 opts_given="$@"
@@ -169,6 +170,6 @@ _echoD "$FUNCNAME:$LINENO ctids_list='$ctids_list'"
 #[ ! "$ALL" ] && [ ! "$ctids_list" ] && _exite "no containers found for your selection: $opts_given"
 
 # command
-_eval "vzlist ${opts_cmd}${ctids_list}|column -t"
+_eval "${VZLIST} ${opts_cmd}${ctids_list}|column -t"
 
 _exit 0

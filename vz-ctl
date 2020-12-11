@@ -154,7 +154,7 @@ options:
 	[[ "$CTIDCMD" && ! "$CONFIRM" ]] && __confirm "$ACTION" "$CTIDCMD" "$OPTSLIST"
 
 	# execute
-	[ "$CTIDCMD" ] && __execute "vzctl $ACTION" "$CTIDCMD"  "$OPTSLIST" add
+	[ "$CTIDCMD" ] && __execute "${VZCTL} $ACTION" "$CTIDCMD"  "$OPTSLIST" add
 
 }
 
@@ -239,7 +239,7 @@ options:
 	[[ "$CTIDCMD" && ! "$CONFIRM" ]] && __confirm "$ACTION" "$CTIDCMD" "$OPTSLIST"
 
 	# execute
-	[ "$CTIDCMD" ] && __execute "vzctl $ACTION" "$CTIDCMD" "$OPTSLIST" del
+	[ "$CTIDCMD" ] && __execute "${VZCTL} $ACTION" "$CTIDCMD" "$OPTSLIST" del
 
 }
 
@@ -331,7 +331,7 @@ options:
 	[[ "$CTIDCMD" && ! "$CONFIRM" ]] && __confirm "$ACTION" "$CTIDCMD" "$OPTSLIST"
 
 	# execute
-	[ "$CTIDCMD" ] && __execute "vzctl $ACTION" "$CTIDCMD" "$OPTSLIST"
+	[ "$CTIDCMD" ] && __execute "${VZCTL} $ACTION" "$CTIDCMD" "$OPTSLIST"
 
 }
 
@@ -424,7 +424,7 @@ options:
 	[ ! "$CONFIRM" ] && __confirm "$ACTION" "$CTIDCMD" "$OPTSLIST"
 
 	# execute
-	__execute "vzctl $ACTION" "$CTIDCMD" "$_SCRIPT"
+	__execute "${VZCTL} $ACTION" "$CTIDCMD" "$_SCRIPT"
 
 }
 
@@ -518,7 +518,7 @@ options:
 	[[ "$CTIDCMD" && ! "$CONFIRM" ]] && __confirm "$ACTION" "$CTIDCMD" "$OPTSLIST"
 
 	_echoD "$FUNCNAME:$LINENO ACTION='$ACTION' CTID='$CTID'"
-	_evalq "__execute 'vzctl $ACTION' '$CTIDCMD'"
+	_evalq "__execute '${VZCTL} $ACTION' '$CTIDCMD'"
 }
 
 ################################  VARIABLES
@@ -580,7 +580,8 @@ In case the limit is not given it is set to the same value as the barrier.
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
+type vzctl &>/dev/null && VZCTL="vzctl" || VZCTL="/usr/sbin/vzctl"
+type ${VZCTL} &>/dev/null || _exite "unable to find vzctl command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 

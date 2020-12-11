@@ -144,7 +144,11 @@ options:
 ################################  MAIN
 
 # openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
+type vzctl &>/dev/null && VZCTL="vzctl" || VZCTL="/usr/sbin/vzctl"
+type ${VZCTL} &>/dev/null || _exite "unable to find vzctl command"
+
+type vzdump &>/dev/null && VZDUMP="vzdump" || VZDUMP="/usr/sbin/vzdump"
+type ${VZDUMP} &>/dev/null || _exite "unable to find vzdump command"
 
 _echoD "$_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
@@ -283,7 +287,7 @@ do
             _ask "Please give the new hostname of containers to dump ($HOSTNAMECT)"
             HOSTNAMECT=${_ANSWER:-$HOSTNAMECT}
 
-	        _eval "vzctl set $CTID --hostname $HOSTNAMECT --save"
+	        _eval "${VZCTL} set $CTID --hostname $HOSTNAMECT --save"
             REHOSTNAMECT=1
         fi
 
@@ -291,7 +295,7 @@ do
 		if  ! [ "$(vzlist -SH $CTID)" ]; then
 			# stop containers
 			_echoT "stop $CTID"
-			_eval "vzctl stop $CTID"
+			_eval "${VZCTL} stop $CTID"
 			start=1
 		fi
 
@@ -303,20 +307,20 @@ do
 
 	# compact
 	_echoT "compact $CTID"
-	_eval "vzctl compact $CTID"
+	_eval "${VZCTL} compact $CTID"
 
 	# dump
 	_echoT "dump $CTID"
-	_eval "vzdump$OPTSCMD $CTID"
+	_eval "${VZDUMP} $OPTSCMD $CTID"
 
 	# rename files
 	[ "$RENAME" ] && _eval "__rename_dump $CTID $DATE $HOSTNAMECT"
 
 	# rename hostname
-	[ "$REHOSTNAMECT" ] && _eval "vzctl set $CTID --hostname $HOSTNAMECTKEEP --save"
+	[ "$REHOSTNAMECT" ] && _eval "${VZCTL} set $CTID --hostname $HOSTNAMECTKEEP --save"
 
 	# start containers
-	[ "$start" ] && _eval "vzctl start $CTID"
+	[ "$start" ] && _eval "${VZCTL} start $CTID"
 
 done
 

@@ -39,9 +39,6 @@ options:
 
 ################################  MAIN
 
-# openvz server
-type vzctl >/dev/null 2>&1 || _exite "unable to find vzctl command"
-
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
 SORTSTR="-k3,3 -k4,4r"
