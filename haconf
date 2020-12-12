@@ -57,7 +57,7 @@ __clear() {
 
 	local confs
 
-	confs="$(find -L ${path_enabled}/ -type l|sort|sed "s|${path_enabled}/\(.*\).cfg|\1|")"
+	confs="$(find -L ${path_enabled}/ -type l|sort|sed "s|${path_enabled}/||")"
 	_evalq "find -L ${path_enabled}/ -type l -exec rm {} \\;"
 
 	[ "$confs" ] && _echo "The following broken links are deleted:\n$confs"
@@ -152,17 +152,17 @@ __list() {
 	# select confs
 	if [ -z $@ ]; then
 		disabled="$(ls "${path_available}")"
-		enabled="$(find -L "${path_enabled}"/ -type f|sort|sed "s|${path_enabled}/\(.*\).cfg|\1|")"
-		ko="$(find -L "${path_enabled}"/ -type l|sort|sed "s|${path_enabled}/\(.*\).cfg|\1|")"
+		enabled="$(find -L "${path_enabled}"/ -type f|sort|sed "s|${path_enabled}/||")"
+		ko="$(find -L "${path_enabled}"/ -type l|sort|sed "s|${path_enabled}/||")"
 	else
 		# select confs
 		for conf in $@; do
 			disabled="${disabled}
-$(find ${path_available}/ -type f -name ${conf}|sort|sed "s|${path_available}/\(.*\).cfg|\1|")"
+$(find ${path_available}/ -type f -name ${conf}|sort|sed "s|${path_available}/||")"
 			enabled="${enabled}
-$(find -L ${path_enabled}/ -type f -name ${conf}|sort|sed "s|${path_enabled}/\(.*\).cfg|\1|")"
+$(find -L ${path_enabled}/ -type f -name ${conf}|sort|sed "s|${path_enabled}/||")"
 			ko="${ko}
-$(find -L ${path_enabled}/ -type l -name ${conf}|sort|sed "s|${path_enabled}/\(.*\).cfg|\1|")"
+$(find -L ${path_enabled}/ -type l -name ${conf}|sort|sed "s|${path_enabled}/||")"
 		done
 	fi
 
