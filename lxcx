@@ -39,9 +39,10 @@ args:
 # $1 container names to select
 # $2 available container names
 __select() {
+	_echoD "${FUNCNAME}():$LINENO \$1=$1"
+	_echoD "${FUNCNAME}():$LINENO \$2=$2"
+
 	local cts cts_tmp
-	_echoD "${FUNCNAME}() :$LINENO \$1=$1"
-	_echoD "${FUNCNAME}() :$LINENO \$2=$2"
 
 	# all
 	if [ "${ALL}" = "all" ]; then
@@ -49,74 +50,78 @@ __select() {
 	else
 		# named containers
 		cts_tmp="$1"
-		#_echoD "${FUNCNAME}() :$LINENO named cts_tmp=${cts_tmp}"
+		#_echoD "${FUNCNAME}():$LINENO named cts_tmp=${cts_tmp}"
 		# regexped containers
 		for regexp in $REGEXP; do
 			cts_tmp="${cts_tmp} $(lxc list --format=json ${regexp} | jq -r '.[].name' |xargs)"
 		done
-		#_echoD "${FUNCNAME}() :$LINENO all cts_tmp=${cts_tmp}"
+		#_echoD "${FUNCNAME}():$LINENO all cts_tmp=${cts_tmp}"
 		cts_tmp=`echo ${cts_tmp} | tr " " "\n" | sort -u | xargs`
 		# filters containers
 		for ct in $cts_tmp; do
 			[[ " $2 " = *" $ct "* ]] && cts="${cts} ${ct}"
 		done
 	fi
-	_echoD "${FUNCNAME}() :$LINENO unique cts=${cts}"
+	_echoD "${FUNCNAME}():$LINENO unique cts=${cts}"
 	echo "$cts"
 }
 
 __start() {
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
+
 	local cmd cts cts_selected
-	_echoD "${FUNCNAME}() :$LINENO \$@=$@"
-	_echoD "${FUNCNAME}() :$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
 	cts_selected=`__lxc_list_stopped`
 	cts=`__select "$*" "$cts_selected"`
-	_echoD "${FUNCNAME}() :$LINENO cts=${cts}"
+	_echoD "${FUNCNAME}():$LINENO cts=${cts}"
 
 	if [ "${cts}" ];then
 		cmd="lxc start ${cts}"
-		_echoD "${FUNCNAME}() :$LINENO cmd=${cmd}"
+		_echoD "${FUNCNAME}():$LINENO cmd=${cmd}"
 		$cmd
 	fi
 }
 
 __stop() {
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
+
 	local cmd cts cts_selected
-	_echoD "${FUNCNAME}() :$LINENO \$@=$@"
-	_echoD "${FUNCNAME}() :$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
 	cts_selected=`__lxc_list_running`
 	cts=`__select "$*" "$cts_selected"`
-	_echoD "${FUNCNAME}() :$LINENO cts=${cts}"
+	_echoD "${FUNCNAME}():$LINENO cts=${cts}"
 
 	if [ "${cts}" ];then
 		cmd="lxc stop ${cts}"
-		_echoD "${FUNCNAME}() :$LINENO cmd=${cmd}"
+		_echoD "${FUNCNAME}():$LINENO cmd=${cmd}"
 		$cmd
 	fi
 }
 
 __restart() {
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
+
 	local cmd cts cts_selected
-	_echoD "${FUNCNAME}() :$LINENO \$@=$@"
-	_echoD "${FUNCNAME}() :$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
 	cts_selected=`__lxc_list_running`
 	cts=`__select "$*" "$cts_selected"`
-	_echoD "${FUNCNAME}() :$LINENO cts=${cts}"
+	_echoD "${FUNCNAME}():$LINENO cts=${cts}"
 
 	if [ "${cts}" ];then
 		cmd="lxc restart ${cts}"
-		_echoD "${FUNCNAME}() :$LINENO cmd=${cmd}"
+		_echoD "${FUNCNAME}():$LINENO cmd=${cmd}"
 		$cmd
 	fi
 }
 
 __delete() {
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
+
 	local cmd cts cts_selected
-	_echoD "${FUNCNAME}() :$LINENO \$@=$@"
-	_echoD "${FUNCNAME}() :$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
 	if [ "${FORCE}" ]; then
 		cts_selected=`__lxc_list_existing`
@@ -124,19 +129,17 @@ __delete() {
 		cts_selected=`__lxc_list_stopped`
 	fi
 	cts=`__select "$*" "$cts_selected"`
-	_echoD "${FUNCNAME}() :$LINENO cts=${cts}"
+	_echoD "${FUNCNAME}():$LINENO cts=${cts}"
 
 	if [ "${cts}" ];then
 		cmd="lxc delete ${FORCE:+--$FORCE} ${cts}"
-		_echoD "${FUNCNAME}() :$LINENO cmd=${cmd}"
+		_echoD "${FUNCNAME}():$LINENO cmd=${cmd}"
 		$cmd
 	fi
 }
 
-__main() {
-	_echod "$0 ${FUNCNAME}()"
-	local opts_given opts_short opts_long opts action
-	local  ALL FORCE REGEXP
+__opts() {
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 
 	opts_given="$@"
 	opts_short="afr:hdq"
@@ -144,8 +147,7 @@ __main() {
 	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@")
 	eval set -- "${opts}"
 
-	_echoD "${FUNCNAME}() :$LINENO opts_given=$opts_given opts=$opts"
-
+	_echoD "${FUNCNAME}():$LINENO opts_given=$opts_given opts=$opts"
 	while [ "$1" != "--" ]
 	do
 		case "$1" in
@@ -174,19 +176,30 @@ __main() {
 		esac
 		shift
 	done
-	shift
 
+	shift
 	action="$1"
 	shift
-	_echoD "${FUNCNAME}() :$LINENO ALL='$ALL' FORCE='$FORCE' REGEXP='$REGEXP' "
-	_echoD "${FUNCNAME}() :$LINENO action='$action'"
+	_echoD "${FUNCNAME}():$LINENO ALL='$ALL' FORCE='$FORCE' REGEXP='$REGEXP' "
+	_echoD "${FUNCNAME}():$LINENO action='$action'"
+}
+
+__main() {
+	_echod "------------------------------------------------------"
+	_echod "$0 ${FUNCNAME}()"
+
+	local opts_given opts_short opts_long opts action
+	local  ALL FORCE REGEXP
+
+	# get options
+	__opts "$@"
 
 	[ -z "$action" ] && _exite "You have to give an action to execute"
 	if [[ " start stop restart delete " = *" $action "* ]]; then
 		# call action with arguments
 		__$action "$@"
 	else
-		_exite "Wrong action: '$action'. select in: delete init publish restart start stop"
+		_exite "Wrong action: '$action'. select in: start stop restart delete"
 	fi
 }
 

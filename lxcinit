@@ -34,8 +34,8 @@ Init usage:    lxcx init <options> [image] [containers]
 ################################  FUNCTION
 
 __common() {
-	_echoD "${FUNCNAME}() :$LINENO IN"
-	_echoD "${FUNCNAME}() :$LINENO S_PATH_INSTALL=${S_PATH_INSTALL} S_PATH_SCRIPT=${S_PATH_SCRIPT}"
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():$LINENO S_PATH_INSTALL=${S_PATH_INSTALL} S_PATH_SCRIPT=${S_PATH_SCRIPT}"
 
 	# start the container if needed
 	__lxc_is_stopped "$CTNAME" && lxc start "$CTNAME"
@@ -50,7 +50,7 @@ __common() {
 }
 
 __alpine312() {
-	_echoD "${FUNCNAME}() :$LINENO IN"
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 
 	local PATH_PROFILE="/etc/profile.d"
 
@@ -68,7 +68,7 @@ __alpine312() {
 }
 
 __buster() {
-	_echoD "${FUNCNAME}() :$LINENO IN"
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 
 	# conf
 	lxc file push "${S_PATH_INSTALL_CONF}/.bashrc-lxc-debian" "${CTNAME}/root/.bashrc"
@@ -83,12 +83,14 @@ __buster() {
 }
 
 __focal() {
-	_echoD "${FUNCNAME}() :$LINENO IN"
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 
 }
 
 __alpine312_apache() {
-	_echoD "${FUNCNAME}() :$LINENO IN"
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+
+	local profile path
 
 	# profile www
 	profile="www"
@@ -124,7 +126,7 @@ __alpine312_apache() {
 }
 
 __alpine312_php() {
-	_echoD "${FUNCNAME}() :$LINENO IN"
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 
 	# apache
 	__alpine312_apache
@@ -176,7 +178,7 @@ rc-service apache2 restart && rc-service php-fpm7 restart'
 }
 
 __alpine312_mariadb() {
-	_echoD "${FUNCNAME}() :$LINENO IN"
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 
 	# profile sgbd
 	profile="sgbd"
@@ -213,6 +215,8 @@ __alpine312_mariadb() {
 }
 
 __check() {
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+
 	# method for image
 	! test "$(declare -F | grep "f __${IMAGE}$")" && _exite "Unable to find method '__${IMAGE}'"
 
@@ -228,18 +232,8 @@ __check() {
 	__lxc_exist "${CTNAME}" && _exite "Container already exists: '${CTNAME}'"
 }
 
-__main() {
-	_echod "---------------------------------------------------------------------"
-	_echod "$0 ${FUNCNAME}()"
-	local opts_given opts_short opts_long opts confs conf
-	local  IMAGE CTNAME
-
-	# define global variables
-	local GLOBAL_CONF="/etc/server"
-	local S_PATH_INSTALL="/home/shared/dev/install"
-	local S_PATH_INSTALL_CONF="${S_PATH_INSTALL}/conf"
-	local S_PATH_SCRIPT="/usr/local/bs"
-	local S_PATH_SCRIPT_CONF="${S_PATH_SCRIPT}/conf"
+__opts() {
+	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 
 	opts_given="$@"
 	opts_short="hqd"
@@ -247,8 +241,7 @@ __main() {
 	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@")
 	eval set -- "${opts}"
 
-	_echoD "${FUNCNAME}() :$LINENO opts_given=$opts_given opts=$opts"
-
+	_echoD "${FUNCNAME}():$LINENO opts_given=$opts_given opts=$opts"
 	while [ "$1" != "--" ]
 	do
 		case "$1" in
@@ -283,13 +276,31 @@ __main() {
 	IMAGE="$1"
 	IMAGE="${IMAGE/debian10/buster}"
 	IMAGE="${IMAGE/ubuntu2004/focal}"
-	_echoD "${FUNCNAME}() :$LINENO IMAGE='$IMAGE'"
+	_echoD "${FUNCNAME}():$LINENO IMAGE='$IMAGE'"
 
 	shift
 	# no container name given
 	[ -z "$1" ] && _exite "You have to give a container name to initialize it"
 	CTNAME="$1"
-	_echoD "${FUNCNAME}() :$LINENO CTNAME='$CTNAME'"
+	_echoD "${FUNCNAME}():$LINENO CTNAME='$CTNAME'"
+}
+
+__main() {
+	_echod "------------------------------------------------------"
+	_echod "$0 ${FUNCNAME}()"
+
+	local opts_given opts_short opts_long opts confs conf
+	local  IMAGE CTNAME
+
+	# define global variables
+	local GLOBAL_CONF="/etc/server"
+	local S_PATH_INSTALL="/home/shared/dev/install"
+	local S_PATH_INSTALL_CONF="${S_PATH_INSTALL}/conf"
+	local S_PATH_SCRIPT="/usr/local/bs"
+	local S_PATH_SCRIPT_CONF="${S_PATH_SCRIPT}/conf"
+
+	# get options
+	__opts "$@"
 
 	# check method are implemented
 	__check
