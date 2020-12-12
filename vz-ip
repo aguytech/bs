@@ -35,7 +35,7 @@ __ctid_analyse()
 				if [ "${CTIDIPEXIST/$CTID/}" == "$CTIDIPEXIST" ]; then
 					CTIDNOIP+="$CTID "
 				else
-					IPS+="$CTID - $(vzlist -Ho ip $CTID |xargs |tr "\n" "&")"
+					IPS+="$CTID - $(${VZLIST} -Ho ip $CTID |xargs |tr "\n" "&")"
 					CTIDIP+="$CTID "
 				fi
 
@@ -84,11 +84,14 @@ options:
 type vzctl &>/dev/null && VZCTL="vzctl" || VZCTL="/usr/sbin/vzctl"
 type ${VZCTL} &>/dev/null || _exite "unable to find vzctl command"
 
+type vzlist &>/dev/null && VZLIST="vzlist" || VZLIST="/usr/sbin/vzlist"
+type ${VZLIST} &>/dev/null || _exite "unable to find vzlist command"
+
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
-CTIDEXIST="$(vzlist -aHo ctid|xargs)"
-CTIDSELECT="$(vzlist -Ho ctid 2>/dev/null|xargs)"
-CTIDIPEXIST="$(vzlist -aHo ctid,ip |grep ".*[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$" |awk '{print $1}' |xargs)"
+CTIDEXIST="$(${VZLIST} -aHo ctid|xargs)"
+CTIDSELECT="$(${VZLIST} -Ho ctid 2>/dev/null|xargs)"
+CTIDIPEXIST="$(${VZLIST} -aHo ctid,ip |grep ".*[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$" |awk '{print $1}' |xargs)"
 
 OPTSGIVEN="$@"
 OPTSSHORT="daqrSvy"
@@ -119,7 +122,7 @@ while true; do
 			;;
 		-S|--stopped)
 			STOPPED=S
-			CTIDSELECT="$(vzlist -SHo ctid|xargs)"
+			CTIDSELECT="$(${VZLIST} -SHo ctid|xargs)"
 			;;
 		-v|--view)
 			VIEW=v

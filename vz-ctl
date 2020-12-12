@@ -88,8 +88,8 @@ options:
 --skip-remount    skip remount filesystem
 "
 
-	CTIDEXIST="$(vzlist -aHo ctid|xargs)"
-	CTIDSELECT="$(vzlist -SHo ctid|xargs)"
+	CTIDEXIST="$(${VZLIST} -aHo ctid|xargs)"
+	CTIDSELECT="$(${VZLIST} -SHo ctid|xargs)"
 
 	OPTSSHORT="hdqy"
 	OPTSLONG="help,debug,quiet,confirm,force,wait,skip-fsck,skip-remount"
@@ -174,8 +174,8 @@ options:
 --skip-umount    skip umounts
 "
 
-	CTIDEXIST="$(vzlist -aHo ctid|xargs)"
-	CTIDSELECT="$(vzlist -Ho ctid 2>/dev/null|xargs)"
+	CTIDEXIST="$(${VZLIST} -aHo ctid|xargs)"
+	CTIDSELECT="$(${VZLIST} -Ho ctid 2>/dev/null|xargs)"
 
 	OPTSSHORT="hdqy"
 	OPTSLONG="help,debug,quiet,confirm,fast,skip-umount"
@@ -265,8 +265,8 @@ options:
 
 	"
 
-	CTIDEXIST="$(vzlist -aHo ctid|xargs)"
-	CTIDSELECT="$(vzlist -Ho ctid 2>/dev/null|xargs)"
+	CTIDEXIST="$(${VZLIST} -aHo ctid|xargs)"
+	CTIDSELECT="$(${VZLIST} -Ho ctid 2>/dev/null|xargs)"
 
 	OPTSSHORT="hdqy"
 	OPTSLONG="help,debug,quiet,confirm,fast,skip-umount,force,wait,skip-fsck,skip-remount"
@@ -354,8 +354,8 @@ options:
 -d, --debug      output in screen & in file debug informations
 "
 
-	CTIDEXIST="$(vzlist -aHo ctid|xargs)"
-	CTIDSELECT="$(vzlist -SHo ctid|xargs)"
+	CTIDEXIST="$(${VZLIST} -aHo ctid|xargs)"
+	CTIDSELECT="$(${VZLIST} -SHo ctid|xargs)"
 
 	OPTSSHORT="hdqs:"
 	OPTSLONG="help,debug,quiet,script:"
@@ -451,8 +451,8 @@ options:
 -d, --debug      output in screen & in file debug informations
 "
 
-	CTIDEXIST="$(vzlist -aHo ctid|xargs)"
-	CTIDSELECT="$(vzlist -SHo ctid|xargs)"
+	CTIDEXIST="$(${VZLIST} -aHo ctid|xargs)"
+	CTIDSELECT="$(${VZLIST} -SHo ctid|xargs)"
 
 	OPTSSHORT="hdqy"
 	OPTSLONG="help,debug,quiet,confirm"
@@ -582,6 +582,10 @@ In case the limit is not given it is set to the same value as the barrier.
 # openvz server
 type vzctl &>/dev/null && VZCTL="vzctl" || VZCTL="/usr/sbin/vzctl"
 type ${VZCTL} &>/dev/null || _exite "unable to find vzctl command"
+
+# openvz server
+type vzlist &>/dev/null && VZLIST="vzlist" || VZLIST="/usr/sbin/vzlist"
+type ${VZLIST} &>/dev/null || _exite "unable to find vzlist command"
 
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 

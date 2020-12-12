@@ -150,11 +150,15 @@ type ${VZCTL} &>/dev/null || _exite "unable to find vzctl command"
 type vzdump &>/dev/null && VZDUMP="vzdump" || VZDUMP="/usr/sbin/vzdump"
 type ${VZDUMP} &>/dev/null || _exite "unable to find vzdump command"
 
+# openvz server
+type vzlist &>/dev/null && VZLIST="vzlist" || VZLIST="/usr/sbin/vzlist"
+type ${VZLIST} &>/dev/null || _exite "unable to find vzlist command"
+
 _echoD "$_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
-CTIDSALL="$(vzlist -aHo ctid 2>/dev/null|xargs)"
-CTIDRUNALL="$(vzlist -Ho ctid 2>/dev/null|xargs)"
-CTIDSOPT="$(vzlist -SHo ctid 2>/dev/null|xargs)"
+CTIDSALL="$(${VZLIST} -aHo ctid 2>/dev/null|xargs)"
+CTIDRUNALL="$(${VZLIST} -Ho ctid 2>/dev/null|xargs)"
+CTIDSOPT="$(${VZLIST} -SHo ctid 2>/dev/null|xargs)"
 PATHDUMP="$S_VZ_PATH_DUMP"
 PATHDUMPXTRA="$PATHDUMP/$S_PATH_VZ_DUMP_REL_XTRA"
 
@@ -277,7 +281,7 @@ fi
 for CTID in $CTIDCMD
 do
 	DATE="$(date "+%Y%m%d-%H%M%S")"
-	HOSTNAMECT="$(vzlist -Ho hostname $CTID)"
+	HOSTNAMECT="$(${VZLIST} -Ho hostname $CTID)"
 
 	_echoD "$FUNCNAME:$LINENO SNAPSHOT='$SNAPSHOT' SUSPEND='$SUSPEND' all='$all' FORCE='$FORCE'"
 	if ! [[ $SNAPSHOT || $SUSPEND ]]; then
@@ -292,7 +296,7 @@ do
         fi
 
         # stop
-		if  ! [ "$(vzlist -SH $CTID)" ]; then
+		if  ! [ "$(${VZLIST} -SH $CTID)" ]; then
 			# stop containers
 			_echoT "stop $CTID"
 			_eval "${VZCTL} stop $CTID"

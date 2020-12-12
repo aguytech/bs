@@ -39,10 +39,14 @@ options:
 
 ################################  MAIN
 
+# openvz server
+type vzlist &>/dev/null && VZLIST="vzlist" || VZLIST="/usr/sbin/vzlist"
+type ${VZLIST} &>/dev/null || _exite "unable to find vzlist command"
+
 _echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
 SORTSTR="-k3,3 -k4,4r"
-CTIDEXIST="$(vzlist -aHo ctid|xargs)"
+CTIDEXIST="$(${VZLIST} -aHo ctid|xargs)"
 PATHDUMP="$S_VZ_PATH_DUMP"
 PATHDUMPXTRA="$PATHDUMP/$S_PATH_VZ_DUMP_REL_XTRA"
 
