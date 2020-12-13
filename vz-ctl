@@ -147,7 +147,7 @@ options:
 	CTIDCMD=${CTIDCMD% }
 
 	# synthesis
-	[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
+	#[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
 	[ "$CTIDNOACTION" ] && _echo "Containers running : ${whiteb}$CTIDNOACTION${cclear}"
 
 	# confirm
@@ -232,7 +232,7 @@ options:
 	CTIDCMD=${CTIDCMD% }
 
 	# synthesis
-	[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
+	#[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
 	[ "$CTIDNOACTION" ] && _echo "Containers not running : ${whiteb}$CTIDNOACTION${cclear}"
 
 	# confirm
@@ -324,7 +324,7 @@ options:
 	CTIDCMD=${CTIDCMD% }
 
 	# synthesis
-	[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
+	#[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
 	[ "$CTIDNOACTION" ] && _echo "Containers not running : ${whiteb}$CTIDNOACTION${cclear}"
 
 	# confirm
@@ -414,7 +414,7 @@ options:
 	CTIDCMD=${CTIDCMD% }
 
 	# synthesis
-	[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
+	#[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
 	[ "$CTIDNOACTION" ] && _echo "Containers not running : ${whiteb}$CTIDNOACTION${cclear}"
 
 	# no container
@@ -508,7 +508,7 @@ options:
 	CTIDCMD=${CTIDCMD% }
 
 	# synthesis
-	[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
+	#[ "$NOCTIDEXIST" ] && _echo "Containers does not exist : ${redb}$NOCTIDEXIST${cclear}"
 	[ "$CTIDNOACTION" ] && _echo "Containers running : ${whiteb}$CTIDNOACTION${cclear}"
 
 	# no container
