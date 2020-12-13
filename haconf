@@ -226,8 +226,8 @@ __opts() {
 }
 
 __main() {
-	_echod "---------------------------------------------------------------------"
-	_echod "$0 ${FUNCNAME}()"
+	_echod "======================================================"
+	_echod "$(ps -o args= $PPID)"
 
 	! type haproxy &>/dev/null && _exite "Haproxy are not installed !"
 

@@ -143,6 +143,9 @@ options:
 
 ################################  MAIN
 
+_echod "======================================================"
+_echod "$(ps -o args= $PPID)"
+
 # openvz server
 type vzctl &>/dev/null && VZCTL="vzctl" || VZCTL="/usr/sbin/vzctl"
 type ${VZCTL} &>/dev/null || _exite "unable to find vzctl command"

@@ -185,8 +185,8 @@ __opts() {
 }
 
 __main() {
-	_echod "------------------------------------------------------"
-	_echod "$0 ${FUNCNAME}()"
+	_echod "======================================================"
+	_echod "$(ps -o args= $PPID)"
 
 	local opts_given opts_short opts_long opts action
 	local  ALL FORCE REGEXP
