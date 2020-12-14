@@ -15,13 +15,14 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
 usage="Usage: backup-server [arguments]
 
 arguments:
-    -a --all             backup all parts: conf scripts vz kvm
-    --vz                  call bakup vz
-    --vz-dump      call bakup vz with dumping containers before backup
-    --kvm              call bakup kvm
-    -h, --help        show this
-    -q, --quiet       don't show any infomations except interaction informations
-    --debug          output in screen & in file debug informations
+    -a --all				backup all parts: conf scripts vz kvm
+    --vz					call bakup vz
+    --vz-dump		call bakup vz with dumping containers before backup
+    --vz-cleanlog	call bakup vz with option to clean log before dumping
+    --kvm				call bakup kvm
+    -h, --help			show this
+    -q, --quiet		don't show any infomations except interaction informations
+    --debug			output in screen & in file debug informations
 
  Make a backup of server configuration files & server scripts. In options call backup-vz & backup-kvm
 "
@@ -86,7 +87,7 @@ __main() {
 	# vz
 	if [ "$vz" ]; then
 		_echoW "launch vz"
-		${S_PATH_SCRIPT}/backup-vz ${vzdump}
+		_eval ${S_PATH_SCRIPT}/backup-vz ${vz_dump} ${vz_clean_log}
 	fi
 
 	# kvm
@@ -108,7 +109,7 @@ cmd_ext=tgz
 
 opts_given="$@"
 opts_short="adq"
-opts_long="all,help,debug,kvm,quiet,vz,vz-dump"
+opts_long="all,vz,vz-dump,vz-cleanlog,help,debug,kvm,quiet"
 opts=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$opts"
 
@@ -138,7 +139,10 @@ while true; do
 			vz=v
 			;;
 		--vz-dump)
-			vzdump="--dump"
+			vz_dump="--dump"
+			;;
+		--vz-cleanlog)
+			vz_clean_log="--clean-log"
 			;;
 		--kvm)
 			kvm=k
