@@ -127,6 +127,9 @@ __clean_log() {
 
 __main() {
 
+	# clean log
+	[ "${clean_log}" ] && __clean_log
+
 	# dump all containers, force to stop if not
 	if [ "$dump" ]; then
 		_echoT "force dumping to each containers"
@@ -174,14 +177,14 @@ _echoD "${FUNCNAME}():$LINENO opts_given='$opts_given' OPTS='$OPTS'"
 while true; do
 	case "$1" in
 		--dump)
-			dump=d
+			dump=true
 			;;
 		-h| --help)
 			_echo "$usage"
 			_exit
 			;;
 		-c| --clean-log)
-			_redirect debug
+			clean_log=true
 			;;
 		-d| --debug)
 			_redirect debug
