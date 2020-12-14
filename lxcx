@@ -70,58 +70,46 @@ __start() {
 	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 	_echoD "${FUNCNAME}():$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
-	local cmd cts cts_selected
+	local cts cts_selected
 
 	cts_selected=`__lxc_list_stopped`
 	cts=`__select "$*" "$cts_selected"`
 	_echoD "${FUNCNAME}():$LINENO cts=${cts}"
 
-	if [ "${cts}" ];then
-		cmd="lxc start ${cts}"
-		_echoD "${FUNCNAME}():$LINENO cmd=${cmd}"
-		$cmd
-	fi
+	[ "${cts}" ] && _eval lxc start ${cts}
 }
 
 __stop() {
 	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 	_echoD "${FUNCNAME}():$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
-	local cmd cts cts_selected
+	local cts cts_selected
 
 	cts_selected=`__lxc_list_running`
 	cts=`__select "$*" "$cts_selected"`
 	_echoD "${FUNCNAME}():$LINENO cts=${cts}"
 
-	if [ "${cts}" ];then
-		cmd="lxc stop ${cts}"
-		_echoD "${FUNCNAME}():$LINENO cmd=${cmd}"
-		$cmd
-	fi
+	[ "${cts}" ] && _eval lxc stop ${cts}
 }
 
 __restart() {
 	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 	_echoD "${FUNCNAME}():$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
-	local cmd cts cts_selected
+	local cts cts_selected
 
 	cts_selected=`__lxc_list_running`
 	cts=`__select "$*" "$cts_selected"`
 	_echoD "${FUNCNAME}():$LINENO cts=${cts}"
 
-	if [ "${cts}" ];then
-		cmd="lxc restart ${cts}"
-		_echoD "${FUNCNAME}():$LINENO cmd=${cmd}"
-		$cmd
-	fi
+	[ "${cts}" ] && _eval lxc restart ${cts}
 }
 
 __delete() {
 	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
 	_echoD "${FUNCNAME}():$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
 
-	local cmd cts cts_selected
+	local cts cts_selected
 
 	if [ "${FORCE}" ]; then
 		cts_selected=`__lxc_list_existing`
@@ -131,11 +119,7 @@ __delete() {
 	cts=`__select "$*" "$cts_selected"`
 	_echoD "${FUNCNAME}():$LINENO cts=${cts}"
 
-	if [ "${cts}" ];then
-		cmd="lxc delete ${FORCE:+--$FORCE} ${cts}"
-		_echoD "${FUNCNAME}():$LINENO cmd=${cmd}"
-		$cmd
-	fi
+	[ "${cts}" ] && _eval lxc delete ${FORCE:+--$FORCE} ${cts}
 }
 
 __opts() {

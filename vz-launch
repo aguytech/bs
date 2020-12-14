@@ -77,8 +77,8 @@ done
 _echoD "\$*='$*' |  cmds_file='$cmds_file' | ctids_file='$ctids_file' | confirm='$confirm'"
 
 # commands
-if [ -n "$cmds_file" ]; then
-	! [ -f "$cmds_file" ] && _exite "unable to find '$cmds_file'"
+if [ "$cmds_file" ]; then
+	[ -f "$cmds_file" ] || _exite "unable to find '$cmds_file'"
 	cmds="$(<$cmds_file)"
 	cmd="ssh -p${S_VM_SSH_PORT} ${S_VM_SSH_USER}@${_VM_IP_BASE}.\${ctid} bash${options:+ -$options} < \"$cmds_file\""
 else

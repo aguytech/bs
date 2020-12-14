@@ -238,11 +238,11 @@ esac
 shift
 
 # OUT: no command found
-[ ! "${cmd}" ] && _echoE "no command found in '${opts_given}'" && exit 1
+[ -z ${cmd} ] && _echoE "no command found in '${opts_given}'" && exit 1
 # rest options
 [ "$*" ] && _echoE "malformed command or too long, rest '$*' in '${opts_given}'" && exit 1
 
 # call command
-eval ${cmd}
+_eval ${cmd}
 
 _echoD "$FUNCNAME:$LINENO $0 END"

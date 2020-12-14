@@ -188,9 +188,7 @@ options:
 	for ip in ${ips}
 	do
 		_echoT "-> ${ip##*$_VM_IP_BASE}."
-		cmd="rsync $optlist $path/ -e 'ssh -p${S_SSH_PORT}' root@$ip:$path/"
-		_echoD "$FUNCNAME:$LINENO cmd=$cmd"
-		eval "$cmd"
+		_eval "rsync ${optlist} ${path}/ -e 'ssh -p${S_SSH_PORT}' root@${ip}:${path}/"
 	done
 
 }
@@ -307,9 +305,7 @@ options:
 		_echoT "---------  $path"
 		for id in ${ids/$HOSTNAME/}; do
 			_echoT "-> $id / ${S_CLUSTER[$id]}"
-			cmd="rsync $optlist $path/ -e 'ssh -p${port}' ${user}@${ip}:$path/"
-			_echoD "$FUNCNAME:$LINENO cmd=$cmd"
-			eval "$cmd"#555753
+			_eval  "rsync ${optlist} ${path}/ -e 'ssh -p${port}' ${user}@${ip}:${path}/"
 		done
 	done
 
@@ -426,9 +422,7 @@ options:
 	for id in ${ids/$HOSTNAME/}; do
 		eval ${S_CLUSTER[$id]}
 		_echoT "-> $id / $name / $ip}"
-		cmd="rsync $optlist $path/ -e 'ssh -p${port}' ${user}@${$ip}:/save/$HOSTNAME/"
-		_echoD "$FUNCNAME:$LINENO cmd=$cmd"
-		eval "$cmd"
+		_eval "rsync ${optlist} ${path}/ -e 'ssh -p${port}' ${user}@${$ip}:/save/${HOSTNAME}/"
 	done
 
 }

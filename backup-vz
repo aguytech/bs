@@ -17,10 +17,11 @@ backup openvz elements: configuration, logs, dump containers & suspend, snapshot
 with options dump containers before backup
 
 arguments:
-    --dump          save only vz dumps
-    -h, --help       show this
-    -q, --quiet      don't show any infomations except interaction informations
-    -d, --debug    output in screen & in file debug informations
+    --dump          	save only vz dumps
+    -c, --clean-log	delete log before backup
+    -h, --help       	show this
+    -q, --quiet      	don't show any infomations except interaction informations
+    -d, --debug    	output in screen & in file debug informations
 "
 
 ################################################################  _SCRIPT
@@ -119,12 +120,17 @@ __comp_share() {
 	_echoT "Container started"
 }
 
+__clean_log() {
+	_eval "find ${S_HOSTING_PATH}/*/var/log/ -name *.gz -exec rm {} \;"
+	_eval "find ${S_HOSTING_PATH}/*/var/log/ -name *.1 -exec rm {} \;"
+}
+
 __main() {
 
 	# dump all containers, force to stop if not
 	if [ "$dump" ]; then
 		_echoT "force dumping to each containers"
-		${S_PATH_SCRIPT}/vz-dump -cyf all
+		${S_PATH_SCRIPT}/vz-dump -cyf 101-199
 	fi
 
 	# conf
@@ -159,8 +165,8 @@ comp_opt=czf
 comp_ext=tgz
 
 opts_given="$@"
-opts_short="dhq"
-opts_long="debug,dump,help,quiet"
+opts_short="dchq"
+opts_long="dump,clean-log,debug,help,quiet"
 OPTS=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
@@ -173,6 +179,9 @@ while true; do
 		-h| --help)
 			_echo "$usage"
 			_exit
+			;;
+		-c| --clean-log)
+			_redirect debug
 			;;
 		-d| --debug)
 			_redirect debug

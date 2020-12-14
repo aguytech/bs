@@ -8,26 +8,20 @@
 
 # reload php-fpm or apache service
 __reload() {
-	local cmd
 	if [ $RELEASE = alpine ]; then
-		cmd="rc-service ${phpfpm_service} reload"
+		_eval rc-service ${phpfpm_service} reload
 	else
-		cmd="systemctl reload ${phpfpm_service}.service"
+		_eval systemctl reload ${phpfpm_service}.service
 	fi
-	echo "$cmd"
-	$cmd
 }
 
 # restart php-fpm or apache service
 __restart() {
-	local cmd
 	if [ $RELEASE = alpine ]; then
-		cmd="rc-service ${phpfpm_service} restart"
+		_eval rc-service ${phpfpm_service} restart
 	else
-		cmd="systemctl restart ${phpfpm_service}.service"
+		_eval systemctl restart ${phpfpm_service}.service
 	fi
-	echo "$cmd"
-	$cmd
 }
 
 # active or desactive phpinf.php files

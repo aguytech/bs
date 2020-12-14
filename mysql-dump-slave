@@ -48,8 +48,6 @@ for db_name in $db_names; do
 
     file="${db_name}-$(date +%Y%m%d_%H%M%S)"
     echo "$db_name"
-    cmd="mysqldump -u$db_user -p$db_pwd $db_name --dump-slave --no-data > '${path2}/${file}-struct.sql'"
-    _eval $cmd
-    cmd="mysqldump -u$db_user -p$db_pwd $db_name --dump-slave --no-create-info | gzip -c > '${path2}/${file}.sql.gz'"
-    _eval $cmd
+    _eval "mysqldump -u$db_user -p$db_pwd $db_name --dump-slave --no-data > '${path2}/${file}-struct.sql'"
+    _eval "mysqldump -u$db_user -p$db_pwd $db_name --dump-slave --no-create-info | gzip -c > '${path2}/${file}.sql.gz'"
 done

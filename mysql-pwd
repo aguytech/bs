@@ -354,6 +354,6 @@ _echoD "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db
 
 while ! __connect; do __init; done
 
-$cmd "$args"
+${cmd} "${args}"
 
 _exit 0
