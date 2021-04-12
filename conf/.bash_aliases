@@ -12,8 +12,6 @@ alias ll='ls -alF --color=auto'
 alias df='df -h'
 alias st='sublime-text'
 alias watch='watch --color'
-
-# alias nano='nano -w'
 alias nanoc='nano -wY conf'
 alias grep='grep --color'
 alias etrash='sudo find / -not \( -regex "\(/proc\|/sys\|/run/user\)" -prune \) -not -type p -name .Trash* -exec echo "{}" \; -exec sudo rm -fR "{}" \;'
@@ -24,6 +22,47 @@ alias du0="__du 0"
 alias du1="__du 1"
 alias du2="__du 2"
 alias dfs="df -x tmpfs -x devtmpfs | grep -v /dev/ploop"
+
+# command /usr/local/bs
+#alias backup-kvm='backup-kvm.sh'
+#alias backup-server='backup-server.sh'
+#alias backup-soft='backup-soft.sh'
+#alias backup-user='backup-user.sh'
+#alias backup-vz='backup-vz.sh'
+#alias clean-keep='clean-keep.sh'
+#alias covid='covid.sh'
+#alias export-kvm='export-kvm.sh'
+#alias haconf='haconf.sh'
+#alias logwatch-vm='logwatch-vm.sh'
+#alias lxcx='lxcx.sh'
+#alias mousepad_newtabs='mousepad_newtabs.sh'
+#alias mysql-dump-slave='mysql-dump-slave.sh'
+#alias mysql-pwd='mysql-pwd.sh'
+#alias pck_clean='pck_clean.sh'
+#alias php-switch='php-switch.sh'
+#alias pip-upgrade-all='pip-upgrade-all.sh'
+#alias pkg-clean='pkg-clean.sh'
+#alias rsync-cluster='rsync-cluster.sh'
+#alias rsync-server='rsync-server.sh'
+#alias snap-purge='snap-purge.sh'
+#alias ssh-kvm='ssh-kvm.sh'
+#alias ssh-lxd='ssh-lxd.sh'
+#alias ssh-server='ssh-server.sh'
+#alias ssh-vz='ssh-vz.sh'
+#alias thunar_ca='thunar_ca.sh'
+#alias thunar_newtabs='thunar_newtabs.sh'
+#alias upgrade='upgrade.sh'
+#alias vz-clean='vz-clean.sh'
+#alias vz-clean-files='vz-clean-files.sh'
+#alias vz-ctl='vz-ctl.sh'
+#alias vz-dump='vz-dump.sh'
+#alias vz-dump-all='vz-dump-all.sh'
+#alias vz-ip='vz-ip.sh'
+#alias vz-iptables='vz-iptables.sh'
+#alias vz-launch='vz-launch.sh'
+#alias vz-list='vz-list.sh'
+#alias vz-restore='vz-restore.sh'
+#alias vz-template='vz-template.sh'
 
 # server
 alias hatop='hatop -s /run/haproxy/admin.sock'
@@ -222,14 +261,14 @@ alias btrfssl='btrfs subvolume list -to'
 #alias btrfsp='btrfs property -t s'
 
 ###########################################  ZFS
-alias zpl='zpool list'
-alias zplv='zpool list -v'
-alias zpga='zpool get all'
-alias zpg1='zpool get size,capacity,free,health,guid zroot'
+#alias zpl='zpool list'
+#alias zplv='zpool list -v'
+#alias zpga='zpool get all'
+#alias zpg1='zpool get size,capacity,free,health,guid zroot'
 
-alias zfsl='zfs list'
-alias zfsga='zfs get all'
-alias zfsg1='zfs get -o property,value creation,used,available,referenced,compressratio,mounted,readonly,quota'
+#alias zfsl='zfs list'
+#alias zfsga='zfs get all'
+#alias zfsg1='zfs get -o property,value creation,used,available,referenced,compressratio,mounted,readonly,quota'
 
 ###########################################  SNAPPER
 #alias snapl='for i in $(snapper list-configs |sed -n "3,\$p" |awk "{print \$1}" |xargs); do echo -e "\e[1;34m\n$i\e[0;0m"; snapper -c $i list; done'
@@ -249,8 +288,8 @@ alias zfsg1='zfs get -o property,value creation,used,available,referenced,compre
 #export HISTFILESIZE=2000
 
 ###########################################  OPENVZ
-alias nanoser='nano /etc/server/server.conf'
-alias nanofir='nano /etc/server/firewall.conf'
+#alias nanoser='nano /etc/server/server.conf'
+#alias nanofir='nano /etc/server/firewall.conf'
 
 # vz-list
 alias vzl='vz-list -o ctid,numproc,status,hostname,name,ip'
