@@ -36,4 +36,8 @@ echo "`wc -l $files_all|cut -f1 -d' '` files to keep"
 echo "`wc -l $files_del|cut -f1 -d' '` files to delete"
 echo
 echo "to delete files use:"
-echo "for file in \$(cat $files_del); do sudo rm /var/cache/pacman/pkg/$file_del; done"
+echo "for file in \$(cat $files_del); do echo rm  \${file}; sudo rm /var/cache/pacman/pkg/\${file}; done"
+
+echo
+echo "to deeply clean packages use:"
+echo "clean-pkg |grep [0-9]:[0-9]"
