@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Provides:                 rsync-server
+# Provides:                 rsync-server.sh
 # Short-Description:        use rsync to specific usage
 # Description:              use rsync to specific usage
 
@@ -56,8 +56,8 @@ __rsync() {
 
 ################################  VARIABLES
 
-usage="rsync-server : function over rsync to specific usage
-rsync-server --help
+usage="rsync-server.sh : function over rsync to specific usage
+rsync-server.sh --help
 
 vzl [options] [ctids / all]
 	ctids is a list combinating simple ids of containers and range. ex : '100 200-210'

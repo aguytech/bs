@@ -3,7 +3,7 @@ lost+found
 __pycache__
 /.git
 /.gitignore
-/eclipse-workspaces/*/.metadata
-/eclipse-workspaces/*/RemoteSystemsTempFiles/
-/eclipse*workspaces/*/.metadata
-/eclipse*workspaces/*/RemoteSystemsTempFiles/
+/eclipse-workspaces*/*/.metadata
+/eclipse-workspaces*/*/RemoteSystemsTempFiles/
+files/
+build/
