@@ -8,13 +8,13 @@
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
-! . "$S_GLOBAL_FUNCTIONS" && echo -e "[error] - Unable to source file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'" && exit 1
+! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
 ################################  FUNCTION
 
 # connect to server
 __ssh() {
-    if [ "$2" == "$_IPTHIS" ]; then
+    if [ "$2" == "${_IPTHIS}" ]; then
     	_exite "You try to connect to yourself"
     else
     	ssh -o ConnectTimeout=$timeout "$1"@"$2" -p"$3"
@@ -24,7 +24,7 @@ __ssh() {
 
 # test type of containers
 __typect() {
-    if [ "$2" == "$_IPTHIS" ]; then _echoE "You try to connect to yourself"; exit 1
+    if [ "$2" == "${_IPTHIS}" ]; then _echoE "You try to connect to yourself"; exit 1
     else ssh -o ConnectTimeout=$timeout "$1"@"$2" -p"$3"
     fi
     exit

@@ -98,7 +98,7 @@ __function_common() {
 				_echoD "${FUNCNAME}()  '${file}'"
 				. "${file}"
 			else
-				_echoe "${FUNCNAME}() Missing file, unable to source '${file}'"
+				_exite "${FUNCNAME}() Missing file, unable to source '${file}'"
 			fi
 		done
 
@@ -405,7 +405,8 @@ __function_install() {
 
 	# test idf part $1 exists in file $2
 	_parthave() {
-		[ -f "$2" ] && grep -q "^$1$" "$2" || (touch "$2"; return 1)
+		! [ -f "$2" ] && touch "$2"
+		grep -q "^$1$" "$2" || return 1
 	}
 	# add part $1 in conf file $2
 	_partadd() {
