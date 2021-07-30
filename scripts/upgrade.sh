@@ -53,7 +53,7 @@ elif grep -qiE 'debian|ubuntu' "$FILE_RELEASE"; then
 	echo -e "${whiteb}autoclean${cclear}"
 	$cmd -y autoclean
 
-####  ubuntu / debian
+####  alpine
 elif grep -qiE 'alpine' "$FILE_RELEASE"; then
 
 	cmd="apk"

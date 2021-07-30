@@ -1,0 +1,24 @@
+#!/bin/sh
+
+export PATH=${PATH}:/usr/local/bs
+
+########  CONF
+# file for global configuration
+export S_GLOBAL_CONF="/etc/server/server.conf"
+# file for global functions
+export S_GLOBAL_FUNCTIONS="/usr/local/bs/inc-functions.sh"
+
+export S_CLUSTER
+eval "$(grep S_CLUSTER "$S_GLOBAL_CONF")" >/dev/null 2>&1
+
+########  OTHERS
+type most 2>/dev/null 1>&2 && export MANPAGER="most"
+
+#### JAVA
+#export JAVA_HOME="/usr/lib/jvm/java-15-jdk"
+#export PATH_TO_FX="/usr/lib/jvm/javafx-sdk-15/lib"
+
+#### PYTHON
+#export PATH="~/.pyenv/bin:$PATH"
+#eval "$(pyenv init -)"
+#eval "$(pyenv virtualenv-init -)"

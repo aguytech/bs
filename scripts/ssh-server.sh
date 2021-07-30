@@ -57,12 +57,12 @@ for id in ${!S_CLUSTER[*]}; do
 		while read ctid ctname; do
 			if [[ "${ctid}" && "${ctname}" ]]; then
 				ips[${id}.${name}.${ctid}]="${ip}"
-				ports[${id}.${name}.${ctid}]="$S_VM_PORT_SSH_PRE${ctid}"
-				users[${id}.${name}.${ctid}]="$S_VM_PORT_SSH_PRE${ctid}"
+				ports[${id}.${name}.${ctid}]="$S_HOST_PORT_PRE_SSH${ctid}"
+				users[${id}.${name}.${ctid}]="$S_HOST_PORT_PRE_SSH${ctid}"
 			fi
 
 			# direct connection to server
-			if [[ "$1" = "${name}.${ctid}" || "$1" = "${id}.${ctid}" ]]; then __ssh "$user" "${ip}" "${S_VM_PORT_SSH_PRE}${ctid}"; fi
+			if [[ "$1" = "${name}.${ctid}" || "$1" = "${id}.${ctid}" ]]; then __ssh "$user" "${ip}" "${S_HOST_PORT_PRE_SSH}${ctid}"; fi
 		done <<< "$(ssh -o ConnectTimeout=3 -p ${port} ${user}@${ip} 'vzlist -Ho ctid,hostname')"
 
 	fi

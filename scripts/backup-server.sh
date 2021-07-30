@@ -36,7 +36,7 @@ __compress() {
 	local path_from="$1"
 	local path_subs="$2"
 	local path_to="${path_from#/}"; path_to="${path_save}/${path_to//\//.}"; path_to="${path_to%/}"
-	_echoD "${FUNCNAME}():$LINENO path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
+	_echoD "${FUNCNAME}():${LINENO} path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
 
 	# wrong path
 	! [ -d "$path_from" ] && _exite "Wrong path '$path_from' for calling '$*'"
@@ -58,7 +58,7 @@ __compress() {
 			_evalq "tar $cmd_opt $file_to $path_sub"
 		else
 			_echoE "wrong path '$path_sub'"
-			_echoD "${FUNCNAME}():$LINENO wrong path '$path_sub'"
+			_echoD "${FUNCNAME}():${LINENO} wrong path '$path_sub'"
 		fi
 	done
 }
@@ -103,7 +103,7 @@ __main() {
 _echod "======================================================"
 _echod "$(ps -o args= $PPID)"
 
-path_save="$S_PATH_SAVE_BACKUP/$_DDATE"
+path_save="$S_PATH_BACKUP/$_DDATE"
 cmd_opt=" --exclude='.cache' -czf"
 cmd_ext=tgz
 
@@ -118,7 +118,7 @@ if [ "${_CLUSTER_IPS/$_IPTHIS/}" == "${_CLUSTER_IPS}" ]; then
 	[ "$_ANSWER" == "n" ] && _exit
 fi
 
-_echoD "${FUNCNAME}():$LINENO opts_given='$opts_given' opts='$opts'"
+_echoD "${FUNCNAME}():${LINENO} opts_given='$opts_given' opts='$opts'"
 while true; do
 	case "$1" in
 		--help)
@@ -158,7 +158,7 @@ while true; do
 	shift
 done
 
-_echoD "${FUNCNAME}():$LINENO conf='$conf' scripts='$scripts' kvm='$kvm' vz='$vz' \$*='$*'"
+_echoD "${FUNCNAME}():${LINENO} conf='$conf' scripts='$scripts' kvm='$kvm' vz='$vz' \$*='$*'"
 
 __main
 

@@ -104,16 +104,16 @@ __comp_share() {
 	local paths path
 
 	# all paths except mariadb & www
-	paths=`ls "${S_HOSTING_PATH_SHARE}"|grep -v mariadb|grep -v www`
+	paths=`ls "${S_HOST_PATH_SHARE}"|grep -v mariadb|grep -v www`
 	for path in ${paths}; do
-		__compress "${S_HOSTING_PATH_SHARE}" "${path}"
+		__compress "${S_HOST_PATH_SHARE}" "${path}"
 	done
 	# for mariadb & www
 	_echoT "STOP CONTAINER FROM 101 to 199"
 	${S_PATH_SCRIPT}/vz-ctl stop 101-199
 	_echoT "Container stopped"
 	for path in www mariadb; do
-		[ -d "${S_HOSTING_PATH_SHARE}/${path}" ] && __compress "${S_HOSTING_PATH_SHARE}/${path}" "*"
+		[ -d "${S_HOST_PATH_SHARE}/${path}" ] && __compress "${S_HOST_PATH_SHARE}/${path}" "*"
 	done
 	_echoT "START CONTAINER FROM 101 to 199"
 	${S_PATH_SCRIPT}/vz-ctl start 101-199
@@ -121,8 +121,8 @@ __comp_share() {
 }
 
 __clean_log() {
-	_eval "find ${S_HOSTING_PATH}/*/var/log/ -name *.gz -exec rm {} \;"
-	_eval "find ${S_HOSTING_PATH}/*/var/log/ -name *.1 -exec rm {} \;"
+	_eval "find ${S_HOST_PATH}/*/var/log/ -name *.gz -exec rm {} \;"
+	_eval "find ${S_HOST_PATH}/*/var/log/ -name *.1 -exec rm {} \;"
 }
 
 __main() {
@@ -143,7 +143,7 @@ __main() {
 	__compress "$S_VZ_PATH_NODE" "*/log"
 
 	# dump
-	__sync "$S_HOSTING_PATH" "dump" "/suspend /snapshot /template"
+	__sync "$S_HOST_PATH" "dump" "/suspend /snapshot /template"
 
 	# template
 	__sync "$S_VZ_PATH_DUMP" "template"
@@ -163,7 +163,7 @@ __main() {
 _echod "======================================================"
 _echod "$(ps -o args= $PPID)"
 
-path_save="$S_PATH_SAVE_BACKUP/$_DDATE/vz"
+path_save="$S_PATH_BACKUP/$_DDATE/vz"
 comp_opt=czf
 comp_ext=tgz
 

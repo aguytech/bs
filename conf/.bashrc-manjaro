@@ -157,11 +157,10 @@ ex ()
 }
 
 # source global variables
-[ -f /etc/server/env.conf ] && . /etc/server/env.conf
+[ -f /usr/local/bs/conf/env ] && . /usr/local/bs/conf/env
 
 # functions
 [ -f ~/.bash_functions ] && . ~/.bash_functions
 
 # tmux
 #type tmux &>/dev/null && tmux ls &>/dev/null && [ -z $TMUX ] && [[ ! $TERM =~ screen ]] && tmux attach
-

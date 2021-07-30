@@ -95,10 +95,10 @@ __function_common() {
 		local file
 		for file in $*; do
 			if [ -f "${file}" ]; then
-				_echoD "$FUNCNAME()  '${file}'"
+				_echoD "${FUNCNAME}()  '${file}'"
 				. "${file}"
 			else
-				_echoe "$FUNCNAME() Missing file, unable to source '$file'"
+				_echoe "${FUNCNAME}() Missing file, unable to source '${file}'"
 			fi
 		done
 
@@ -106,10 +106,9 @@ __function_common() {
 	}
 	_require() {
 		local file
-		[ -z "$*" ] && _exite "Unable to source nothing"
+		[ -z "$*" ] && _exite "No arguments to source"
 		for file in $*; do
-			! [ -f "${file}" ] && _exite "Unable to find '$file'"
-			. "${file}"
+			! [ -f "${file}" ] && _exite "${FUNCNAME}() Missing file, unable to source '${file}'"
 		done
 	}
 
@@ -196,10 +195,18 @@ __function_common() {
 	##############  KEEP
 
 	_keepcpts() {
-		[[ -e "${1}" || -h "${1}" ]] && _evalq cp -a "${1}" "${1}.keep$(date +%s)"
+		if [ "${USER}" = root ]; then
+			[[ -e "${1}" || -h "${1}" ]] && _evalq cp -a "${1}" "${1}.keep$(date +%s)"
+		else
+			[[ -e "${1}" || -h "${1}" ]] && _evalq sudo cp -a "${1}" "${1}.keep$(date +%s)"
+		fi
 	}
 	_keepmvts() {
-		[[ -e "${1}" || -h "${1}" ]] && _evalq mv "${1}" "${1}.keep$(date +%s)"
+		if [ "${USER}" = root ]; then
+			[[ -e "${1}" || -h "${1}" ]] && _evalq mv "${1}" "${1}.keep$(date +%s)"
+		else
+			[[ -e "${1}" || -h "${1}" ]] && _evalq sudo mv "${1}" "${1}.keep$(date +%s)"
+		fi
 	}
 
 	##############  PWD
@@ -261,7 +268,15 @@ __function_common() {
 		if [ -z "$_PATH_LOG" ]; then
 			[ "${_PATH_BASE/$S_PATH_INSTALL}" != "${_PATH_BASE}" ] && _PATH_LOG="$S_PATH_LOG_INSTALL" || _PATH_LOG="$S_PATH_LOG_SERVER"
 		fi
-		! [ -d "$_PATH_LOG" ] && mkdir -p "$_PATH_LOG"
+		if ! [ -d "${_PATH_LOG}" ]; then
+			if [ "${USER}" = root ]; then
+				mkdir -p "${_PATH_LOG}"
+			else
+				sudo mkdir -p "${_PATH_LOG}"
+				sudo chown :1000 "${_PATH_LOG}" && sudo chmod g+rw "${_PATH_LOG}"
+				sudo find "${_PATH_LOG}" -type d -exec sudo chown :1000 "{}" \; -exec sudo chmod g+rw "{}" \;
+			fi
+		fi
 
 		_SF_INF="$_PATH_LOG/${_SCRIPT}.info"
 		_SF_ERR="$_PATH_LOG/${_SCRIPT}.err"
@@ -292,8 +307,8 @@ __function_install() {
 	_confhave() {
 		local file
 		file="${2:-$S_FILE_INSTALL_CONF}"
-		! [ -f "$file" ] && _exite "unable to find '$file' from $FUNCNAME"
-		grep -q "^$1=.*" "$file"
+		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
+		grep -q "^$1=.*" "${file}"
 	}
 
 	# 1 array name
@@ -302,8 +317,8 @@ __function_install() {
 	_confhave_array() {
 		local file
 		file="${3:-$S_FILE_INSTALL_CONF}"
-		! [ -f "$file" ] && _exite "unable to find '$file' from $FUNCNAME"
-		grep -q "^${1}\['${2}'\]=.*" "$file"
+		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
+		grep -q "^${1}\[${2}\]=.*" "${file}"
 	}
 
 	# 1 variable name
@@ -311,9 +326,10 @@ __function_install() {
 	_confget() {
 		local file
 		file="${2:-$S_FILE_INSTALL_CONF}"file=
-		! [ -f "$file" ] && _exite "unable to find '$file' from $FUNCNAME"
+		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
+		#! [ -f "${file}" ] && return 1
 
-		_confhave "$1" "$file" && sed -n "s|^${1}=||p" $file | sed 's/"//g'
+		_confhave "$1" "${file}" && sed -n "s|^${1}=||p" ${file} | sed 's/"//g'
 	}
 
 	# 1 variable name
@@ -322,12 +338,13 @@ __function_install() {
 	_confset() {
 		local file
 		file="${3:-$S_FILE_INSTALL_CONF}"
-		! [ -f "$file" ] && _exite "unable to find '$file' from $FUNCNAME"
+		#! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
+		! [ -f "${file}" ] && touch "${file}"
 
-		if _confhave "$1" "$file"; then
-			sed -i "\|^$1=| c${1}=${2:+\"$2\"}" "$file"
+		if _confhave "$1" "${file}"; then
+			sed -i "\|^$1=| c${1}=${2:+\"$2\"}" "${file}"
 		else
-			echo "${1}=${2:+\"$2\"}" >> "$file"
+			echo "${1}=${2:+\"$2\"}" >> "${file}"
 		fi
 	}
 
@@ -338,12 +355,12 @@ __function_install() {
 	_confset_array() {
 		local file
 		file="${4:-$S_FILE_INSTALL_CONF}"
-		! [ -f "$file" ] && _exite "unable to find '$file' from $FUNCNAME"
+		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
-		if _confhave_array "$1" "$2" "$file"; then
-			sed -i "\|^${1}\['${2}'\]=| c${1}\['${2}'\]=${3:+\"$3\"}" "$file"
+		if _confhave_array "$1" "$2" "${file}"; then
+			sed -i "\|^${1}\['${2}'\]=| c${1}\[${2}\]=${3:+\"$3\"}" "${file}"
 		else
-			echo "${1}['${2}']=${3:+\"$3\"}" >> "$file"
+			echo "${1}[${2}]=${3:+\"$3\"}" >> "${file}"
 		fi
 	}
 
@@ -352,10 +369,10 @@ __function_install() {
 	# 3 optionnal file name
 	_confmulti_havevalue() {
 		local file
+		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		file="${3:-$S_FILE_INSTALL_CONF}"
-		! [ -f "$file" ] && _exite "unable to find '$file' from $FUNCNAME"
 
-		[[ " $(_confget "$1" "$file") " = *" $2 "* ]]
+		[[ " $(_confget "$1" "${file}") " = *" $2 "* ]]
 	}
 
 	# 1 variable name
@@ -364,11 +381,11 @@ __function_install() {
 	_confmulti_add() {
 		local file str
 		file="${3:-$S_FILE_INSTALL_CONF}"
-		! [ -f "$file" ] && _exite "unable to find '$file' from $FUNCNAME"
+		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
-		_confmulti_havevalue "$1" "$2" "$file" && return 0
-		str="$(tr ' ' '\n' <<<"$(_confget "$1" "$file") $2" | sort | xargs)"
-		sed -i "\|^${1}=| c${1}=\"${str}\"" "$file"
+		_confmulti_havevalue "$1" "$2" "${file}" && return 0
+		str="$(tr ' ' '\n' <<<"$(_confget "$1" "${file}") $2" | sort | xargs)"
+		sed -i "\|^${1}=| c${1}=\"${str}\"" "${file}"
 	}
 
 	# 1 variable name
@@ -377,11 +394,11 @@ __function_install() {
 	_confmulti_remove() {
 		local file str
 		file="${3:-$S_FILE_INSTALL_CONF}"
-		! [ -f "$file" ] && _exite "unable to find '$file' from $FUNCNAME"
+		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
-		_confmulti_havevalue "$1" "$2" "$file" || return 0
-		str=`sed "y/ /\n/;s/^${2}$//M" <<<"$(_confget "$1" "$file")" | xargs`
-		sed -i "\|^${1}=| c${1}=\"${str}\"" "$file"
+		_confmulti_havevalue "$1" "$2" "${file}" || return 0
+		str=`sed "y/ /\n/;s/^${2}$//M" <<<"$(_confget "$1" "${file}")" | xargs`
+		sed -i "\|^${1}=| c${1}=\"${str}\"" "${file}"
 	}
 
 	##############  PART
@@ -403,7 +420,7 @@ __function_install() {
 	_var_unset() {
 		local values value
 		# wrong parameters number
-		[ "$#" -lt 2 ] && _exite "$FUNCNAME:$LINENO Internal error, wrong parameters numbers (2): '$#'"
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (2): '$#'"
 
 		case "$1" in
 			part)
@@ -423,12 +440,13 @@ __function_install() {
 	}
 
 	# replace values
+	# 1 file
 	_var_replace_www() {
 		local strs str
 		# wrong parameters number
-		[ "$#" -lt 1 ] && _exite "$FUNCNAME:$LINENO Internal error, wrong parameters numbers (1): '$#'"
+		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (1): '$#'"
 
-		strs="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOSTING_PATH_LOG S_HOST_IPV6"
+		strs="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG S_HOST_IPV6"
 		for str in $strs; do
 			_evalq "sed -i 's|$str|${!str}|g' '$1'"
 		done
@@ -439,11 +457,13 @@ __function_install() {
 		sed -i "s|S_HOST_IPV4|${S_HOST_IPV4//\./\\\\.}|g" "$1"
 	}
 
+	# replace values fort www
+	# 1 file
 	_var_replace() {
 		local strs str
-		[ "$#" -lt 1 ] && _exite "$FUNCNAME:$LINENO Internal error, wrong parameters numbers (1): '$#'"
+		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (1): '$#'"
 
-		strs="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOSTING_PATH_LOG _VM_IP_BASE S_HOST_IPV4 S_HOST_IPV6"
+		strs="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG _VM_IP_BASE S_HOST_IPV4 S_HOST_IPV6"
 		for str in $strs; do
 			_evalq "sed -i 's|$str|${!str}|g' '$1'"
 		done
@@ -461,18 +481,20 @@ __function_install() {
 
 	# use service or systemctl
 	# $1 action
-	# $2 service
+	# $2 service name
 	_service() {
 		# wrong number of parameters
-		[ "$#" -lt 2 ] && _exite "$FUNCNAME:$LINENO Internal error, missing parameters: '$#'"
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: '$#'"
 
-	    if type systemctl >/dev/null 2>&1; then
+		if type systemctl >/dev/null 2>&1; then
 			_evalq systemctl "${1}" "${2}.service"
-	    elif type service >/dev/null 2>&1; then
-	        _evalq service "${2%.*}" "${1}"
-	    else
-	        _exite "unable to load service"
-	    fi
+		elif type service >/dev/null 2>&1; then
+			_evalq service "${2%.*}" "${1}"
+		elif type rc-service >/dev/null 2>&1; then
+			_evalq service "${2%.*}" "${1}"
+		else
+			_exite "unable to load service"
+		fi
 	}
 
 	##############  OTHERS
@@ -481,130 +503,106 @@ __function_install() {
 	_clear_conf_pwd() {
 		local file
 		file="${1:-S_FILE_INSTALL_CONF}"
-		sed -i 's|^\(_[^=]*PWD[^=]*=\).*|\1""|g' "$file"
+		sed -i 's|^\(_[^=]*PWD[^=]*=\).*|\1""|g' "${file}"
 	}
 }
 
-__function_openvz() {
+__function_lxd() {
 
-	##############  OPENVZ
+	# 1 file
+	# 2 variables string
+	_lxd_var_replace() {
+		local vars var
+		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (1): '$#'"
 
-	_get_ctid() {
-		local inter
-		inter=${1:-$S_ETH}
-		ifconfig $inter  | sed -n 's|^[[:space:]]\+inet \(addr:\)\?[0-9\.]\+\.\([0-9]\+\) .*|\2|p'
-	}
+		if [ "$2" ]; then
+			vars="$2"
+		else
+			vars="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG"
+			vars=""
+		fi
 
-	_vz_ctids_clean()
-	{
-		local ctids ctid
-
-		for ctid in $*; do
-			# test arguments
-			! [[ "$ctid" =~ ^[0-9]*-[0-9]*$ || "$ctid" =~ ^[0-9]*$ ]] && return
-
-			if [[ "$ctid" = *"-"* ]]; then
-				ctids+="$(seq ${ctid%-*} ${ctid#*-} | xargs) "
-			else
-				ctids+="$ctid "
-			fi
+		for var in $vars; do
+			sed -i "s|${var/[/\\[}|${!var}|g" "$1"
+			#"\\]}"
 		done
-
-		ctids=$(echo $ctids | tr " " "\n" | sort -nu | xargs)
-		echo ${ctids/% }
-	}
-
-	_vz_ctids_inter() {
-		local ctids ctid
-
-		[ $# != 2 ] && _exite "$FUNCNAME:$LINENO missing arguments $#"
-		for ctid in $2; do
-			[[ " $1 " = *" $ctid "* ]] && ctids+="$ctid "
-		done
-		echo ${ctids/% }
 	}
 }
 
-__function_obsolete() {
-
-	_reenter() {
-			local str
-			str="Please exit & re-enter in the server"
-			[ "$S_SERVER_TYPE" == vz ] && str="Please exit & re-enter in container '$(awk '{print $1}' < /proc/vz/veinfo)'$*"
-			[ "$S_SERVER_TYPE" == kvm ] && str="Please exit & re-enter in the vm '$(ifconfig "$S_ETH" |xargs|awk '{print $7}'|sed -e 's/[a-z]*://')'$*"
-			_echoI "$str"
-		}
-
-	# remove color characters
-	_rmchar() {
-		local str
-		str=${1//\\e\[[0-1];[0-9][0-9]m/}
-		echo "${str//\\e\[[0-1];[0-9]m/}"
-	}
-
-}
-
-__data() {
+__data_init() {
 
 	# colors
 	white='\e[0;0m'; red='\e[0;31m'; green='\e[0;32m'; blue='\e[0;34m'; magenta='\e[0;35m'; yellow='\e[0;33m'
 	whiteb='\e[1;1m'; redb='\e[1;31m'; greenb='\e[1;32m'; blueb='\e[1;34m'; magentab='\e[1;35m'; yellowb='\e[1;33m'; cclear='\e[0;0m'
 
-	# defines script & path names
-	if  [ "${0%*bash}" = "$0" ]; then
-		_SCRIPTFILE="$0"
-		_SCRIPT="$(basename "$0")"
-		[ -z "$_PATH_BASE" ] && _PATH_BASE=`dirname $(readlink -e "$0")`
-		_PATH_BASE_SUB="$_PATH_BASE/sub"
-	fi
-
 	# date
 	_DDATE=`date "+%Y%m%d"`
 	_SDDATE=`date +%s`
 
+	# defines script & path names
+	if  [ "${0%*bash}" = "$0" ]; then
+		_SCRIPTFILE="$0"
+		_SCRIPT="$(basename "$0")"
+		if readlink -e / 1>/dev/null 2>&1; then
+			[ -z "$_PATH_BASE" ] && _PATH_BASE=`dirname $(readlink -e "$0")`
+		else
+			[ -z "$_PATH_BASE" ] && _PATH_BASE=`dirname $(readlink -f "$0")`
+		fi
+		_PATH_BASE_SUB="$_PATH_BASE/sub"
+	fi
+
+}
+
+__data() {
+
 	# installation
-	S_FILE_INSTALL_DONE="${S_PATH_CONF}/install.done"
 	S_FILE_INSTALL_CONF="${S_PATH_CONF}/install.conf"
+	S_FILE_INSTALL_DONE="${S_PATH_CONF}/install.done"
 
 	# cluster
 	_CLUSTER_IPS=`sed 'y/ /\n/' <<<${S_CLUSTER[*]} | sed -n 's/^ip=\([^ ]\?\)/\1/p' | xargs`
 	_IPS_AUTH=`printf "%q\n" ${S_IPS_ADMIN} ${S_IPS_DEV} | sort -u | xargs`
 
 	# server type
-	[ ${S_SERVER_TYPE} != 'vz' ] && _IPTHIS=`_get_ip` || _IPTHIS=`_get_ip ${S_ETH}`
-	[ ${S_SERVER_TYPE} != 'vz' ] && _IPTHISV6=`_get_ipv6`
-
-	# IPs
-	if [[ " lxc vz docker " = *" $S_SERVER_TYPE "* ]]; then
-		_VM_IP_BASE="${_IPTHIS%.*}}"
-	else
-		_VM_IP_BASE=`sed -n 's|.*base=\([^ ]\+\).*|\1|p' <<<${S_ETH_VM['default']}`
-	fi
-
-	# openvz
-	[ "$S_SERVER_TYPE" = "vz" ] && _CTIDTHIS=`_get_ctid`
-
+	_IPTHIS=`_get_ip`
+	_IPTHISV6=`_get_ipv6`
 }
 
 ################################  MAIN
 
-if [ -z $S_INC_FUNCTIONS ]; then
-
-	# global configuration
-	S_GLOBAL_CONF="${S_GLOBAL_CONF:-/etc/server/server.conf}"
-	! . "$S_GLOBAL_CONF" && echo -e "[error] - Unable to source file '$S_GLOBAL_CONF' from '${BASH_SOURCE[0]}'" && echo 1
+if [ -z ${S_INC_FUNCTIONS} ]; then
 
 	# init functions
 	__function_common
 	__function_install
-	__function_openvz
-	__function_obsolete
+	__function_lxd
+
+	# set global data foir initialization
+	__data_init
+
+	# global configuration
+	S_GLOBAL_CONF="${S_GLOBAL_CONF:-/etc/server/server.conf}"
+	if [ -f "$S_GLOBAL_CONF" ]; then
+		 . "$S_GLOBAL_CONF"
+	else
+		if [ -z "${_INSTALL}" ]; then
+			echo -e "[error] - Unable to source file '$S_GLOBAL_CONF' from '${BASH_SOURCE[0]}'"
+		else
+			# get id of first called file
+			first_id="${!BASH_SOURCE[*]}" && first_id="${first_id#* }"
+			path_base=`dirname "$(readlink -e "${BASH_SOURCE[${first_id}]}")"`
+			file="${path_base}/conf-init.install"
+			! [ -f "${file}" ] && echo "${FUNCNAME}():${LINENO} Unable to find file '${file}'" && exit 1
+			. "${file}"
+		fi
+	fi
 
 	# set global data
 	__data
 
 	# preserve sourcing directly from bash
 	 [ "${0%*bash}" = "$0" ] && _redirect
+
 fi
 
 # singleton
