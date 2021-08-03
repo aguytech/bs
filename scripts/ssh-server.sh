@@ -22,14 +22,6 @@ __ssh() {
     exit
 }
 
-# test type of containers
-__typect() {
-    if [ "$2" == "${_IPTHIS}" ]; then _echoE "You try to connect to yourself"; exit 1
-    else ssh -o ConnectTimeout=$timeout "$1"@"$2" -p"$3"
-    fi
-    exit
-}
-
 ################################  INIT
 
 declare -A ips
@@ -42,31 +34,35 @@ timeout=3
 # containers access
 for id in ${!S_CLUSTER[*]}; do
 	eval ${S_CLUSTER[$id]}
-	ips[$id]="$ip"
-	ports[$id]="$port"
-	users[$id]="$user"
+	ips[$id]="$s_ip"
+	ports[$id]="$s_port"
+	users[$id]="$s_user"
 
 	# direct connection
-	if [[ "$1" = "$name" || "$1" = "$ip" ]]; then
-		__ssh "$user" "$id" "$port"
-		_exit
+	if [ "$1" ]; then
+		if [[ "$1" = "${s_name}" || "$1" = "${s_ip}" ]]; then
+			__ssh "${s_user}" "$id" "$s_port"
+			_exit
+		fi
+
+	# get data for menu
+	else
+		if ssh -o ConnectTimeout=3 -p ${s_port} ${s_user}@${s_ip} 'type vzctl >/dev/null 2>&1'; then
+
+			while read ctid ctname; do
+				if [[ "${ctid}" && "${ctname}" ]]; then
+					ips[${id}.${name}.${ctid}]="${s_ip}"
+					ports[${id}.${name}.${ctid}]="$S_HOST_PORT_PRE_SSH${ctid}"
+					users[${id}.${name}.${ctid}]="$S_HOST_PORT_PRE_SSH${ctid}"
+				fi
+
+				# direct connection to server
+				if [[ "$1" = "${name}.${ctid}" || "$1" = "${id}.${ctid}" ]]; then __ssh "${s_user}" "${s_ip}" "${S_HOST_PORT_PRE_SSH}${ctid}"; fi
+			done <<< "$(ssh -o ConnectTimeout=3 -p ${s_port} ${s_user}@${s_ip} 'vzlist -Ho ctid,hostname')"
+
+		fi
+
 	fi
-
-	if ssh -o ConnectTimeout=3 -p ${port} ${user}@${ip} 'type vzctl >/dev/null 2>&1'; then
-
-		while read ctid ctname; do
-			if [[ "${ctid}" && "${ctname}" ]]; then
-				ips[${id}.${name}.${ctid}]="${ip}"
-				ports[${id}.${name}.${ctid}]="$S_HOST_PORT_PRE_SSH${ctid}"
-				users[${id}.${name}.${ctid}]="$S_HOST_PORT_PRE_SSH${ctid}"
-			fi
-
-			# direct connection to server
-			if [[ "$1" = "${name}.${ctid}" || "$1" = "${id}.${ctid}" ]]; then __ssh "$user" "${ip}" "${S_HOST_PORT_PRE_SSH}${ctid}"; fi
-		done <<< "$(ssh -o ConnectTimeout=3 -p ${port} ${user}@${ip} 'vzlist -Ho ctid,hostname')"
-
-	fi
-
 done
 
 _menu "Select a VM" $(tr " " "\n" <<<${!ips[*]}|sort|xargs) || _exite
