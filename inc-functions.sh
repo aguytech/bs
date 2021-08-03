@@ -84,9 +84,17 @@ __function_common() {
 		_echoD "${FUNCNAME}() $*"
 		eval $* >&1
 	}
+	_evalr() {
+		_echoD "${FUNCNAME}() $*"
+		[ "${USER}" = root ] && eval $* >&1 || eval sudo $* >&1
+	}
 	_evalq() {
 		_echoD "${FUNCNAME}() $*"
 		eval $* >&4
+	}
+	_evalrq() {
+		_echoD "${FUNCNAME}() $*"
+		[ "${USER}" = root ] && eval $* >&4 || eval sudo $* >&4
 	}
 
 	##############  SOURCE
@@ -265,9 +273,8 @@ __function_common() {
 		local opt
 
 		# log path
-		if [ -z "$_PATH_LOG" ]; then
-			[ "${_PATH_BASE/$S_PATH_INSTALL}" != "${_PATH_BASE}" ] && _PATH_LOG="$S_PATH_LOG_INSTALL" || _PATH_LOG="$S_PATH_LOG_SERVER"
-		fi
+		[ "${_INSTALL}" ] && _PATH_LOG="${S_PATH_LOG_INSTALL}"
+		[ -z "$_PATH_LOG" ] && _PATH_LOG="${S_PATH_LOG_SERVER}"
 		if ! [ -d "${_PATH_LOG}" ]; then
 			if [ "${USER}" = root ]; then
 				mkdir -p "${_PATH_LOG}"
@@ -306,7 +313,7 @@ __function_install() {
 	# 2 optionnal file name
 	_confhave() {
 		local file
-		file="${2:-$S_FILE_INSTALL_CONF}"
+		file="${2:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		grep -q "^$1=.*" "${file}"
 	}
@@ -316,7 +323,7 @@ __function_install() {
 	# 3 optionnal file name
 	_confhave_array() {
 		local file
-		file="${3:-$S_FILE_INSTALL_CONF}"
+		file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		grep -q "^${1}\[${2}\]=.*" "${file}"
 	}
@@ -325,7 +332,7 @@ __function_install() {
 	# 2 optionnal file name
 	_confget() {
 		local file
-		file="${2:-$S_FILE_INSTALL_CONF}"file=
+		file="${2:-${S_FILE_INSTALL_CONF}}"file=
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		#! [ -f "${file}" ] && return 1
 
@@ -337,7 +344,7 @@ __function_install() {
 	# 3 optionnal file name
 	_confset() {
 		local file
-		file="${3:-$S_FILE_INSTALL_CONF}"
+		file="${3:-${S_FILE_INSTALL_CONF}}"
 		#! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		! [ -f "${file}" ] && touch "${file}"
 
@@ -354,11 +361,11 @@ __function_install() {
 	# 4 optionnal file name
 	_confset_array() {
 		local file
-		file="${4:-$S_FILE_INSTALL_CONF}"
+		file="${4:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		if _confhave_array "$1" "$2" "${file}"; then
-			sed -i "\|^${1}\['${2}'\]=| c${1}\[${2}\]=${3:+\"$3\"}" "${file}"
+			sed -i "\|^${1}\[${2}\]=| c${1}\[${2}\]=${3:+\"$3\"}" "${file}"
 		else
 			echo "${1}[${2}]=${3:+\"$3\"}" >> "${file}"
 		fi
@@ -370,7 +377,7 @@ __function_install() {
 	_confmulti_havevalue() {
 		local file
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
-		file="${3:-$S_FILE_INSTALL_CONF}"
+		file="${3:-${S_FILE_INSTALL_CONF}}"
 
 		[[ " $(_confget "$1" "${file}") " = *" $2 "* ]]
 	}
@@ -380,7 +387,7 @@ __function_install() {
 	# 3 optionnal file name
 	_confmulti_add() {
 		local file str
-		file="${3:-$S_FILE_INSTALL_CONF}"
+		file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		_confmulti_havevalue "$1" "$2" "${file}" && return 0
@@ -393,7 +400,7 @@ __function_install() {
 	# 3 optionnal file name
 	_confmulti_remove() {
 		local file str
-		file="${3:-$S_FILE_INSTALL_CONF}"
+		file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		_confmulti_havevalue "$1" "$2" "${file}" || return 0
@@ -508,29 +515,43 @@ __function_install() {
 	}
 }
 
-__function_lxd() {
+__function_lxc() {
 
 	# 1 file
 	# 2 variables string
-	_lxd_var_replace() {
+	_lxc_var_replace() {
 		local vars var
 		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (1): '$#'"
 
 		if [ "$2" ]; then
 			vars="$2"
 		else
-			vars="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG"
-			vars=""
+			#vars="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG"
+			for str in ${!S_SERVICE[*]}; do
+				vars="${vars} S_SERVICE[$str]"
+			done
+			vars="${vars} S_RSYSLOG_PORT S_RSYSLOG_PTC"
 		fi
 
-		for var in $vars; do
+		for var in ${vars}; do
 			sed -i "s|${var/[/\\[}|${!var}|g" "$1"
 			#"\\]}"
 		done
 	}
+
+	# 1 ct name
+	# 2 cmds
+	_lxc_exec() {
+		local vars var
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (1): '$#'"
+
+		_echoD "${FUNCNAME}() lxc exec ${1} -- sh -c $2"
+		lxc exec ${1} -- sh -c "$2"
+	}
+
 }
 
-__data_init() {
+__data() {
 
 	# colors
 	white='\e[0;0m'; red='\e[0;31m'; green='\e[0;32m'; blue='\e[0;34m'; magenta='\e[0;35m'; yellow='\e[0;33m'
@@ -552,21 +573,17 @@ __data_init() {
 		_PATH_BASE_SUB="$_PATH_BASE/sub"
 	fi
 
+	# IP server
+	_IPTHIS=`_get_ip`
+	_IPTHISV6=`_get_ipv6`
 }
 
-__data() {
-
-	# installation
-	S_FILE_INSTALL_CONF="${S_PATH_CONF}/install.conf"
-	S_FILE_INSTALL_DONE="${S_PATH_CONF}/install.done"
+__data_post() {
 
 	# cluster
 	_CLUSTER_IPS=`sed 'y/ /\n/' <<<${S_CLUSTER[*]} | sed -n 's/^ip=\([^ ]\?\)/\1/p' | xargs`
 	_IPS_AUTH=`printf "%q\n" ${S_IPS_ADMIN} ${S_IPS_DEV} | sort -u | xargs`
 
-	# server type
-	_IPTHIS=`_get_ip`
-	_IPTHISV6=`_get_ipv6`
 }
 
 ################################  MAIN
@@ -576,30 +593,37 @@ if [ -z ${S_INC_FUNCTIONS} ]; then
 	# init functions
 	__function_common
 	__function_install
-	__function_lxd
+	__function_lxc
 
-	# set global data foir initialization
-	__data_init
+	# set global data
+	__data
 
-	# global configuration
-	S_GLOBAL_CONF="${S_GLOBAL_CONF:-/etc/server/server.conf}"
-	if [ -f "$S_GLOBAL_CONF" ]; then
-		 . "$S_GLOBAL_CONF"
-	else
-		if [ -z "${_INSTALL}" ]; then
-			echo -e "[error] - Unable to source file '$S_GLOBAL_CONF' from '${BASH_SOURCE[0]}'"
-		else
+	# initialization for installation
+	if [ "${_INSTALL}" ]; then
+
+		S_PATH_CONF=/etc/server
+		S_GLOBAL_CONF="${S_PATH_CONF}/server.conf"
+		S_FILE_INSTALL_CONF="${S_PATH_CONF}/install.conf"
+		S_FILE_INSTALL_DONE="${S_PATH_CONF}/install.done"
+
+		if ! [ -f ${S_FILE_INSTALL_DONE} ] || ! grep -q conf-init ${S_FILE_INSTALL_DONE}; then
 			# get id of first called file
 			first_id="${!BASH_SOURCE[*]}" && first_id="${first_id#* }"
 			path_base=`dirname "$(readlink -e "${BASH_SOURCE[${first_id}]}")"`
+
 			file="${path_base}/conf-init.install"
 			! [ -f "${file}" ] && echo "${FUNCNAME}():${LINENO} Unable to find file '${file}'" && exit 1
 			. "${file}"
 		fi
 	fi
 
-	# set global data
-	__data
+	# global configuration
+	S_GLOBAL_CONF="${S_GLOBAL_CONF:-/etc/server/server.conf}"
+	[ -f "${S_GLOBAL_CONF}" ] || echo -e "[error] - Unable to source file '${S_GLOBAL_CONF}' from '${BASH_SOURCE[0]}'"
+	. "${S_GLOBAL_CONF}"
+
+	# set global data after sourcing S_GLOBAL_CONF
+	__data_post
 
 	# preserve sourcing directly from bash
 	 [ "${0%*bash}" = "$0" ] && _redirect
