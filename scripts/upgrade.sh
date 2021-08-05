@@ -45,7 +45,7 @@ elif grep -qiE 'debian|ubuntu' "${FILE_RELEASE}"; then
 	${cmd} -y upgrade
 
 	echo -e "${whiteb}autoremove${cclear}"
-	${cmd} autoremove
+	${cmd} -y autoremove
 
 	echo -e "${whiteb}clean${cclear}"
 	${cmd} -y clean

@@ -103,7 +103,7 @@ __main() {
 _echod "======================================================"
 _echod "$(ps -o args= $PPID)"
 
-path_save="$S_PATH_BACKUP/$_DDATE"
+path_save="$S_PATH_BACKUP/$_DATE"
 cmd_opt=" --exclude='.cache' -czf"
 cmd_ext=tgz
 

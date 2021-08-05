@@ -116,7 +116,14 @@ __function_common() {
 		local file
 		[ -z "$*" ] && _exite "No arguments to source"
 		for file in $*; do
-			! [ -f "${file}" ] && _exite "${FUNCNAME}() Missing file, unable to source '${file}'"
+			! [ -f "${file}" ] && _exite "${FUNCNAME}() Missing file, unable to find file '${file}'"
+		done
+	}
+	_required() {
+		local file
+		[ -z "$*" ] && _exite "No arguments to source"
+		for file in $*; do
+			! [ -d "${file}" ] && _exite "${FUNCNAME}() Missing file, unable to find path '${file}'"
 		done
 	}
 
@@ -428,7 +435,7 @@ __function_install() {
 	_var_unset() {
 		local values value
 		# wrong parameters number
-		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (2): '$#'"
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
 
 		case "$1" in
 			part)
@@ -449,31 +456,28 @@ __function_install() {
 
 	# replace values
 	# 1 file
-	_var_replace_www() {
-		local strs str
-		# wrong parameters number
-		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (1): '$#'"
-
-		strs="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG S_HOST_IPV6"
-		for str in $strs; do
-			_evalq "sed -i 's|$str|${!str}|g' '$1'"
-		done
-
-		# put right VM IP
-		sed -i "s|_VM_IP_BASE|${_VM_IP_BASE.//\./\\\\.}|g" "$1"
-		# put right host IP
-		sed -i "s|S_HOST_IPV4|${S_HOST_IPV4//\./\\\\.}|g" "$1"
-	}
-
-	# replace values fort www
-	# 1 file
+	# 2 group name of variables
 	_var_replace() {
-		local strs str
-		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (1): '$#'"
+		local vars var
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
 
-		strs="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG _VM_IP_BASE S_HOST_IPV4 S_HOST_IPV6"
-		for str in $strs; do
-			_evalq "sed -i 's|$str|${!str}|g' '$1'"
+		if [ "$2" = all ]; then
+			for var in ${!S_SERVICE[*]}; do
+				vars+=" S_SERVICE[${var}]"
+			done
+			vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
+		elif [ "$2" = apache ]; then
+			vars="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG S_HOST_IPV6"
+			vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG"
+		elif [ "$2" = rsyslog ]; then
+			vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC"
+		else
+			_exite "${FUNCNAME} Group: '$2' are not implemented yet"
+		fi
+
+		for var in ${vars}; do
+			_eval "sed -i 's|${var/[/\\[}|${!var}|g' '$1'"
+			#'\\]}"
 		done
 	}
 
@@ -492,7 +496,7 @@ __function_install() {
 	# $2 service name
 	_service() {
 		# wrong number of parameters
-		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: '$#'"
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type systemctl >/dev/null 2>&1; then
 			_evalq systemctl "${1}" "${2}.service"
@@ -517,36 +521,40 @@ __function_install() {
 
 __function_lxc() {
 
-	# 1 file
-	# 2 variables string
-	_lxc_var_replace() {
-		local vars var
-		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (1): '$#'"
-
-		if [ "$2" ]; then
-			vars="$2"
-		else
-			#vars="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG"
-			for str in ${!S_SERVICE[*]}; do
-				vars="${vars} S_SERVICE[$str]"
-			done
-			vars="${vars} S_RSYSLOG_PORT S_RSYSLOG_PTC"
-		fi
-
-		for var in ${vars}; do
-			sed -i "s|${var/[/\\[}|${!var}|g" "$1"
-			#"\\]}"
-		done
-	}
-
 	# 1 ct name
 	# 2 cmds
 	_lxc_exec() {
-		local vars var
-		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, wrong parameters numbers (1): '$#'"
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
 
 		_echoD "${FUNCNAME}() lxc exec ${1} -- sh -c $2"
 		lxc exec ${1} -- sh -c "$2"
+	}
+
+	# 1 ct name
+	# 2 file
+	# 3 group name of variables
+	_lxc_var_replace() {
+		local vars var
+		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
+
+		if [ "$3" = all ]; then
+			for var in ${!S_SERVICE[*]}; do
+				vars+=" S_SERVICE[${var}]"
+			done
+			vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
+		elif [ "$3" = apache ]; then
+			vars="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG S_HOST_IPV6"
+			vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG"
+		elif [ "$3" = rsyslog ]; then
+			vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC"
+		else
+			_exite "${FUNCNAME} Group: '$3' are not implemented yet"
+		fi
+
+		for var in ${vars}; do
+			_lxc_exec $1 "sed -i 's|${var/[/\\[}|${!var}|g' '$2'"
+			#'\\]}"
+		done
 	}
 
 }
@@ -558,8 +566,8 @@ __data() {
 	whiteb='\e[1;1m'; redb='\e[1;31m'; greenb='\e[1;32m'; blueb='\e[1;34m'; magentab='\e[1;35m'; yellowb='\e[1;33m'; cclear='\e[0;0m'
 
 	# date
-	_DDATE=`date "+%Y%m%d"`
-	_SDDATE=`date +%s`
+	_DATE=`date "+%Y%m%d"`
+	_SDATE=`date +%s`
 
 	# defines script & path names
 	if  [ "${0%*bash}" = "$0" ]; then
