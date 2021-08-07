@@ -119,7 +119,7 @@ __function_common() {
 			! [ -f "${file}" ] && _exite "${FUNCNAME}() Missing file, unable to find file '${file}'"
 		done
 	}
-	_required() {
+	_requirep() {
 		local file
 		[ -z "$*" ] && _exite "No arguments to source"
 		for file in $*; do
@@ -531,7 +531,7 @@ __function_lxc() {
 	}
 
 	# 1 ct name
-	# 2 file
+	# 2 path to find variables in file
 	# 3 group name of variables
 	_lxc_var_replace() {
 		local vars var
@@ -542,8 +542,9 @@ __function_lxc() {
 				vars+=" S_SERVICE[${var}]"
 			done
 			vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
+		elif [ "$3" = haproxy ]; then
+			vars="S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _DOMAIN_NAME _DOMAIN_FQDN _DOMAIN_2_NAME _DOMAIN_2_FQDN _SOMAXCONN _ACCESS_USER _ACCESS_PWD _ACCESS_URI"
 		elif [ "$3" = apache ]; then
-			vars="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG S_HOST_IPV6"
 			vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG"
 		elif [ "$3" = rsyslog ]; then
 			vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC"
@@ -552,8 +553,10 @@ __function_lxc() {
 		fi
 
 		for var in ${vars}; do
-			_lxc_exec $1 "sed -i 's|${var/[/\\[}|${!var}|g' '$2'"
-			#'\\]}"
+			#_lxc_exec $1 "sed -i 's|${var/[/\\[}|${!var}|g' $2"
+			var2="${var/[/\\[}" && var2="${var2/]/\\]}" 	#"\\]}"
+			_echoD "${FUNCNAME}() _lxc_exec $1 \"grep '${var2}' -rl $2|grep -v conf-enabled|xargs sed -i 's|${var2}|${!var}|g'\""
+			_lxc_exec $1 "grep '${var2}' -rl $2|grep -v conf-enabled|xargs sed -i 's|${var2}|${!var}|g'"
 		done
 	}
 
