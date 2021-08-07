@@ -8,7 +8,7 @@
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
-! . "$S_GLOBAL_FUNCTIONS" && echo -e "[error] - Unable to source file '$S_GLOBAL_FUNCTIONS' from '${BASH_SOURCE[0]}'" && exit 1
+! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
 ################################  VARIABLES
 
@@ -40,7 +40,7 @@ options:
 
 # check enabled configuration files
 __check() {
-	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} IN \$@=$@"
 
 	local confs conf
 
@@ -53,7 +53,7 @@ __check() {
 
 # clear broken links for names of available configuration
 __clear() {
-	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} IN \$@=$@"
 
 	local confs
 
@@ -64,7 +64,7 @@ __clear() {
 }
 
 __print() {
-	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} IN \$@=$@"
 
 	local conf enabled disabled
 
@@ -73,26 +73,30 @@ __print() {
 
 	# disabled
 	disabled="$(ls "${path_available}")"
-    for conf in $enabled; do
+    for conf in ${enabled}; do
     	disabled="${disabled/$conf}"
     done
-	disabled="$(echo -e "$disabled"|sort -u|sed '/^$/d')"
-	_echoD "${FUNCNAME}():$LINENO enabled=$enabled"
-	_echoD "${FUNCNAME}():$LINENO disabled=$disabled"
+	disabled="$(echo -e "${disabled}"|sort -u|sed '/^$/d')"
+	_echoD "${FUNCNAME}():${LINENO} enabled=${enabled}"
+	_echoD "${FUNCNAME}():${LINENO} disabled=${disabled}"
 
-	paste <(echo -e "--${1}--\n$ok") <(echo -e "--enabled--\n$enabled") <(echo -e "--disabled--\n$disabled")|column -tn
-	[ "$ok" ] && echo -e "\nTo activate the new configuration, use 'haconf reload'"
+	#paste <(echo -e "--${1}--\n${ok}") <(echo -e "--enabled--\n${enabled}") <(echo -e "--disabled--\n${disabled}")|column -tn
+	#[ "${ok}" ] && echo -e "\nTo activate the new configuration, use 'haconf reload'"
+	echo -e "${1}  \t"${ok%\\n}
+	echo -e "enabled \t"${enabled}
+	echo -e "disabled\t"${disabled}
+	[ "${ok}" ] && echo -e "\nTo activate the new configuration, use 'haconf reload'"
 }
 
 # 1 path to list
 # s-@ names to search
 __get_confs() {
-	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} IN \$@=$@"
 
 	local path confs conf
 	path="$1"
 	shift
-	_echoD "${FUNCNAME}():$LINENO path=${path} \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} path=${path} \$@=$@"
 
 	# list confs
 	for conf in $@; do
@@ -105,38 +109,38 @@ $(ls -1 "${path}"/${conf} 2>/dev/null)"
 # enable configuration files with his short names (without extension)
 # $* : configuration names
 __enable() {
-	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} IN \$@=$@"
 
 	local conf confs enabled ok ko
 
 	confs="$(__get_confs "${path_available}" "$@")"
-	_echoD "${FUNCNAME}():$LINENO confs="${confs}
+	_echoD "${FUNCNAME}():${LINENO} confs="${confs}
 
 	# select confs
 	for conf in ${confs}; do
 	    [ -h "${path_enabled}/${conf}" ]  && _evalq rm "${path_enabled}/${conf}"
 	    _evalq ln -s ${path_available}/${conf} ${path_enabled}/${conf}
-	    ok="$ok${conf}\n"
+	    ok="${ok}${conf}\n"
 	done
 
-	__print "enable"
+	__print "enable "
 }
 
 # disable configuration files with his short names (without extension)
 # $* : configuration names
 __disable() {
-	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} IN \$@=$@"
 
 	local conf confs enabled ok ko
 
 	confs="$(__get_confs "${path_available}" "$@")"
-	_echoD "${FUNCNAME}():$LINENO confs="${confs}
+	_echoD "${FUNCNAME}():${LINENO} confs="${confs}
 
 	# select confs
-	for conf in $confs; do
-		if [ -h "${path_enabled}/${conf}" ]; then
+	for conf in ${confs}; do
+		if [ -e "${path_enabled}/${conf}" ]; then
 			_evalq rm ${path_enabled}/${conf}
-			ok="$ok${conf}\n"
+			ok="${ok}${conf}\n"
 		fi
 	done
 
@@ -145,7 +149,7 @@ __disable() {
 
 # print list names of available configuration
 __list() {
-	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} IN \$@=$@"
 
 	local enabled disabled ko conf
 
@@ -157,40 +161,34 @@ __list() {
 	else
 		# select confs
 		for conf in $@; do
-			disabled="${disabled}
-$(find ${path_available}/ -type f -name ${conf}|sort|sed "s|${path_available}/||")"
-			enabled="${enabled}
-$(find -L ${path_enabled}/ -type f -name ${conf}|sort|sed "s|${path_enabled}/||")"
-			ko="${ko}
-$(find -L ${path_enabled}/ -type l -name ${conf}|sort|sed "s|${path_enabled}/||")"
+			disabled+="\n$(find ${path_available}/ -type f -name ${conf}|sort|sed "s|${path_available}/||")"
+			enabled+="\n$(find -L ${path_enabled}/ -type f -name ${conf}|sort|sed "s|${path_enabled}/||")"
+			ko+="\n$(find -L ${path_enabled}/ -type l -name ${conf}|sort|sed "s|${path_enabled}/||")"
 		done
 	fi
 
 	# disabled
-    for conf in $enabled; do
+    for conf in ${enabled}; do
     	disabled="${disabled/$conf}"
     done
-	disabled="$(echo -e "$disabled"|sort -u|sed '/^$/d')"
-	enabled="$(echo -e "$enabled"|sort -u|sed '/^$/d')"
-	ko="$(echo -e "$ko"|sort -u|sed '/^$/d')"
+	disabled="$(echo -e "${disabled}"|sort -u|sed '/^$/d')"
+	enabled="$(echo -e "${enabled}"|sort -u|sed '/^$/d')"
+	ko="$(echo -e "${ko}"|sort -u|sed '/^$/d')"
 
-	if [ "$ko" ]; then
-		paste <(echo -e "--enabled--\n$enabled") <(echo -e "--disabled--\n$disabled") <(echo -e "--broken--\n$ko")|column -tn
-	else
-		paste <(echo -e "--enabled--\n$enabled") <(echo -e "--disabled--\n$disabled")|column -tn
-	fi
-	[ "$ko" ] && echo -e "\nTo clean broken links, use: 'haconf clear'"
+	echo -e "enabled \t"${enabled}
+	echo -e "disabled\t"${disabled}
+	[ "${ko}" ] && echo -e "broken  \t"${ko} && echo -e "\nTo clean broken links, use: 'haconf clear'"
 }
 
 # reload haproxy daemon
 __reload() {
-	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} IN \$@=$@"
 
 	_service reload haproxy && _echo "haproxy have been reloaded" || _echoE "error, something wrong"
 }
 
 __opts() {
-	_echoD "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echoD "${FUNCNAME}():${LINENO} IN \$@=$@"
 
 	opts_given="$@"
 	opts_short="hdq"
@@ -198,12 +196,12 @@ __opts() {
 	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
 	eval set -- "${opts}"
 
-	_echoD "${FUNCNAME}():$LINENO opts_given=$opts_given opts=$opts"
+	_echoD "${FUNCNAME}():${LINENO} opts_given=${opts_given} opts=${opts}"
 	while [ "$1" != "--" ]
 	do
 		case "$1" in
 			--help)
-				echo "$usage"
+				echo "${usage}"
 				;;
 			-q|--quiet)
 				_redirect quiet
@@ -222,7 +220,7 @@ __opts() {
 	action="$1"
 	shift
 	opts="$@"
-	_echoD "${FUNCNAME}():$LINENO action='$action' opts='$opts'"
+	_echoD "${FUNCNAME}():${LINENO} action='$action' opts='$opts'"
 }
 
 __main() {
@@ -236,13 +234,15 @@ __main() {
 	local path_enabled="/etc/haproxy/conf-enabled"
 	local path_available="/etc/haproxy/conf-available"
 
-	for path in "$path_enabled" "$path_available"; do
-		! [ -d "$path" ] && mkdir -p "$path"
+	for path in "${path_enabled}" "${path_available}"; do
+		! [ -d "${path}" ] && mkdir -p "${path}"
 	done
 
 	__opts "$@"
 
-	[ -z "$action" ] && _exite "You have to give an action to execute"
+	[ -z "${action}" ] && _exite "You have to give an action to execute"
+	if ! [ -d "${path_available}" ] || ! [ -d "${path_enabled}" ]; then _exite "Unable to find path ${path_available} or ${path_enabled}"; fi
+
 	if [[ " check clear enable disable list reload " = *" $action "* ]]; then
 		# call action with arguments
 		__$action "${opts}"
