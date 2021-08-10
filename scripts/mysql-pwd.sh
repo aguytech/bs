@@ -45,14 +45,14 @@ Actions:
 ################################  FUNCTION
 
 __connect() {
-	_echoD "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
+	_echod "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
 
 	timeout 2 mysql -h${db_host} -u${db_user} -p${db_pwd} -e "" >/dev/null 2>&1
 }
 
 __exec() {
 	# require argument
-	_echoD "$FUNCNAME:$LINENO \$*='$*'}"
+	_echod "$FUNCNAME:$LINENO \$*='$*'}"
 	! [ "$*" ] && _exite "Internal error, function need arguments"
 
 	# init
@@ -74,7 +74,7 @@ __exec() {
 
 		report="$report\n$user @ $host - $pwd"
 		echo "SET PASSWORD FOR $user_host = PASSWORD('$pwd');" >> "$file_sql"
-		_echoD "$FUNCNAME:$LINENO user='$user' user_host='$user_host' pwd='$pwd'"
+		_echod "$FUNCNAME:$LINENO user='$user' user_host='$user_host' pwd='$pwd'"
 	done < <(echo -e "$results")
 
 	# allow local access whitout password for innotop
@@ -97,7 +97,7 @@ __exec() {
 	rm "$file_sql"
 
 	# report
-	_echoi "$(echo -e "$report"|column -t)"
+	_echoI "$(echo -e "$report"|column -t)"
 	_echoI "Keep safe above informations !"
 }
 
@@ -109,7 +109,7 @@ __exec_add_percona() {
 
 	# update root password with if new one exists
 	[ "${users[${db_user}]}" ] && db_pwd="${users[${db_user}]}"
-	_echoD "$FUNCNAME:$LINENO db_pwd='${db_pwd}'"
+	_echod "$FUNCNAME:$LINENO db_pwd='${db_pwd}'"
 
 	# update percona acces if new password
 	[ "${users[percona]}" ] && _evalq "sed -i 's|^\(.*,p=\).*|\1${users[percona]}|' ~/.percona-toolkit.conf"
@@ -117,7 +117,7 @@ __exec_add_percona() {
 	# create sql file
 	for user in $users_list; do
 		pwd="${users[$user]}"
-		_echoD "$FUNCNAME:$LINENO user='$user' pwd='$pwd'"
+		_echod "$FUNCNAME:$LINENO user='$user' pwd='$pwd'"
 
 		pt-show-grants --only $user| grep ' IDENTIFIED ' >> "$SQLperconaFILE"
 	done
@@ -133,7 +133,7 @@ __exec_add_percona() {
 
 __exec_percona() {
 	# require argument
-	_echoD "$FUNCNAME:$LINENO \$*='$*'}"
+	_echod "$FUNCNAME:$LINENO \$*='$*'}"
 	! [ "$*" ] && _exite "Internal error, function need arguments"
 
 	# init
@@ -153,7 +153,7 @@ __exec_percona() {
 		echo "-- $user - $pwd" >> "$file_sql"
 		pt-show-grants --only $user|grep ' IDENTIFIED '|sed "s|^\(.* TO '$user'@'.\+' IDENTIFIED BY\) PASSWORD '.\+'\(.*\)$|\1 '$pwd'\2|" >> "$file_sql"
 
-		_echoD "$FUNCNAME:$LINENO user='$user' user_host='$user_host' pwd='$pwd'"
+		_echod "$FUNCNAME:$LINENO user='$user' user_host='$user_host' pwd='$pwd'"
 	done
 
 	report="$(sed "s|.* TO '\(.\+\)'@'\(.\+\)' IDENTIFIED BY '\(.\+\)'[ |;].*|\1 @ \2 - \3|" "$file_sql"|grep ' @ '|sort|column -t)"
@@ -174,19 +174,19 @@ __exec_percona() {
 	rm "$file_sql"
 
 	# report
-	_echoi "$report"
+	_echoI "$report"
 	_echoI "Keep safe above informations !"
 }
 
 __exec_sql() {
-	_echoD "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
 
 	results="$(_evalq "mysql -Ns -h${db_host} -u${db_user} -p${db_pwd} -e \"$*\"|tr '\t' ' '")"
 }
 
 __exec_sql_file() {
 	local ERROR
-	_echoD "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
 
 	for FILE in $*; do
 		if [ -f "$FILE" ]; then
@@ -200,7 +200,7 @@ __exec_sql_file() {
 }
 
 __get_users() {
-	_echoD "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
 
 	# get users from sgbd
 	if [ "$*" == "*" ]; then
@@ -209,12 +209,12 @@ __get_users() {
 	else
 		users_list="$*"
 	fi
-	_echoD "$FUNCNAME:$LINENO users_list='$users_list'"
-	_echoD "$FUNCNAME:$LINENO sql_and='$sql_and'"
+	_echod "$FUNCNAME:$LINENO users_list='$users_list'"
+	_echod "$FUNCNAME:$LINENO sql_and='$sql_and'"
 }
 
 __get_pwds() {
-	_echoD "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
 
 	users_list="$*"
 
@@ -231,14 +231,14 @@ __get_pwds() {
 		done < <(echo -e "${users_list// /\\n}")
 		users_list=${!users[*]}
 	fi
-	_echoD "$FUNCNAME:$LINENO users_list='$users_list'"
-	_echoD "$FUNCNAME:$LINENO !users[*]=${!users[*]}"
-	_echoD "$FUNCNAME:$LINENO users[*]=${users[*]}"
+	_echod "$FUNCNAME:$LINENO users_list='$users_list'"
+	_echod "$FUNCNAME:$LINENO !users[*]=${!users[*]}"
+	_echod "$FUNCNAME:$LINENO users[*]=${users[*]}"
 
 }
 
 __init() {
-	_echoD "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
+	_echod "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
 
 	_askno "Give DB server address (${db_host})" && db_host=${_ANSWER:-${db_host}}
 	_askno "Give DB user name (${db_user})" && db_user=${_ANSWER:-${db_user}}
@@ -260,7 +260,7 @@ force=false
 ################################  MAIN
 #_clean && _redirect debug
 
-_echoD "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
+_echod "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
 
 opts_given="$@"
 opts_short="dfh:u:p:"
@@ -268,9 +268,9 @@ opts_long="help,debug,force,percona,host:,user:,pwd:"
 opts="$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- $* 2>/tmp/${0##*/})" || _exite "Bad options '$(</tmp/${0##*/})'"
 eval set -- $opts
 
-_echoD "$FUNCNAME:$LINENO opts='$opts' opts_given='$opts_given'"
+_echod "$FUNCNAME:$LINENO opts='$opts' opts_given='$opts_given'"
 while true; do
-	_echoD "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
 	case "$1" in
 		--help)
 			_echo "$usage"; _exit
@@ -350,7 +350,7 @@ while true; do
 	esac
 	shift
 done
-_echoD "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
+_echod "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
 
 while ! __connect; do __init; done
 

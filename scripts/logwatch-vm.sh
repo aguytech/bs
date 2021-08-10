@@ -111,7 +111,7 @@ touch $dirhtml/footer.html
 
 # select only ctid in production
 ctidprod=
-for ctid in $ctidall; do [ $ctid -lt 200 ] && ctidprod+=" $ctid"; done
+for ctid in $ctidall; do [ $ctid -lt 200 ] && ctidprod+="$ctid"; done
 
 for ctid in $ctidprod
 #for ctid in 101 120
@@ -125,7 +125,7 @@ do
 		ctidtmp=${ctids[$service]}
 
 		if [ "$ctidtmp" != "${ctidtmp/$ctid/}" ]; then
-			servicesmade+=" $service"
+			servicesmade+="$service"
 
 			if [ "${logfiles[$service]}" ]
 			then
@@ -143,10 +143,10 @@ do
 			fi
 
 			cmd="logwatch --service $service --output $output --format $format"
-			[ "${details[$service]}" ] && cmd+=" --detail ${details[$service]}"
-			[ "${ranges[$service]}" ] && cmd+=" --range ${ranges[$service]}"
-			cmd+=" $*"
-			cmd+=" $* >> $fileid-$ctid"
+			[ "${details[$service]}" ] && cmd+="--detail ${details[$service]}"
+			[ "${ranges[$service]}" ] && cmd+="--range ${ranges[$service]}"
+			cmd+="$*"
+			cmd+="$* >> $fileid-$ctid"
 			#echo $cmd
 			eval $cmd
 

@@ -38,7 +38,7 @@ __lxc_is_stopped() {
 }
 
 __lxc_is_runnig() {
-	_echoD "${FUNCNAME}() \$1=$1"
+	_echod "${FUNCNAME}() \$1=$1"
 	`lxc list --format json | jq -re "any(.[] | select(.status == \"Running\"); .name == \"$1\")"` || return 1
 }
 
@@ -66,10 +66,10 @@ __lxc_has_profile() {
 ################################  EXEC
 
 __lxc_exec() {
-	_echoD "${FUNCNAME}() CMD -----------------"
+	_echod "${FUNCNAME}() CMD -----------------"
 	echo "$*" >&6
-	_echoD "${FUNCNAME}() EXE -----------------"
+	_echod "${FUNCNAME}() EXE -----------------"
 	lxc exec ${CTNAME} -- sh -c "$*" >&4
-	_echoD "${FUNCNAME}() OUT -----------------"
+	_echod "${FUNCNAME}() OUT -----------------"
 }
 

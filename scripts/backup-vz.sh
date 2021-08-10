@@ -33,7 +33,7 @@ __compress() {
 	local path_from="$1"
 	local path_subs="$2"
 	local path_to="${path_from#/}"; path_to="${path_save}/${path_to//\//.}"; path_to="${path_to%/}"
-	_echoD "${FUNCNAME}():$LINENO path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
+	_echod "${FUNCNAME}():$LINENO path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
 
 	# wrong path
 	! [ -d "$path_from" ] && _exite "Wrong path '$path_from' for calling '$*'"
@@ -55,7 +55,7 @@ __compress() {
 			_evalq "tar $cmd_opt $file_to $path_sub"
 		else
 			_echoE "wrong path '$path_sub'"
-			_echoD "${FUNCNAME}():$LINENO wrong path '$path_sub'"
+			_echod "${FUNCNAME}():$LINENO wrong path '$path_sub'"
 		fi
 	done
 }
@@ -71,7 +71,7 @@ __sync() {
 	local path_to="${path_from#/}"
 
 	path_to="${path_save}/${path_to//\//.}"; path_to="${path_to%/}"
-	_echoD "${FUNCNAME}():$LINENO path_from='$path_from' path_subs='$path_subs' path_to='$path_to'"
+	_echod "${FUNCNAME}():$LINENO path_from='$path_from' path_subs='$path_subs' path_to='$path_to'"
 
 	# wrong path
 	! [ -d "$path_from" ] && _exite "Wrong path '$path_from' for calling '$*'"
@@ -83,19 +83,19 @@ __sync() {
 	_echoT "$PWD"
 
 	path_subs=$(echo "$path_subs")
-	_echoD "${FUNCNAME}():$LINENO path_subs='$path_subs'"
+	_echod "${FUNCNAME}():$LINENO path_subs='$path_subs'"
 	for path_sub in $path_subs
 	do
 		if [ -d "$path_from/$path_sub" ]; then
 			path_sub_to="${path_to}/${path_sub#/}"
 			! [ -d "$path_sub_to" ] && mkdir -p "$path_sub_to"
 
-			str=; for exclude in $excludes; do str+=" --exclude='$exclude'"; done
+			str=; for exclude in $excludes; do str+="--exclude='$exclude'"; done
 			_echo "sync $path_sub"
 			_evalq "rsync -a $str $path_from/$path_sub/ $path_sub_to/"
 		else
 			_echoE "wrong path '$path_from/$path_sub'"
-			_echoD "${FUNCNAME}():$LINENO ERROR| Wrong path '$path_from/$path_sub'"
+			_echod "${FUNCNAME}():$LINENO ERROR| Wrong path '$path_from/$path_sub'"
 		fi
 	done
 }
@@ -173,7 +173,7 @@ opts_long="dump,clean-log,debug,help,quiet"
 OPTS=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$OPTS"
 
-_echoD "${FUNCNAME}():$LINENO opts_given='$opts_given' OPTS='$OPTS'"
+_echod "${FUNCNAME}():$LINENO opts_given='$opts_given' OPTS='$OPTS'"
 while true; do
 	case "$1" in
 		--dump)
@@ -205,7 +205,7 @@ done
 
 # all options
 # ; log=l
-_echoD "${FUNCNAME}():$LINENO conf='$conf' template='$template' dump='$dump' suspend='$suspend' snapshot='$snapshot' share='$share' log='$log'"
+_echod "${FUNCNAME}():$LINENO conf='$conf' template='$template' dump='$dump' suspend='$suspend' snapshot='$snapshot' share='$share' log='$log'"
 
 __main
 

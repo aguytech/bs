@@ -16,7 +16,7 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! [ "$1" ] && _exite "you have to give a file"
 ! [ -f "$1" ] && _exite "unable to find file '$1'"
 file_in="$1"
-_echoD "file_in=$file_in"
+_echod "file_in=$file_in"
 
 # change CR to LF
 sed -i 's/\r$//' "$file_in"
@@ -89,7 +89,7 @@ for group in ${!groups[*]}; do
 		else
 			pops="${pops},$(grep ",${country}," "$file_in"|tail -n1|cut -d',' -f8|xargs)"
 		fi
-	#	_echoD "dates_count|data_case|data_death=$dates_count|$data_case|$data_death"
+	#	_echod "dates_count|data_case|data_death=$dates_count|$data_case|$data_death"
 	done
 
 	_echoI "$dates_count"
@@ -100,8 +100,8 @@ for group in ${!groups[*]}; do
 		echo "$titles" >> "$file"
 	done
 
-	_echoD dates=$dates
-	_echoD "dates_count=$dates_count"
+	_echod dates=$dates
+	_echod "dates_count=$dates_count"
 
 	data_case="$dates"
 	data_death="$dates"
@@ -114,7 +114,7 @@ for group in ${!groups[*]}; do
 		#echo "--$country" >> "$file_tmp"
 		#echo "$data_case" >> "$file_tmp"
 	done
-	#_echoD $data_count
+	#_echod $data_count
 
 	echo "$data_case" >> "$file_data_case"
 	echo "$data_death" >> "$file_data_death"

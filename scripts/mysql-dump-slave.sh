@@ -20,7 +20,7 @@ __rotate_files() {
 
 ################################  DATA
 
-_echoD "\$*=$*"
+_echod "\$*=$*"
 
 files_max=30
 path2="/var/share/mariadb/save"
@@ -30,7 +30,7 @@ ddate="$(date +%Y%m%d_%H%M%S)"
 # get values from $* : db_pwd path2
 for opt in $*; do _evalq $opt; done
 
-_echoD "db_pwd=$db_pwd | path2=$path2"
+_echod "db_pwd=$db_pwd | path2=$path2"
 
 db_names=$(mysql -u$db_user -p$db_pwd -e "SHOW SLAVE STATUS \G"|grep '^\s*Replicate_Do_DB'|sed 's/^\s*Replicate_Do_DB:\s*//;s/,/ /g')
 
@@ -39,7 +39,7 @@ db_names=$(mysql -u$db_user -p$db_pwd -e "SHOW SLAVE STATUS \G"|grep '^\s*Replic
 
 ################################  MAIN
 
-_echoD "db_names=$db_names"
+_echod "db_names=$db_names"
 
 ! [ -d "$path2" ] && mkdir -p "$path2"
 

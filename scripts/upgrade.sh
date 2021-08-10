@@ -8,7 +8,7 @@ whiteb="\e[1;1m"; redb="\e[1;31m"; greenb="\e[1;32m"; blueb="\e[1;34m"; magentab
 
 FILE_RELEASE="/etc/os-release"
 
-####  manjaro
+################################  MANJARO
 if grep -qi manjaro "${FILE_RELEASE}"; then
 	cmd="sudo pacman"
 
@@ -32,7 +32,7 @@ if grep -qi manjaro "${FILE_RELEASE}"; then
 	yay -Sc --noconfirm
 	rm -fR ~/.cache/yay
 
-####  ubuntu / debian
+################################  UBUNTU / DEBIAN
 elif grep -qiE 'debian|ubuntu' "${FILE_RELEASE}"; then
 
 	grep -qiE 'jessie|xenial|trusty' "${FILE_RELEASE}" && cmd="apt-get" || cmd="apt"
@@ -53,7 +53,7 @@ elif grep -qiE 'debian|ubuntu' "${FILE_RELEASE}"; then
 	echo -e "${whiteb}autoclean${cclear}"
 	${cmd} -y autoclean
 
-####  alpine
+################################  ALPINE
 elif grep -qiE 'alpine' "${FILE_RELEASE}"; then
 
 	cmd="apk"
@@ -67,7 +67,7 @@ elif grep -qiE 'alpine' "${FILE_RELEASE}"; then
 	echo -e "${whiteb}clean${cclear}"
 	${cmd} cache clean
 
-####  centos
+################################  CENTOS
 elif grep -qiE 'centos' "${FILE_RELEASE}"; then
 
 	cmd="yum"

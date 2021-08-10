@@ -30,9 +30,9 @@ __port_name() {
 	echo ${port:+"-e 'ssh -p $port' "}
 }
 __rsync() {
-	_echoD "$FUNCNAME:$LINENO cmd='${cmd}' from='${from}' to='${to}' exclude='${exclude}' excludefrom='${excludefrom}'"
-	_echoD "$FUNCNAME:$LINENO _IPTHIS='${_IPTHIS}' include='${include}' includefrom='${includefrom}'"
-	_echoD "$FUNCNAME:$LINENO delete='${delete}' dryrun='${dryrun}' archive='${archive}' verbose='${verbose}'"
+	_echod "$FUNCNAME:$LINENO cmd='${cmd}' from='${from}' to='${to}' exclude='${exclude}' excludefrom='${excludefrom}'"
+	_echod "$FUNCNAME:$LINENO _IPTHIS='${_IPTHIS}' include='${include}' includefrom='${includefrom}'"
+	_echod "$FUNCNAME:$LINENO delete='${delete}' dryrun='${dryrun}' archive='${archive}' verbose='${verbose}'"
 
 	_opts="${opts}${archive}${verbose}${dryrun}" && _opts=${_opts:+" -$_opts"}
 
@@ -45,12 +45,12 @@ __rsync() {
 	# check destination
 	[ "${ip_to}" = "${_IPTHIS}" ] && ! [ "${force}" ] && _askyn "This IP is the same as the destination, please confirm" && [ "$_ANSWER" = "n" ] && exit 1
 
-	for str in ${exclude}; do _exclude+=" --exclude=\"${str}\""; done
-	for str in ${excludefrom}; do _excludefrom+=" --exclude-from=\"${str}\""; done
-	for str in ${include}; do _include+=" --include=\"${str}\""; done
-	for str in ${includefrom}; do _includefrom+=" --include-from=\"${str}\""; done
+	for str in ${exclude}; do _exclude+="--exclude=\"${str}\""; done
+	for str in ${excludefrom}; do _excludefrom+="--exclude-from=\"${str}\""; done
+	for str in ${include}; do _include+="--include=\"${str}\""; done
+	for str in ${includefrom}; do _includefrom+="--include-from=\"${str}\""; done
 
-	#for str in ${exclude}; do _exclude+=" "
+	#for str in ${exclude}; do _exclude+=""
 	_eval "rsync${_opts}${_delete}${_exclude}${_excludefrom}${_include}${_includefrom} $(__port_name ${from})${from} $(__port_name ${to})${to}"
 }
 
@@ -94,7 +94,7 @@ eval set -- "${opts}"
 opts=
 
 # options
-_echoD "$FUNCNAME:$LINENO opts_given='${opts_given}' opts='${opts}'"
+_echod "$FUNCNAME:$LINENO opts_given='${opts_given}' opts='${opts}'"
 while true; do
 	case "$1" in
 		--help)
@@ -120,19 +120,19 @@ while true; do
 			;;
 		--exclude)
 			shift
-			exclude+=" $1"
+			exclude+="$1"
 			;;
 		--exclude-from)
 			shift
-			excludefrom+=" $1"
+			excludefrom+="$1"
 			;;
 		--include)
 			shift
-			include+=" $1"
+			include+="$1"
 			;;
 		--include-from)
 			shift
-			includefrom+=" $1"
+			includefrom+="$1"
 			;;
 		-r|--recursive)
 			opts+="r"
@@ -166,7 +166,7 @@ while true; do
 	shift
 done
 
-_echoD "$FUNCNAME:$LINENO \$*='$*'"
+_echod "$FUNCNAME:$LINENO \$*='$*'"
 case "$1" in
 	# dev
 	ddn1|dev-desktop-node1)
@@ -245,4 +245,4 @@ shift
 # call command
 _eval ${cmd}
 
-_echoD "$FUNCNAME:$LINENO $0 END"
+_echod "$FUNCNAME:$LINENO $0 END"
