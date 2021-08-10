@@ -1,56 +1,54 @@
 #!/bin/bash
 
-# $1: file name
-__get_file() {
-	if [ "$os" = "ubuntu" ]; then
-		echo $1|sed 's|^\([^_]\+_\).*|\1|'
-	else
-		echo $1|sed 's|^\(.*-\)[0-9\.]\+-[0-9].*|\1|'
-		#echo $1|sed 's|^\([^-]\+-\)[0-9\.]\+-[0-9].*|\1|'
-		#file_short=`echo $file|sed 's|^\(.*\)-[0-9\.]\+-.*|\1|'`
+# command get short from to list $path_pkg
+# command to list $path_pkg
+__filter() {
+	echo -n "filter ${NUM}: "
+	NUM=$(($NUM + 1))
+	[ -e ${files_del} ] && rm ${files_del}
+
+	shorts=`eval $1`
+	for short in ${shorts}; do
+		files=`eval $2`
+		for file in ${files}; do
+			echo "${sudo} rm ${file}*" >> ${files_del}
+		done
+	done
+
+	if [ -f "${files_del}" ]; then
+		echo -e "\n$(date +"%Y%m%d %T") filter ${NUM}" >> ${files_log}
+		cat ${files_del} >> ${files_log}
+		. ${files_del}
 	fi
+	echo "$(cat ${files_del} 2>/dev/null|wc -l) files deleted"
 }
 
-[ "${USER}" != "root" ] && sudo = "sudo"
-os="$1"
-path_pkg="/var/cache/pacman/pkg"
-files_all="/tmp/pkg-all"
+
+################################  MAIN
+
+[ -d /var/cache/pacman/pkg ] && path_pkg=/var/cache/pacman/pkg && os=manajro
+[ -d /var/cache/apt/archives ] && path_pkg=/var/cache/apt/archives && os=ubuntu
+[ "${path_pkg}" ] || echo "[error]${FUNCNAME}:${LINENO} Unable to find a path"
+
+[ "${USER}" != "root" ] && sudo="sudo"
+files_log="/var/log/server/clean-pkg.info"
 files_del="/tmp/pkg-del"
 
-[ "${os}" = "ubuntu" ] && path_pkg="/var/cache/apt/archives"
+# filter one
 
-# clean partialy downloaded files
-${sudo} rm ${path_pkg}/*.part
+NUM=1
 
-files=`ls -r1 ${path_pkg}`
-#files=`ls -r1 /var/cache/pacman/pkg|sed 's|^\(.*\)-[0-9\.]\+-[0-9].*|\1|'`
-echo > ${files_all}
-echo > ${files_del}
+__filter "ls -1 ${path_pkg}|grep zst\$|sed 's|^\(.*\)-[0-9\.]\+-[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${path_pkg}/\${short}-[0-9]*.zst|tail -n +2"
+__filter "ls -1 ${path_pkg}|grep zst\$|sed 's|^\([a-z0-9-]\+\)-[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${path_pkg}/\${short}-[0-9]*.zst|tail -n +2"
+__filter "ls -1 ${path_pkg}|grep zst\$|sed 's|^\(.*\)-[0-9\.]\+-[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${path_pkg}/\${short}-[0-9]*.zst|tail -n +2"
+__filter "ls -1 ${path_pkg}|grep zst\$|sed 's|^\(.*\)-[0-9]:[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${path_pkg}/\${short}-[0-9]:[0-9]*.zst|tail -n +2"
 
-for file in $files; do
-	file_short=`__get_file "${file}"`
+exit
 
-	echo "${file} | ${file_short}"
-	if grep "^${file_short}$" ${files_all}; then
-		echo ${file} >> ${files_del}
-	else
-		echo $file_short >> ${files_all}
-	fi
-done
+<<KEEP
+num=`wc -l $files_del 2>/dev/null|cut -d' ' -f1`
+[ -z "${num}" ] && echo "No files to deleted" && exit
 
-# clean empty line
-sed -i '/^$/d' ${files_all}
-sed -i '/^$/d' ${files_del}
-
-echo
-echo "--------------------------------"
-echo
-echo "`wc -l ${files_all}|cut -f1 -d' '` files to keep"
-echo "`wc -l ${files_del}|cut -f1 -d' '` files to delete"
-echo
-echo "to delete files use:"
-echo "for file in \$(cat ${files_del}); do echo rm  \${file}; ${sudo} rm ${path_pkg}/\${file}; done"
-
-echo
-echo "to deeply clean packages use:"
-echo "grep "^.*-[0-9]" ${files_all}"
+echo -n "${num} files to delete. Confirm (y)/n " && read answer
+[ "${answer}" != n ] && . ${files_del} && "${num} files deleted"
+KEEP
