@@ -10,90 +10,87 @@ __function_common() {
 
 	# echo
 	_echo() {
-		echo -e "$*" >&4
+		echo -e "$*" >&1
 	}
 	_echo-() {
-		echo -e $* >&4
-	}
-	_echod() {
-		_echoD "$*"
-		echo -e "$(date +"%Y%m%d %T") $*" >> "${_SF_INF}"
+		echo -e $* >&1
 	}
 
 	# debug
-	_echoD() {
+	_echod() {
 		echo "$(date +"%Y%m%d %T") $*" >&6
 	}
+
 	# error
 	_echoe() {
-		echo -e "[error] ${red}${*}${cclear}" >&2
+		echo -e "[error] ${red}$*${cclear}" >&2
 	}
 	_echoE() {
-		echo -e "[error] ${redb}${*}${cclear}" >&2
+		echo -e "[error] ${redb}$*${cclear}" >&2
 	}
 
 	# information
 	_echoi() {
-		echo -e "${yellow}${*}${cclear}" >&4
+		echo -e "$*" >&4
 	}
 	_echoI() {
-		echo -e "${yellowb}${*}${cclear}" >&4
+		echo -e "${yellowb}$*${cclear}" >&4
 	}
 
 	# title
 	_echot() {
-		echo -e "${blue}${*}${cclear}" >&4
+		echo -e "${blue}$*${cclear}" >&4
 	}
 	_echoT() {
-		echo -e "${blueb}${*}${cclear}" >&4
+		echo -e "${blueb}$*${cclear}" >&4
 	}
 
 	# alert
 	_echoa() {
-		echo -e "${magenta}${*}${cclear}" >&4
+		echo -e "${magenta}$*${cclear}" >&4
 	}
 	_echoA() {
-		echo -e "[alert] ${magentab}${*}${cclear}" >&4
+		echo -e "[alert] ${magentab}$*${cclear}" >&4
 	}
 
 	# only color
 	_echoW() {
-		echo -e "${whiteb}${*}${cclear}" >&4
+		echo -e "${whiteb}$*${cclear}" >&4
 	}
 	_echoB() {
-		echo -e "${blueb}${*}${cclear}" >&4
+		echo -e "${blueb}$*${cclear}" >&4
 	}
 
 	##############  EXIT
 
 	# exit
 	_exit() {
-		_echoD "exit - $*"
+		_echod "exit - $*"
 		[ "$*" ] && exit $* || exit
 	}
 	# exit, with default error 1
 	_exite() {
 		[ "$1" ] && _echoE "$1" || _echoE "error - ${_SCRIPTFILE}"
-		_echoD "exit - $*"
+		_echod "exit - $*"
 		[ "$2" ] && exit $2 || exit 1
 	}
 
 	##############  EVAL
 
 	_eval() {
-		_echoD "${FUNCNAME}() $*"
+		_echod "${FUNCNAME}() $*"
 		eval $* >&1
 	}
 	_evalr() {
-		_echoD "${FUNCNAME}() $*"
+		_echod "${FUNCNAME}() $*"
 		[ "${USER}" = root ] && eval $* >&1 || eval sudo $* >&1
 	}
 	_evalq() {
-		_echoD "${FUNCNAME}() $*"
+		_echod "${FUNCNAME}() $*"
 		eval $* >&4
 	}
 	_evalrq() {
-		_echoD "${FUNCNAME}() $*"
+		_echod "${FUNCNAME}() $*"
 		[ "${USER}" = root ] && eval $* >&4 || eval sudo $* >&4
 	}
 
@@ -103,7 +100,7 @@ __function_common() {
 		local file
 		for file in $*; do
 			if [ -f "${file}" ]; then
-				_echoD "${FUNCNAME}()  '${file}'"
+				_echod "${FUNCNAME}()  '${file}'"
 				. "${file}"
 			else
 				_exite "${FUNCNAME}() Missing file, unable to source '${file}'"
@@ -302,12 +299,17 @@ __function_common() {
 
 		# file descriptors
 		case "$opt" in
-			#				sdtout													stderror									info						debug
-			#				1															2												4							6
-			quiet)		1>>"$_SF_INF"									exec 2> >(tee -a "$_SF_ERR")	4>>"$_SF_INF"	6>/dev/null;;
-			info)			1> >(tee -a "$_SF_INF")						exec 2> >(tee -a "$_SF_ERR")	4>&1					6>/dev/null;;
-			debug)	1> >(tee -a "$_SF_INF" "$_SF_BUG")	exec 2> >(tee -a "$_SF_ERR")	4>&1					6>>"$_SF_BUG";;
-			full)			1> >(tee -a "$_SF_INF" "$_SF_BUG")	exec 2> >(tee -a "$_SF_ERR")	4>&1					6> >(tee -a "$_SF_BUG");;
+			#				sdtout											stderror								info							debug
+			#				1													2											4								6
+			quiet)		exec 1>>${_SF_INF}					2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
+			info)			exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
+			verbose)	exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>&1						6>/dev/null  ;;
+			debug)
+				exec 1> >(tee -a ${_SF_INF} ${_SF_BUG})
+				exec 2> >(tee -a ${_SF_ERR} ${_SF_BUG})
+				exec 4>>${_SF_INF}
+				exec 6>>${_SF_BUG}
+				;;
 		esac
 	}
 }
@@ -463,7 +465,7 @@ __function_install() {
 
 		if [ "$2" = all ]; then
 			for var in ${!S_SERVICE[*]}; do
-				vars+=" S_SERVICE[${var}]"
+				vars+="S_SERVICE[${var}]"
 			done
 			vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 		elif [ "$2" = apache ]; then
@@ -526,7 +528,7 @@ __function_lxc() {
 	_lxc_exec() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
 
-		_echoD "${FUNCNAME}() lxc exec ${1} -- sh -c $2"
+		_echod "${FUNCNAME}() lxc exec ${1} -- sh -c $2"
 		lxc exec ${1} -- sh -c "$2"
 	}
 
@@ -539,7 +541,7 @@ __function_lxc() {
 
 		if [ "$3" = all ]; then
 			for var in ${!S_SERVICE[*]}; do
-				vars+=" S_SERVICE[${var}]"
+				vars+="S_SERVICE[${var}]"
 			done
 			vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 		elif [ "$3" = haproxy ]; then
@@ -555,8 +557,8 @@ __function_lxc() {
 		for var in ${vars}; do
 			#_lxc_exec $1 "sed -i 's|${var/[/\\[}|${!var}|g' $2"
 			var2="${var/[/\\[}" && var2="${var2/]/\\]}" 	#"\\]}"
-			_echoD "${FUNCNAME}() _lxc_exec $1 \"grep '${var2}' -rl $2|grep -v conf-enabled|xargs sed -i 's|${var2}|${!var}|g'\""
-			_lxc_exec $1 "grep '${var2}' -rl $2|grep -v conf-enabled|xargs sed -i 's|${var2}|${!var}|g'"
+			_echod "${FUNCNAME}() _lxc_exec $1 \"grep -q '${var2}' -r $2 && grep '${var2}' -rl $2|grep -v conf-enabled|xargs sed -i 's|${var2}|${!var}|g'\""
+			_lxc_exec $1 "grep -q '${var2}' -r $2 && grep '${var2}' -rl $2|grep -v conf-enabled|xargs sed -i 's|${var2}|${!var}|g'"
 		done
 	}
 
