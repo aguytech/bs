@@ -217,6 +217,9 @@ alias lxcl1="lxc list --format=json | jq -r '.[] | select(.status == \"Running\"
 alias lxcl="lxc list -c nsP4tSc"
 
 alias lxcil="lxc image list -c Lfptsu" # Lfpdtsu
+alias lxcpl="lxc profile list"
+alias lxcnl="lxc network list"
+alias lxcrl="lxc remote list"
 
 #alias lxcln="lxc list --format=json | jq -r '.[] | select(.name | contains(\"'$name'\")) .name'"
 #alias lxclp="lxc list --format=json | jq '.[] | select(.profiles | any(contains(\"'$profile'\"))) .name'"
