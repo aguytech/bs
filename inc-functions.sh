@@ -2,7 +2,7 @@
 #
 # write by Aguy
 
-################################  FUNCTION
+########################  FUNCTION
 
 __function_common() {
 
@@ -79,11 +79,11 @@ __function_common() {
 
 	_eval() {
 		_echod "${FUNCNAME}() $*"
-		eval $* >&1
+		eval $*
 	}
 	_evalr() {
 		_echod "${FUNCNAME}() $*"
-		[ "${USER}" = root ] && eval $* >&1 || eval sudo $* >&1
+		[ "${USER}" = root ] && eval $* || eval sudo $*
 	}
 	_evalq() {
 		_echod "${FUNCNAME}() $*"
@@ -106,8 +106,6 @@ __function_common() {
 				_exite "${FUNCNAME}() Missing file, unable to source '${file}'"
 			fi
 		done
-
-		_FILECONF="${S_PATH_CONF}/${S_RELEASE}-${_PART}.conf"
 	}
 	_require() {
 		local file
@@ -293,8 +291,8 @@ __function_common() {
 		_SF_ERR="$_PATH_LOG/${_SCRIPT}.err"
 		_SF_BUG="$_PATH_LOG/${_SCRIPT}.debug"
 
-		opt=${1:-$S_TRACE}
-		opt=${opt:-$S_TRACEOPT}
+		opt=${1:-${S_TRACE}}
+		opt=${opt:-${S_TRACEOPT}}
 		opt=${opt:-info}
 
 		# file descriptors
@@ -475,9 +473,9 @@ __function_install() {
 			apache)
 				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG" ;;
 			rsyslog)
-				vars="S_SERVICE[log] S_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 			logrotate)
-				vars="S_HOST_PATH_LOG" ;;
+				vars="S_HOST_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 			*)
 				_exite "${FUNCNAME} Group: '$2' are not implemented yet" ;;
 		esac
@@ -556,9 +554,9 @@ __function_lxc() {
 			apache)
 				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG" ;;
 			rsyslog)
-				vars="S_SERVICE[log] S_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 			logrotate)
-				vars="S_HOST_PATH_LOG" ;;
+				vars="S_HOST_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 			*)
 				_exite "${FUNCNAME} Group: '$3' are not implemented yet" ;;
 		esac
@@ -608,7 +606,7 @@ __data_post() {
 
 }
 
-################################  MAIN
+########################  MAIN
 
 if [ -z ${S_INC_FUNCTIONS} ]; then
 
