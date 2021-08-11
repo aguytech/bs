@@ -10,15 +10,23 @@ __function_common() {
 
 	# echo
 	_echo() {
-		echo -e "$*" >&1
+		echo -e "$*"
 	}
 	_echo-() {
-		echo -e $* >&1
+		echo -e $*
 	}
 
 	# debug
 	_echod() {
 		echo "$(date +"%Y%m%d %T") $*" >&6
+	}
+
+	# alert
+	_echoa() {
+		echo -e "${magenta}$*${cclear}"
+	}
+	_echoA() {
+		echo -e "[alert] ${magentab}$*${cclear}"
 	}
 
 	# error
@@ -43,14 +51,6 @@ __function_common() {
 	}
 	_echoT() {
 		echo -e "${blueb}$*${cclear}" >&4
-	}
-
-	# alert
-	_echoa() {
-		echo -e "${magenta}$*${cclear}" >&4
-	}
-	_echoA() {
-		echo -e "[alert] ${magentab}$*${cclear}" >&4
 	}
 
 	# only color
@@ -307,7 +307,7 @@ __function_common() {
 			debug)
 				exec 1> >(tee -a ${_SF_INF} ${_SF_BUG})
 				exec 2> >(tee -a ${_SF_ERR} ${_SF_BUG})
-				exec 4>>${_SF_INF}
+				exec 4>&1
 				exec 6>>${_SF_BUG}
 				;;
 		esac
@@ -475,7 +475,7 @@ __function_install() {
 			apache)
 				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG" ;;
 			rsyslog)
-				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+				vars="S_SERVICE[log] S_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 			logrotate)
 				vars="S_HOST_PATH_LOG" ;;
 			*)
@@ -556,7 +556,7 @@ __function_lxc() {
 			apache)
 				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG" ;;
 			rsyslog)
-				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+				vars="S_SERVICE[log] S_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 			logrotate)
 				vars="S_HOST_PATH_LOG" ;;
 			*)
