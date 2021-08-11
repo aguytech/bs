@@ -4,7 +4,7 @@
 # Short-Description:    A wrapper with xdotool for mousepad. Open new tab with URI in last mousepad window
 # Description:          A wrapper with xdotool for mousepad. Open new tab with URI in last mousepad window
 
-################################  MAIN
+########################  MAIN
 
 for uri in $uris; do
     if [ -f "$uri" ]; then # test uri is file

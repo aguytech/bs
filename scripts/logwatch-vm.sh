@@ -4,13 +4,13 @@
 # Short-Description:	launch logwatch per service for each virtual machine
 # Description:			launch logwatch per service for each virtual machine
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  VARIABLES
+########################  VARIABLES
 
 declare -A ctids
 declare -A logfiles
@@ -91,7 +91,7 @@ _SCRIPT=${0##*/}; _SCRIPT=${_SCRIPT%.*}
 white='\e[0;0m'; red='\e[0;31m'; green='\e[0;32m'; blue='\e[0;34m'; magenta='\e[0;35m'
 whiteb='\e[1;1m'; redb='\e[1;31m'; greenb='\e[1;32m'; blueb='\e[1;34m'; magentab='\e[1;35m';cclear='\e[0;m'
 
-################################  COMMON
+########################  COMMON
 
 _mail() {
 	(
@@ -132,7 +132,7 @@ do
 				file=$logdir/$service.conf
 				[ -e $file ] && mv $file $file.tmp
 
-				str="echo -e \"# Logfile definition for $service / container $ctid\n########################################################\nTitle = $service\nLogFile =\nArchive =\n"
+				str="echo -e \"# Logfile definition for $service / container $ctid\n########################\nTitle = $service\nLogFile =\nArchive =\n"
 				[ "${logfiles[$service]}" ] && str+="${logfiles[$service]}\n"
 				[ "${archifiles[$service]}" ] && str+="${archifiles[$service]}\n"
 				[ "${variables[$service]}" ] && str+="${variables[$service]}\n"

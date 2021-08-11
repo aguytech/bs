@@ -4,13 +4,13 @@
 # Short-Description:    backup server, vz & kvm files & configuration
 # Description:          backup server, vz & kvm files & configuration
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  VARIABLES
+########################  VARIABLES
 
 usage="Usage: backup-server [arguments]
 
@@ -27,7 +27,7 @@ arguments:
  Make a backup of server configuration files & server scripts. In options call backup-vz & backup-kvm
 "
 
-################################################################  _SCRIPT
+########################  _SCRIPT
 
 # compress path
 # $1 path base
@@ -98,7 +98,7 @@ __main() {
 	fi
 }
 
-################################  MAIN
+########################  MAIN
 
 _echod "======================================================"
 _echod "$(ps -o args= $PPID)"

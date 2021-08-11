@@ -4,13 +4,13 @@
 # Short-Description:    extracts data from csv to graphical export
 # Description:          extracts data from csv to graphical export
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  FUNCTION
+########################  FUNCTION
 
 # $1
 ! [ "$1" ] && _exite "you have to give a file"

@@ -205,7 +205,7 @@ alias iptlsn='iptables -S -t nat'
 alias iptlm='iptables -nvL -t mangle --line-number'
 alias iptla='iptables -nvL --line-number; iptables -nvL -t nat --line-number'
 
-###########################################  LXC
+########################  LXC
 alias lxc1="lxc start"
 alias lxc0="lxc stop"
 alias lxc^="lxc restart"
@@ -248,7 +248,7 @@ alias lxcrl="lxc remote list"
 #alias lxcxp='lxcx publish'
 #alias lxcxpf='lxcx --force publish'
 
-###########################################  BTRFS
+########################  BTRFS
 alias btrfsf='btrfs filesystem'
 alias btrfss='btrfs subvolume'
 alias btrfssl='btrfs subvolume list -to'
@@ -263,7 +263,7 @@ alias btrfssl='btrfs subvolume list -to'
 #alias btrfsfl='btrfs filesystem label'
 #alias btrfsp='btrfs property -t s'
 
-###########################################  ZFS
+########################  ZFS
 #alias zpl='zpool list'
 #alias zplv='zpool list -v'
 #alias zpga='zpool get all'
@@ -273,15 +273,15 @@ alias btrfssl='btrfs subvolume list -to'
 #alias zfsga='zfs get all'
 #alias zfsg1='zfs get -o property,value creation,used,available,referenced,compressratio,mounted,readonly,quota'
 
-###########################################  SNAPPER
+########################  SNAPPER
 #alias snapl='for i in $(snapper list-configs |sed -n "3,\$p" |awk "{print \$1}" |xargs); do echo -e "\e[1;34m\n$i\e[0;0m"; snapper -c $i list; done'
 #alias snaplc='snapper list-configs'
 
-###########################################  KVM
+########################  KVM
 #alias kvmexp='export-kvm'
 #alias slvr='/etc/init.d/libvirt-bin restart'
 
-###########################################  PERSO
+########################  PERSO
 # Monitor logs
 # alias syslog='tail -100f /var/log/syslog'
 # alias messages='tail -100f /var/log/messages'
@@ -290,7 +290,7 @@ alias btrfssl='btrfs subvolume list -to'
 #export HISTSIZE=2000
 #export HISTFILESIZE=2000
 
-###########################################  OPENVZ
+########################  OPENVZ
 #alias nanoser='nano /etc/server/server.conf'
 #alias nanofir='nano /etc/server/firewall.conf'
 

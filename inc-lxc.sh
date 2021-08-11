@@ -4,13 +4,13 @@
 # Short-Description:		tools functions to manipulate container, to be sourced by commands & scripts
 # Description:					tools functions to manipulate container, to be sourced by commands & scripts
 
-################################  GLOBAL FUNCTIONS
+########################  GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  CONTAINER
+########################  CONTAINER
 
 #######  LIST
 
@@ -46,14 +46,14 @@ __lxc_get_status() {
 	lxc list --format=json | jq -r ".[] | select(.name == \"$1\").status"
 }
 
-################################  IMAGE
+########################  IMAGE
 
 __lxc_image_exist() {
 	#test `lxc image list --format json | jq -r ".[].aliases[] | select(.name == \"$1\").name"`
 	`lxc image list --format json | jq -re "any(.[].aliases[]; .name == \"$1\")"` || return 1
 }
 
-################################  PROFILE
+########################  PROFILE
 
 __lxc_profile_exist() {
 	`lxc profile list --format json | jq -re "any(.[]; .name == \"$1\")"` || return 1
@@ -63,7 +63,7 @@ __lxc_has_profile() {
 	`lxc list --format=json | jq -re "any(.[] | select (.profiles | any(. == \"$2\")); .name == \"$1\")"` || return 1
 }
 
-################################  EXEC
+########################  EXEC
 
 __lxc_exec() {
 	_echod "${FUNCNAME}() CMD -----------------"

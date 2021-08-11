@@ -4,13 +4,13 @@
 # Short-Description:    backup vz configuration, dump & templates
 # Description:          backup vz configuration, dump & templates
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  VARIABLES
+########################  VARIABLES
 
 usage="Usage: backup-vz[arguments]
 backup openvz elements: configuration, logs, dump containers & suspend, snapshot
@@ -24,7 +24,7 @@ arguments:
     -d, --debug    	output in screen & in file debug informations
 "
 
-################################################################  _SCRIPT
+########################  _SCRIPT
 
 # compress path
 # $1 path base
@@ -158,7 +158,7 @@ __main() {
 	__comp_share
 }
 
-################################  MAIN
+########################  MAIN
 
 _echod "======================================================"
 _echod "$(ps -o args= $PPID)"

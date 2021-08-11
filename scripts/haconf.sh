@@ -4,13 +4,13 @@
 # Short-Description:    control extended configurations files for haproxy
 # Description:          control extended configurations files for haproxy
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  VARIABLES
+########################  VARIABLES
 
 usage="haconf, control extended configurations files for haproxy
 haconf -h, --help
@@ -36,7 +36,7 @@ options:
     <names> are an expansion format
 "
 
-################################  FUNCTION
+########################  FUNCTION
 
 # check enabled configuration files
 __check() {
@@ -250,7 +250,7 @@ __main() {
 	fi
 }
 
-################################  MAIN
+########################  MAIN
 
 __main "$@"
 

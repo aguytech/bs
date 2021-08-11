@@ -5,5 +5,5 @@
 # Description:          local functions with global scope
 
 
-###########################  GLOBAL
+########################  GLOBAL
 

@@ -4,13 +4,13 @@
 # Short-Description:      dump 'one file per database' for mysql/mariadb database
 # Description:            dump 'one file per database' for mysql/mariadb database
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  FUNCTION
+########################  FUNCTION
 
 __rotate_files() {
 	for file in $(ls -1t "${path2}" | grep "^${*}-" | sed 1,$((files_max*2))d); do
@@ -18,7 +18,7 @@ __rotate_files() {
 	done
 }
 
-################################  DATA
+########################  DATA
 
 _echod "\$*=$*"
 
@@ -37,7 +37,7 @@ db_names=$(mysql -u$db_user -p$db_pwd -e "SHOW SLAVE STATUS \G"|grep '^\s*Replic
 [ -z "$db_pwd" ] && echo "error- dp_pwd not defined"
 [ -z "$db_names" ] && echo "error- unable to found databases to dump"
 
-################################  MAIN
+########################  MAIN
 
 _echod "db_names=$db_names"
 

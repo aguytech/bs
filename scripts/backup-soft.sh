@@ -4,13 +4,13 @@
 # Short-Description:		backup / restore selected and installed softwares in /opt
 # Description:					backup / restore selected and installed softwares in /opt
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  VARIABLES
+########################  VARIABLES
 
 declare USAGE="backup-soft : backup softwares from /opt
 default softwares are define in the script in this list:
@@ -39,7 +39,7 @@ args:
 	-d, --debug		output in screen & in file debug informations
 "
 
-################################  FUNCTION
+########################  FUNCTION
 
 # initialize default paths to backup
 __init() {
@@ -320,7 +320,7 @@ __main() {
 	__${action} "${softwares}"
 }
 
-################################  MAIN
+########################  MAIN
 
 __main "$@"
 

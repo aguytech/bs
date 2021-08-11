@@ -4,13 +4,13 @@
 # Short-Description:        export current user paths to backup path
 # Description:              export current user paths to backup path
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-##################################  DATA
+########################  DATA
 
 # paths to compress
 declare -A paths_comp
@@ -70,7 +70,7 @@ else
 fi
 
 
-##################################  FUNCTION
+########################  FUNCTION
 
 _compress() {
 	local path
@@ -147,10 +147,10 @@ _rsync() {
 }
 
 
-##################################  MAIN
+########################  MAIN
 
 
-_echoT "###########################################################
+_echoT "########################
 EXPORT to ${path_backup}\n"
 
 if ! [ -d ${path_backup} ]; then
@@ -208,7 +208,7 @@ done
 # SYNC POST
 
 _echoT "END
-###########################################################"
+########################"
 
 <<KEEP
 # virt-manager

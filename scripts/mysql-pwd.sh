@@ -4,13 +4,13 @@
 # Short-Description:      change password for original users
 # Description:            change password for original users
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  VARIABLES
+########################  VARIABLES
 
 usage="mysql-pwd, modify password for users in database
 mysql-pwd -h, --help
@@ -42,7 +42,7 @@ Actions:
     reset-base             reset passwords for only default 'init' users (initaly in template)
 "
 
-################################  FUNCTION
+########################  FUNCTION
 
 __connect() {
 	_echod "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
@@ -246,7 +246,7 @@ __init() {
 }
 
 
-################################  DATA
+########################  DATA
 
 db_host='127.0.0.1'
 db_user="root"
@@ -257,7 +257,7 @@ force=false
 ! type mysql >/dev/null 2>&1 && _exite "mysql client is required !"
 
 
-################################  MAIN
+########################  MAIN
 #_clean && _redirect debug
 
 _echod "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"

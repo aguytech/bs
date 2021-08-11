@@ -4,13 +4,13 @@
 # Short-Description:        use rsync to specific usage
 # Description:              use rsync to specific usage
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  FUNCTION
+########################  FUNCTION
 
 __ip_name() {
 	local ip name
@@ -54,7 +54,7 @@ __rsync() {
 	_eval "rsync${_opts}${_delete}${_exclude}${_excludefrom}${_include}${_includefrom} $(__port_name ${from})${from} $(__port_name ${to})${to}"
 }
 
-################################  VARIABLES
+########################  VARIABLES
 
 usage="rsync-server.sh : function over rsync to specific usage
 rsync-server.sh --help
@@ -75,7 +75,7 @@ vzl [options] [ctids / all]
 	-d, --debug          output in screen & in file debug informations
 "
 
-################################  MAIN
+########################  MAIN
 
 # OUT: no options given
 ! [ "$*" ] && _echoE "no options given" && exit 1

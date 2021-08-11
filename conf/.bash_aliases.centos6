@@ -28,7 +28,7 @@ alias iptlm="iptables -nvL -t mangle --line-number"
 alias iptla="iptables -nvL --line-number; iptables -nvL -t nat --line-number"
 alias ipts="iptables -S"
 
-###########################################  OPENVZ
+########################  OPENVZ
 alias svz="ssh-openvz"
 alias nanoser="nano /etc/server/server.conf"
 alias nanofir="nano /etc/server/firewall.conf"
@@ -76,12 +76,12 @@ alias vzr2="vzr --menu --template"
 alias svzl="vzlaunch -v"
 alias svzlup="vzlaunch -v upgrade all"
 
-###########################################  KVM
+########################  KVM
 alias kvmr="/usr/local/bs/kvm-rights.sh"
 alias kvmexp="/usr/local/bs/kvm-export"
 alias l2r="/etc/init.d/libvirt-bin restart"
 
-###########################################  OVH
+########################  OVH
 alias f2r="service firewall restart"
 alias f2rn="service firewall restartnat"
 
@@ -90,7 +90,7 @@ alias rsb1="rs bin -avd"
 alias rsba1="rs backup -avd"
 alias rsz1="rs vz -av"
 
-###########################################  PERSO
+########################  PERSO
 alias userexp="/usr/local/bs/user-export.sh"
 alias clean-k="/usr/local/bs/clean-keep"
 

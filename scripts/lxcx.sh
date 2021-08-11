@@ -4,14 +4,14 @@
 # Short-Description:		functions over lxc to manipulate containers
 # Description:					functions over lxc to manipulate containers
 
-################################ GLOBAL FUNCTIONS
+######################## GLOBAL FUNCTIONS
 #S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
 ! . "$S_PATH_SCRIPT/inc-lxc.sh" && echo -e "[error] - Unable to source file '$S_PATH_SCRIPT/inc-lxc.sh' from '${BASH_SOURCE[0]}'" && exit 1
 
-################################  VARIABLES
+########################  VARIABLES
 
 usage="lxcx : manage containers
 the container name can be one or few name (separate with space)
@@ -34,7 +34,7 @@ args:
 	-d, --debug		output in screen & in file debug informations
 "
 
-################################  FUNCTION
+########################  FUNCTION
 
 # $1 container names to select
 # $2 available container names
@@ -187,7 +187,7 @@ __main()
 	fi
 }
 
-################################  MAIN
+########################  MAIN
 
 __main "$@"
 

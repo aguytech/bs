@@ -4,7 +4,7 @@
 # Short-Description:      modify environnement parameters to switch between dev/pro platform & debugger
 # Description:            modify environnement parameters to switch between dev/pro platform & debugger
 
-################################  FUNCTION
+########################  FUNCTION
 
 # reload php-fpm or apache service
 __reload() {
@@ -118,11 +118,11 @@ __debug() {
 	[ "$2" != "off" ] && __restart
 }
 
-################################  INIT
+########################  INIT
 
 ! type php >/dev/null 2>&1 && _exite "Unable to find php on this computer"
 
-################################  VARIABLES
+########################  VARIABLES
 
 php_ver=$(php -v |xargs |sed "s/^PHP \([0-9]\.[0-9]\).*/\1/")
 if [ $RELEASE = alpine ]; then
@@ -157,7 +157,7 @@ php-switch debug <debugger> <off>  switch to selected debugger : xdebug / zend_d
                                    on/off: restart or not service (php or apache)
 "
 
-################################  MAIN
+########################  MAIN
 #_clean && _redirect debug
 
 action="$1"

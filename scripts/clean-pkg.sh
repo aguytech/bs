@@ -24,7 +24,7 @@ __filter() {
 }
 
 
-################################  MAIN
+########################  MAIN
 
 [ -d /var/cache/pacman/pkg ] && path_pkg=/var/cache/pacman/pkg && os=manajro
 [ -d /var/cache/apt/archives ] && path_pkg=/var/cache/apt/archives && os=ubuntu
