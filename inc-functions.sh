@@ -463,19 +463,24 @@ __function_install() {
 		local vars var
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
 
-		if [ "$2" = all ]; then
-			for var in ${!S_SERVICE[*]}; do
-				vars+="S_SERVICE[${var}]"
-			done
-			vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
-		elif [ "$2" = apache ]; then
-			vars="_MYDOMAIN _SUBDOMAIN _PATH_WWW S_LOG_IPV4 S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG S_HOST_IPV6"
-			vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG"
-		elif [ "$2" = rsyslog ]; then
-			vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC"
-		else
-			_exite "${FUNCNAME} Group: '$2' are not implemented yet"
-		fi
+		case $2 in
+			all)
+				for var in ${!S_SERVICE[*]}; do
+					vars+="S_SERVICE[${var}]"
+				done
+				vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
+				;;
+			haproxy)
+				vars="S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _DOMAIN_NAME _DOMAIN_FQDN _DOMAIN_2_NAME _DOMAIN_2_FQDN _SOMAXCONN _ACCESS_USER _ACCESS_PWD _ACCESS_URI" ;;
+			apache)
+				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG" ;;
+			rsyslog)
+				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+			logrotate)
+				vars="S_HOST_PATH_LOG" ;;
+			*)
+				_exite "${FUNCNAME} Group: '$2' are not implemented yet" ;;
+		esac
 
 		for var in ${vars}; do
 			_eval "sed -i 's|${var/[/\\[}|${!var}|g' '$1'"
@@ -539,20 +544,24 @@ __function_lxc() {
 		local vars var
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 
-		if [ "$3" = all ]; then
-			for var in ${!S_SERVICE[*]}; do
-				vars+="S_SERVICE[${var}]"
-			done
-			vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
-		elif [ "$3" = haproxy ]; then
-			vars="S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _DOMAIN_NAME _DOMAIN_FQDN _DOMAIN_2_NAME _DOMAIN_2_FQDN _SOMAXCONN _ACCESS_USER _ACCESS_PWD _ACCESS_URI"
-		elif [ "$3" = apache ]; then
-			vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG"
-		elif [ "$3" = rsyslog ]; then
-			vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC"
-		else
-			_exite "${FUNCNAME} Group: '$3' are not implemented yet"
-		fi
+		case $3 in
+			all)
+				for var in ${!S_SERVICE[*]}; do
+					vars+="S_SERVICE[${var}]"
+				done
+				vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
+				;;
+			haproxy)
+				vars="S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _DOMAIN_NAME _DOMAIN_FQDN _DOMAIN_2_NAME _DOMAIN_2_FQDN _SOMAXCONN _ACCESS_USER _ACCESS_PWD _ACCESS_URI" ;;
+			apache)
+				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG" ;;
+			rsyslog)
+				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+			logrotate)
+				vars="S_HOST_PATH_LOG" ;;
+			*)
+				_exite "${FUNCNAME} Group: '$3' are not implemented yet" ;;
+		esac
 
 		for var in ${vars}; do
 			#_lxc_exec $1 "sed -i 's|${var/[/\\[}|${!var}|g' $2"
