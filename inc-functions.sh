@@ -23,10 +23,10 @@ __function_common() {
 
 	# alert
 	_echoa() {
-		echo -e "${magenta}$*${cclear}"
+		echo -e "${magenta}$*${cclear}" >&2
 	}
 	_echoA() {
-		echo -e "[alert] ${magentab}$*${cclear}"
+		echo -e "[alert] ${magentab}$*${cclear}" >&2
 	}
 
 	# error
@@ -274,6 +274,12 @@ __function_common() {
 	_redirect() {
 		local opt
 
+		# preserve sourcing directly from bash
+	 	if [ "${0%*bash}" = "$0" ]; then
+	 		_echod "${FUNCNAME}:${LINENO} Preserve sourcing directly from bash"
+	 		_exit
+	 	fi
+
 		# log path
 		[ "${_INSTALL}" ] && _PATH_LOG="${S_PATH_LOG_INSTALL}"
 		[ -z "$_PATH_LOG" ] && _PATH_LOG="${S_PATH_LOG_SERVER}"
@@ -305,7 +311,7 @@ __function_common() {
 			debug)
 				exec 1> >(tee -a ${_SF_INF} ${_SF_BUG})
 				exec 2> >(tee -a ${_SF_ERR} ${_SF_BUG})
-				exec 4>&1
+				exec 4> >(tee -a ${_SF_INF})
 				exec 6>>${_SF_BUG}
 				;;
 		esac
@@ -469,13 +475,13 @@ __function_install() {
 				vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 				;;
 			haproxy)
-				vars="S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _DOMAIN_NAME _DOMAIN_FQDN _DOMAIN_2_NAME _DOMAIN_2_FQDN _SOMAXCONN _ACCESS_USER _ACCESS_PWD _ACCESS_URI" ;;
+				vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
 			apache)
-				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG" ;;
+				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG _CIDR_VM" ;;
 			rsyslog)
 				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 			logrotate)
-				vars="S_HOST_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
+				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 			*)
 				_exite "${FUNCNAME} Group: '$2' are not implemented yet" ;;
 		esac
@@ -531,7 +537,7 @@ __function_lxc() {
 	_lxc_exec() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
 
-		_echod "${FUNCNAME}() lxc exec ${1} -- sh -c $2"
+		_echod "${FUNCNAME}() lxc exec ${1} -- sh -c \"$2\""
 		lxc exec ${1} -- sh -c "$2"
 	}
 
@@ -550,22 +556,22 @@ __function_lxc() {
 				vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 				;;
 			haproxy)
-				vars="S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _DOMAIN_NAME _DOMAIN_FQDN _DOMAIN_2_NAME _DOMAIN_2_FQDN _SOMAXCONN _ACCESS_USER _ACCESS_PWD _ACCESS_URI" ;;
+				vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
 			apache)
-				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG" ;;
+				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG _CIDR_VM" ;;
 			rsyslog)
 				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 			logrotate)
-				vars="S_HOST_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
+				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 			*)
 				_exite "${FUNCNAME} Group: '$3' are not implemented yet" ;;
 		esac
 
 		for var in ${vars}; do
 			#_lxc_exec $1 "sed -i 's|${var/[/\\[}|${!var}|g' $2"
-			var2="${var/[/\\[}" && var2="${var2/]/\\]}" 	#"\\]}"
-			_echod "${FUNCNAME}() _lxc_exec $1 \"grep -q '${var2}' -r $2 && grep '${var2}' -rl $2|grep -v conf-enabled|xargs sed -i 's|${var2}|${!var}|g'\""
-			_lxc_exec $1 "grep -q '${var2}' -r $2 && grep '${var2}' -rl $2|grep -v conf-enabled|xargs sed -i 's|${var2}|${!var}|g'"
+			var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
+			_echod "${FUNCNAME}() _lxc_exec $1 \"grep -q '${var2}' -r $2 && grep '${var2}' -rl $2 | xargs sed -i 's|${var2}|${!var}|g'\""
+			_lxc_exec $1 "grep -q '${var2}' -r $2 && grep '${var2}' -rl $2 | xargs sed -i 's|${var2}|${!var}|g'"
 		done
 	}
 
@@ -601,14 +607,15 @@ __data() {
 __data_post() {
 
 	# cluster
-	_CLUSTER_IPS=`sed 'y/ /\n/' <<<${S_CLUSTER[*]} | sed -n 's/^ip=\([^ ]\?\)/\1/p' | xargs`
+	_CIDR_VM=`sed -n 's|.* s_cidr=\([^ ]*\).*|\1|p' <<<${S_HOST_VM_ETH[default]}`
+	_IPS_CLUSTER=` tr ' ' '\n' <<<${S_CLUSTER[*]} | sed -n 's|^s_ip=\([^ ]*\)|\1|p' | xargs`
 	_IPS_AUTH=`printf "%q\n" ${S_IPS_ADMIN} ${S_IPS_DEV} | sort -u | xargs`
 
 }
 
 ########################  MAIN
 
-if [ -z ${S_INC_FUNCTIONS} ]; then
+if [ -z "${S_INC_FUNCTIONS}" ]; then
 
 	# init functions
 	__function_common
@@ -645,8 +652,7 @@ if [ -z ${S_INC_FUNCTIONS} ]; then
 	# set global data after sourcing S_GLOBAL_CONF
 	__data_post
 
-	# preserve sourcing directly from bash
-	 [ "${0%*bash}" = "$0" ] && _redirect
+	_redirect
 
 fi
 
