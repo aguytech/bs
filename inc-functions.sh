@@ -65,32 +65,32 @@ __function_common() {
 
 	# exit
 	_exit() {
-		_echod "exit - $*"
+		_echod "${FUNCNAME}:${LINENO} exit - $*"
 		[ "$*" ] && exit $* || exit
 	}
 	# exit, with default error 1
 	_exite() {
 		[ "$1" ] && _echoE "$1" || _echoE "error - ${_SCRIPTFILE}"
-		_echod "exit - $*"
+		_echod "${FUNCNAME}:${LINENO} exit - $*"
 		[ "$2" ] && exit $2 || exit 1
 	}
 
 	##############  EVAL
 
 	_eval() {
-		_echod "${FUNCNAME}() $*"
+		_echod "${FUNCNAME}:${LINENO} $*"
 		eval $*
 	}
 	_evalr() {
-		_echod "${FUNCNAME}() $*"
+		_echod "${FUNCNAME}:${LINENO} $*"
 		[ "${USER}" = root ] && eval $* || eval sudo $*
 	}
 	_evalq() {
-		_echod "${FUNCNAME}() $*"
+		_echod "${FUNCNAME}:${LINENO} $*"
 		eval $* >&4
 	}
 	_evalrq() {
-		_echod "${FUNCNAME}() $*"
+		_echod "${FUNCNAME}:${LINENO} $*"
 		[ "${USER}" = root ] && eval $* >&4 || eval sudo $* >&4
 	}
 
@@ -100,7 +100,7 @@ __function_common() {
 		local file
 		for file in $*; do
 			if [ -f "${file}" ]; then
-				_echod "${FUNCNAME}()  '${file}'"
+				_echod "${FUNCNAME}:${LINENO}  '${file}'"
 				. "${file}"
 			else
 				_exite "${FUNCNAME}() Missing file, unable to source '${file}'"
@@ -275,10 +275,9 @@ __function_common() {
 		local opt
 
 		# preserve sourcing directly from bash
-	 	if [ "${0%*bash}" = "$0" ]; then
-	 		_echod "${FUNCNAME}:${LINENO} Preserve sourcing directly from bash"
-	 		_exit
-	 	fi
+	 	[ "${0%*bash}" != "$0" ] && echo "No file descriptors are instancied (preserving from direct bash sourcing)" >&2 && return
+
+	 	[ "$S_REDIRECTED" ] && _echod "${FUNCNAME}:${LINENO} Already redirected" && return
 
 		# log path
 		[ "${_INSTALL}" ] && _PATH_LOG="${S_PATH_LOG_INSTALL}"
@@ -315,6 +314,9 @@ __function_common() {
 				exec 6>>${_SF_BUG}
 				;;
 		esac
+
+		# singleton
+		S_REDIRECTED=true
 	}
 }
 
@@ -537,7 +539,7 @@ __function_lxc() {
 	_lxc_exec() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
 
-		_echod "${FUNCNAME}() lxc exec ${1} -- sh -c \"$2\""
+		_echod "${FUNCNAME}:${LINENO} lxc exec ${1} -- sh -c \"$2\""
 		lxc exec ${1} -- sh -c "$2"
 	}
 
@@ -570,7 +572,7 @@ __function_lxc() {
 		for var in ${vars}; do
 			#_lxc_exec $1 "sed -i 's|${var/[/\\[}|${!var}|g' $2"
 			var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
-			_echod "${FUNCNAME}() _lxc_exec $1 \"grep -q '${var2}' -r $2 && grep '${var2}' -rl $2 | xargs sed -i 's|${var2}|${!var}|g'\""
+			_echod "${FUNCNAME}:${LINENO} _lxc_exec $1 \"grep -q '${var2}' -r $2 && grep '${var2}' -rl $2 | xargs sed -i 's|${var2}|${!var}|g'\""
 			_lxc_exec $1 "grep -q '${var2}' -r $2 && grep '${var2}' -rl $2 | xargs sed -i 's|${var2}|${!var}|g'"
 		done
 	}
@@ -615,46 +617,40 @@ __data_post() {
 
 ########################  MAIN
 
-if [ -z "${S_INC_FUNCTIONS}" ]; then
+# init functions
+__function_common
+__function_install
+__function_lxc
 
-	# init functions
-	__function_common
-	__function_install
-	__function_lxc
+# set global data
+__data
 
-	# set global data
-	__data
+# initialization for installation
+if [ "${_INSTALL}" ]; then
 
-	# initialization for installation
-	if [ "${_INSTALL}" ]; then
+	S_PATH_CONF=/etc/server
+	S_GLOBAL_CONF="${S_PATH_CONF}/server.conf"
+	S_FILE_INSTALL_CONF="${S_PATH_CONF}/install.conf"
+	S_FILE_INSTALL_DONE="${S_PATH_CONF}/install.done"
 
-		S_PATH_CONF=/etc/server
-		S_GLOBAL_CONF="${S_PATH_CONF}/server.conf"
-		S_FILE_INSTALL_CONF="${S_PATH_CONF}/install.conf"
-		S_FILE_INSTALL_DONE="${S_PATH_CONF}/install.done"
+	if ! [ -f ${S_FILE_INSTALL_DONE} ] || ! grep -q conf-init ${S_FILE_INSTALL_DONE}; then
+		# get id of first called file
+		first_id="${!BASH_SOURCE[*]}" && first_id="${first_id#* }"
+		path_base=`dirname "$(readlink -e "${BASH_SOURCE[${first_id}]}")"`
 
-		if ! [ -f ${S_FILE_INSTALL_DONE} ] || ! grep -q conf-init ${S_FILE_INSTALL_DONE}; then
-			# get id of first called file
-			first_id="${!BASH_SOURCE[*]}" && first_id="${first_id#* }"
-			path_base=`dirname "$(readlink -e "${BASH_SOURCE[${first_id}]}")"`
-
-			file="${path_base}/conf-init.install"
-			! [ -f "${file}" ] && echo "${FUNCNAME}():${LINENO} Unable to find file '${file}'" && exit 1
-			. "${file}"
-		fi
+		file="${path_base}/conf-init.install"
+		! [ -f "${file}" ] && echo "${FUNCNAME}():${LINENO} Unable to find file '${file}'" && exit 1
+		. "${file}"
 	fi
-
-	# global configuration
-	S_GLOBAL_CONF="${S_GLOBAL_CONF:-/etc/server/server.conf}"
-	[ -f "${S_GLOBAL_CONF}" ] || echo -e "[error] - Unable to source file '${S_GLOBAL_CONF}' from '${BASH_SOURCE[0]}'"
-	. "${S_GLOBAL_CONF}"
-
-	# set global data after sourcing S_GLOBAL_CONF
-	__data_post
-
-	_redirect
 
 fi
 
-# singleton
-S_INC_FUNCTIONS="true"
+# global configuration
+S_GLOBAL_CONF="${S_GLOBAL_CONF:-/etc/server/server.conf}"
+[ -f "${S_GLOBAL_CONF}" ] || echo -e "[error] - Unable to source file '${S_GLOBAL_CONF}' from '${BASH_SOURCE[0]}'"
+. "${S_GLOBAL_CONF}"
+
+# set global data after sourcing S_GLOBAL_CONF
+__data_post
+
+_redirect
