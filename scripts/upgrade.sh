@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Provides:				upgrade
 # Short-Description:	Upgrade & clean packages
 # Description:			Upgrade & clean packages
 
-whiteb="\e[1;1m"; redb="\e[1;31m"; greenb="\e[1;32m"; blueb="\e[1;34m"; magentab="\e[1;35m";cclear="\e[0;m"
+whiteb="\e[1;1m"
+cclear="\e[0;m"
 
 FILE_RELEASE="/etc/os-release"
 
@@ -64,8 +65,8 @@ elif grep -qiE 'alpine' "${FILE_RELEASE}"; then
 	echo -e "${whiteb}upgrade${cclear}"
 	${cmd} upgrade
 
-	echo -e "${whiteb}clean${cclear}"
-	${cmd} cache clean
+	#echo -e "${whiteb}clean${cclear}"
+	#${cmd} cache clean
 
 ########################  CENTOS
 elif grep -qiE 'centos' "${FILE_RELEASE}"; then
