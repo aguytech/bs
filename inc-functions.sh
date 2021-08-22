@@ -309,8 +309,8 @@ __function_common() {
 			verbose)	exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>&1						6>/dev/null  ;;
 			debug)
 				exec 1> >(tee -a ${_SF_INF} ${_SF_BUG})
-				exec 2> >(tee -a ${_SF_ERR} ${_SF_BUG})
-				exec 4> >(tee -a ${_SF_INF})
+				exec 2> >(tee -a ${_SF_ERR})
+				exec 4>&1
 				exec 6>>${_SF_BUG}
 				;;
 		esac
@@ -476,14 +476,16 @@ __function_install() {
 				done
 				vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 				;;
+			apache)
+				vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _AP_PATH_WWW _AP_PATH_DOMAIN" ;; #  _CIDR_VM S_VM_PATH_SHARE
 			haproxy)
 				vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
-			apache)
-				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG _CIDR_VM" ;;
+			logrotate)
+				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
+			php)
+				vars="_PHPFPM_SOCK _PHPFPM_ADMIN_SOCK _PH_FPM_SERVICE _PHPFPM_SOCK" ;;
 			rsyslog)
 				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
-			logrotate)
-				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 			*)
 				_exite "${FUNCNAME} Group: '$2' are not implemented yet" ;;
 		esac
@@ -557,14 +559,16 @@ __function_lxc() {
 				done
 				vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 				;;
+			apache)
+				vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _AP_PATH_WWW _AP_PATH_DOMAIN" ;; #  _CIDR_VM S_VM_PATH_SHARE
 			haproxy)
 				vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
-			apache)
-				vars="S_RSYSLOG_PTC S_RSYSLOG_PORT S_PATH_LOG S_HOST_PATH_LOG _CIDR_VM" ;;
+			logrotate)
+				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
+			php)
+				vars="_PHPFPM_SOCK _PHPFPM_ADMIN_SOCK _PH_FPM_SERVICE _PHPFPM_SOCK" ;;
 			rsyslog)
 				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
-			logrotate)
-				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 			*)
 				_exite "${FUNCNAME} Group: '$3' are not implemented yet" ;;
 		esac
