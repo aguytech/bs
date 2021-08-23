@@ -205,6 +205,8 @@ alias lxcpl="lxc profile list"
 alias lxcnl="lxc network list"
 alias lxcrl="lxc remote list"
 
+alias lxcpd="lxc profile delete"
+
 #alias lxcln="lxc list -f json | jq -r '.[] | select(.name | contains(\"'$name'\")) .name'"
 #alias lxclp="lxc list -f json | jq '.[] | select(.profiles | any(contains(\"'$profile'\"))) .name'"
 
