@@ -251,4 +251,4 @@ alias zfsg1='zfs get -o property,value creation,used,available,referenced,compre
 #export HISTSIZE=2000
 #export HISTFILESIZE=2000
 
-alias gitcom='git co master && git merge - && git co - && git br -v'
+alias gitcom='git br -v && read str && git co master && git merge - && git co - && git br -v'
