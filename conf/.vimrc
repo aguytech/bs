@@ -12,6 +12,8 @@ let g:sublimemonokai_term_italic = 1
 " line enables syntax highlighting by default.
 syntax enable
 
+autocmd BufRead,BufNewFile *.conf set filetype=cfg
+
 " If using a dark background within the editing area and syntax highlighting
 " turn on this option as well
 set background=dark
