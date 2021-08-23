@@ -22,6 +22,7 @@ alias dfs="df -x tmpfs -x devtmpfs | grep -v /dev/ploop"
 
 ########################  GIT
 alias gitcom='git br -v && read str && git co master && git merge - && git co - && git br -v'
+alias gitpusha='git br -v && read str && git push --all'
 
 ########################  SSH
 alias sshs='ssh-server'
