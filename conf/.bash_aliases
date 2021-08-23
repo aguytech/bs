@@ -21,8 +21,14 @@ alias du2="__du 2"
 alias dfs="df -x tmpfs -x devtmpfs | grep -v /dev/ploop"
 
 ########################  GIT
+# commit
+alias gitcim='git commit -m '
+# branch
 alias gitbrv='git br -v'
-alias gitcom='git br -v && read str && git co master && git merge - && git co - && git br -v'
+# merge
+alias gitcom='git br -v && echo "-> master" && read str && git co master && git merge - && git co - && git br -v'
+alias gitcod='git br -v && echo "-> dev" && read str && git co dev && git merge - && git co - && git br -v'
+# push
 alias gitpusha='git br -v && read str && git push --all'
 
 ########################  SSH
@@ -54,6 +60,7 @@ alias lxcil="lxc image list -c Lfptsu" # Lfpdtsu
 alias lxcpl="lxc profile list"
 alias lxcnl="lxc network list"
 alias lxcrl="lxc remote list"
+alias lxcsl="lxc storage list"
 # list ct
 alias lxcl="lxc list -c nsP4tSc"
 alias lxclr="lxc list -c nsbDmMul"
