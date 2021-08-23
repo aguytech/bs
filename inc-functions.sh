@@ -466,42 +466,39 @@ __function_install() {
 	# 1 file
 	# 2 group name of variables
 	_var_replace() {
-		local vars var
+		local file opt vars var
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
+		file=$1; shift
 
-		case $2 in
-			all)
-				for var in ${!S_SERVICE[*]}; do
-					vars+="S_SERVICE[${var}]"
-				done
-				vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
-				;;
-			apache)
-				vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _AP_PATH_WWW _AP_PATH_DOMAIN" ;; #  _CIDR_VM S_VM_PATH_SHARE
-			haproxy)
-				vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
-			logrotate)
-				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
-			php)
-				vars="_PHPFPM_SOCK _PHPFPM_ADMIN_SOCK _PH_FPM_SERVICE _PHPFPM_SOCK" ;;
-			rsyslog)
-				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
-			*)
-				_exite "${FUNCNAME} Group: '$2' are not implemented yet" ;;
-		esac
+		for opt in $*; do
 
-		for var in ${vars}; do
-			_eval "sed -i 's|${var/[/\\[}|${!var}|g' '$1'"
-			#'\\]}"
+			case ${opt} in
+				all)
+					for var in ${!S_SERVICE[*]}; do
+						vars+="S_SERVICE[${var}]"
+					done
+					vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
+					;;
+				apache)
+					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _AP_PATH_WWW _AP_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
+				haproxy)
+					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
+				logrotate)
+					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
+				php)
+					vars="_PH_FPM_SOCK _PH_FPM_ADMIN_SOCK _PH_SERVICE _PH_FPM_SOCK" ;;
+				rsyslog)
+					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+				*)
+					_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
+			esac
+
+			for var in ${vars}; do
+				_eval "sed -i 's|${var/[/\\[}|${!var}|g' '${file}'"
+				#'\\]}"
+			done
+
 		done
-	}
-
-	_sed_php1() {
-		[ -f "$3" ]	&& sed -i "s|^;\?\(${1}\s*=\)\(.*\)$|\1 ${2} ;\2|" "$3"
-	}
-
-	_sed_maria1() {
-		[ -f "$3" ]	&& sed -i "s|^#\?\(${1}\s*=\)\(.*\)$|\1 ${2} #\2|" "$3"
 	}
 
 	##############  SERVICE
@@ -549,35 +546,40 @@ __function_lxc() {
 	# 2 path to find variables in file
 	# 3 group name of variables
 	_lxc_var_replace() {
-		local vars var
+		local file opt vars var ct
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
+		ct=$1; shift; file=$1; shift;
 
-		case $3 in
-			all)
-				for var in ${!S_SERVICE[*]}; do
-					vars+="S_SERVICE[${var}]"
-				done
-				vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
-				;;
-			apache)
-				vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _AP_PATH_WWW _AP_PATH_DOMAIN" ;; #  _CIDR_VM S_VM_PATH_SHARE
-			haproxy)
-				vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
-			logrotate)
-				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
-			php)
-				vars="_PHPFPM_SOCK _PHPFPM_ADMIN_SOCK _PH_FPM_SERVICE _PHPFPM_SOCK" ;;
-			rsyslog)
-				vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
-			*)
-				_exite "${FUNCNAME} Group: '$3' are not implemented yet" ;;
-		esac
+		for opt in $*; do
 
-		for var in ${vars}; do
-			#_lxc_exec $1 "sed -i 's|${var/[/\\[}|${!var}|g' $2"
-			var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
-			_echod "${FUNCNAME}:${LINENO} _lxc_exec $1 \"grep -q '${var2}' -r $2 && grep '${var2}' -rl $2 | xargs sed -i 's|${var2}|${!var}|g'\""
-			_lxc_exec $1 "grep -q '${var2}' -r $2 && grep '${var2}' -rl $2 | xargs sed -i 's|${var2}|${!var}|g'"
+			case ${opt} in
+				all)
+					for var in ${!S_SERVICE[*]}; do
+						vars+="S_SERVICE[${var}]"
+					done
+					vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
+					;;
+				apache)
+					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _AP_PATH_WWW _AP_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
+				haproxy)
+					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
+				logrotate)
+					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
+				php)
+					vars="_PH_FPM_SOCK _PH_FPM_ADMIN_SOCK _PH_SERVICE _PH_FPM_SOCK" ;;
+				rsyslog)
+					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+				*)
+					_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
+			esac
+
+			for var in ${vars}; do
+				#_lxc_exec ${ct} "sed -i 's|${var/[/\\[}|${!var}|g' ${file}"
+				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
+				_echod "${FUNCNAME}:${LINENO} _lxc_exec ${ct} \"grep -q '${var2}' -r ${file} && grep '${var2}' -rl ${file} | xargs sed -i 's|${var2}|${!var}|g'\""
+				_lxc_exec ${ct} "grep -q '${var2}' -r ${file} && grep '${var2}' -rl ${file} | xargs sed -i 's|${var2}|${!var}|g'"
+			done
+
 		done
 	}
 
