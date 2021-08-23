@@ -250,3 +250,5 @@ alias zfsg1='zfs get -o property,value creation,used,available,referenced,compre
 # Keep 1000 lines in .bash_history (default is 500)
 #export HISTSIZE=2000
 #export HISTFILESIZE=2000
+
+alias gitcom='git co master && git merge - && git co -'
