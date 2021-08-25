@@ -1,85 +1,84 @@
 #!/bin/sh
 #
-# Provides:				upgrade
-# Short-Description:	Upgrade & clean packages
-# Description:			Upgrade & clean packages
+# Provides:             upgrade
+# Short-Description:    Upgrade & clean packages
+# Description:          Upgrade & clean packages
 
-whiteb="\e[1;1m"
-cclear="\e[0;m"
+color='\e[1;34m'; cclear='\e[0;0m'
 
-FILE_RELEASE="/etc/os-release"
+file_release="/etc/os-release"
+[ ${USER} != root ] && pre="sudo"
 
 ########################  MANJARO
-if grep -qi manjaro "${FILE_RELEASE}"; then
-	cmd="sudo pacman"
+if grep -qi manjaro "${file_release}"; then
+	cmd="${pre} pacman"
 
-	echo -e "${whiteb}pacman update${cclear}"
+	echo -e "${color}pacman update${cclear}"
 	${cmd} -Syu  --noconfirm
 
-	echo -e "${whiteb}pacman clean orphans${cclear}"
+	echo -e "${color}pacman clean orphans${cclear}"
 	pcks="$(pacman -Qdtq)"
 	[ "${pcks}" ] && ${cmd} -R ${pcks}
 
-	echo -e "${whiteb}pacman clear cache${cclear}"
+	echo -e "${color}pacman clear cache${cclear}"
 	${cmd} -Sc --noconfirm
 
-	echo -e "${whiteb}yay update${cclear}"
+	echo -e "${color}yay update${cclear}"
 	yay -Syu
 
-	 echo -e "${whiteb}yay clean orphans${cclear}"
+	 echo -e "${color}yay clean orphans${cclear}"
 	yay -Rs
 
-	echo -e "${whiteb}pacman clear cache${cclear}"
+	echo -e "${color}pacman clear cache${cclear}"
 	yay -Sc --noconfirm
 	rm -fR ~/.cache/yay
 
 ########################  UBUNTU / DEBIAN
-elif grep -qiE 'debian|ubuntu' "${FILE_RELEASE}"; then
+elif grep -qiE 'debian|ubuntu' "${file_release}"; then
 
-	grep -qiE 'jessie|xenial|trusty' "${FILE_RELEASE}" && cmd="apt-get" || cmd="apt"
-	[[ $USER != root ]] && cmd="sudo ${cmd}"
+	cmd="${pre} apt"
 
-	echo -e "${whiteb}update${cclear}"
+	echo "${color}update${cclear}"
 	${cmd} update
 
-	echo -e "${whiteb}upgrade${cclear}"
+	echo "${color}upgrade${cclear}"
 	${cmd} -y upgrade
 
-	echo -e "${whiteb}autoremove${cclear}"
+	echo "${color}autoremove${cclear}"
 	${cmd} -y autoremove
 
-	echo -e "${whiteb}clean${cclear}"
+	echo "${color}clean${cclear}"
 	${cmd} -y clean
 
-	echo -e "${whiteb}autoclean${cclear}"
+	echo "${color}autoclean${cclear}"
 	${cmd} -y autoclean
 
 ########################  ALPINE
-elif grep -qiE 'alpine' "${FILE_RELEASE}"; then
+elif grep -qiE 'alpine' "${file_release}"; then
 
 	cmd="apk"
 
-	echo -e "${whiteb}update${cclear}"
+	echo -e "${color}update${cclear}"
 	${cmd} update
 
-	echo -e "${whiteb}upgrade${cclear}"
+	echo -e "${color}upgrade${cclear}"
 	${cmd} upgrade
 
-	#echo -e "${whiteb}clean${cclear}"
+	#echo -e "${color}clean${cclear}"
 	#${cmd} cache clean
 
 ########################  CENTOS
-elif grep -qiE 'centos' "${FILE_RELEASE}"; then
+elif grep -qiE 'centos' "${file_release}"; then
 
-	cmd="yum"
+	cmd+="yum"
 
-	echo -e "${whiteb}update${cclear}"
+	echo -e "${color}update${cclear}"
 	${cmd} -y update
 
-	echo -e "${whiteb}upgrade${cclear}"
+	echo -e "${color}upgrade${cclear}"
 	${cmd} -y upgrade
 
-	echo -e "${whiteb}clean${cclear}"
+	echo -e "${color}clean${cclear}"
 	${cmd} -y clean all
 
 fi

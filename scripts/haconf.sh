@@ -40,7 +40,7 @@ options:
 
 # check enabled configuration files
 __check() {
-	_echod "${FUNCNAME}():${LINENO} IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	local confs conf
 
@@ -53,7 +53,7 @@ __check() {
 
 # clear broken links for names of available configuration
 __clear() {
-	_echod "${FUNCNAME}():${LINENO} IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	local confs
 
@@ -64,7 +64,7 @@ __clear() {
 }
 
 __print() {
-	_echod "${FUNCNAME}():${LINENO} IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	local conf enabled disabled
 
@@ -77,8 +77,8 @@ __print() {
     	disabled="${disabled/$conf}"
     done
 	disabled="$(echo -e "${disabled}"|sort -u|sed '/^$/d')"
-	_echod "${FUNCNAME}():${LINENO} enabled=${enabled}"
-	_echod "${FUNCNAME}():${LINENO} disabled=${disabled}"
+	_echod "${FUNCNAME}::${LINENO} enabled=${enabled}"
+	_echod "${FUNCNAME}::${LINENO} disabled=${disabled}"
 
 	#paste <(echo -e "--${1}--\n${ok}") <(echo -e "--enabled--\n${enabled}") <(echo -e "--disabled--\n${disabled}")|column -tn
 	#[ "${ok}" ] && echo -e "\nTo activate the new configuration, use 'haconf reload'"
@@ -91,12 +91,12 @@ __print() {
 # 1 path to list
 # s-@ names to search
 __get_confs() {
-	_echod "${FUNCNAME}():${LINENO} IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	local path confs conf
 	path="$1"
 	shift
-	_echod "${FUNCNAME}():${LINENO} path=${path} \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} path=${path} \$@=$@"
 
 	# list confs
 	for conf in $@; do
@@ -109,12 +109,12 @@ $(ls -1 "${path}"/${conf} 2>/dev/null)"
 # enable configuration files with his short names (without extension)
 # $* : configuration names
 __enable() {
-	_echod "${FUNCNAME}():${LINENO} IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	local conf confs enabled ok ko
 
 	confs="$(__get_confs "${path_available}" "$@")"
-	_echod "${FUNCNAME}():${LINENO} confs="${confs}
+	_echod "${FUNCNAME}::${LINENO} confs="${confs}
 
 	# select confs
 	for conf in ${confs}; do
@@ -129,12 +129,12 @@ __enable() {
 # disable configuration files with his short names (without extension)
 # $* : configuration names
 __disable() {
-	_echod "${FUNCNAME}():${LINENO} IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	local conf confs enabled ok ko
 
 	confs="$(__get_confs "${path_available}" "$@")"
-	_echod "${FUNCNAME}():${LINENO} confs="${confs}
+	_echod "${FUNCNAME}::${LINENO} confs="${confs}
 
 	# select confs
 	for conf in ${confs}; do
@@ -149,7 +149,7 @@ __disable() {
 
 # print list names of available configuration
 __list() {
-	_echod "${FUNCNAME}():${LINENO} IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	local enabled disabled ko conf
 
@@ -182,13 +182,13 @@ __list() {
 
 # reload haproxy daemon
 __reload() {
-	_echod "${FUNCNAME}():${LINENO} IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	_service reload haproxy && _echo "haproxy have been reloaded" || _echoE "error, something wrong"
 }
 
 __opts() {
-	_echod "${FUNCNAME}():${LINENO} IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	opts_given="$@"
 	opts_short="hdq"
@@ -196,7 +196,7 @@ __opts() {
 	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
 	eval set -- "${opts}"
 
-	_echod "${FUNCNAME}():${LINENO} opts_given=${opts_given} opts=${opts}"
+	_echod "${FUNCNAME}::${LINENO} opts_given=${opts_given} opts=${opts}"
 	while [ "$1" != "--" ]; do
 		case "$1" in
 			--help)
@@ -219,7 +219,7 @@ __opts() {
 	action="$1"
 	shift
 	opts="$@"
-	_echod "${FUNCNAME}():${LINENO} action='$action' opts='$opts'"
+	_echod "${FUNCNAME}::${LINENO} action='$action' opts='$opts'"
 }
 
 __main() {

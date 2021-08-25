@@ -98,13 +98,13 @@ comp_path_conf=$HOME/.yEd
 comp_file_desk=$HOME/.local/share/applications/yed.desktop"
 	PATHS_EXE["yed"]="/opt/yed-${release}/yed.jar"
 
-	#_echod "${FUNCNAME}():$LINENO \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
-	#_echod "${FUNCNAME}():$LINENO \${PATHS_SOFT[@]}=${PATHS_SOFT[@]}"
+	#_echod "${FUNCNAME}::$LINENO \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
+	#_echod "${FUNCNAME}::$LINENO \${PATHS_SOFT[@]}=${PATHS_SOFT[@]}"
 }
 
 # $1 list of softwares
 __backup() {
-	_echod "${FUNCNAME}():$LINENO \$1=$1"
+	_echod "${FUNCNAME}::$LINENO \$1=$1"
 
 	local software
 	
@@ -113,8 +113,8 @@ __backup() {
 	
 	# COMP EXE
 	for software in $1; do
-		_echod "${FUNCNAME}():$LINENO \$software=$software"
-		_echod "${FUNCNAME}():$LINENO \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
+		_echod "${FUNCNAME}::$LINENO \$software=$software"
+		_echod "${FUNCNAME}::$LINENO \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
 		
 		if [ "${PATHS_SOFT["${software}"]}" ]; then
 			__backup_one "$software" "${PATHS_SOFT["${software}"]}"
@@ -130,8 +130,8 @@ __backup() {
 # $1 software
 # $2 string of paths definitions
 __backup_one() {
-	_echod "${FUNCNAME}():$LINENO \$1=$1"
-	_echod "${FUNCNAME}():$LINENO \$2=$2"
+	_echod "${FUNCNAME}::$LINENO \$1=$1"
+	_echod "${FUNCNAME}::$LINENO \$2=$2"
 
 	local paths_comp
 	local path_user file_soft comp_path_opt comp_path_conf comp_file_desk
@@ -160,7 +160,7 @@ __backup_one() {
 
 # $1 list of softwares
 __restore() {
-	_echod "${FUNCNAME}():$LINENO \$1=$1"
+	_echod "${FUNCNAME}::$LINENO \$1=$1"
 
 	local software
 	
@@ -169,8 +169,8 @@ __restore() {
 	
 	# UNCOMP EXE
 	for software in $1; do
-		_echod "${FUNCNAME}():$LINENO \$software=$software"
-		_echod "${FUNCNAME}():$LINENO \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
+		_echod "${FUNCNAME}::$LINENO \$software=$software"
+		_echod "${FUNCNAME}::$LINENO \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
 		
 		if [ "${PATHS_SOFT["${software}"]}" ]; then
 			__restore_one "$software" "${PATHS_SOFT["${software}"]}"
@@ -186,8 +186,8 @@ __restore() {
 # $1 software
 # $2 string of paths definitions
 __restore_one() {
-	_echod "${FUNCNAME}():$LINENO \$1=$1"
-	_echod "${FUNCNAME}():$LINENO \$2=$2"
+	_echod "${FUNCNAME}::$LINENO \$1=$1"
+	_echod "${FUNCNAME}::$LINENO \$2=$2"
 
 	local paths_comp path path_from path_to file_back release
 	local path_user file_soft comp_path_opt comp_path_conf comp_file_desk
@@ -203,8 +203,8 @@ __restore_one() {
 	fi
 	release=`ls "${file_back}"|sed "s|${PATH_BACKUP}/${file_soft}\(.*\)_${DATEB}.${COMP_EXT}|\1|"`
 
-	_echod "${FUNCNAME}():$LINENO \$DATEB=$DATEB"
-	_echod "${FUNCNAME}():$LINENO \$release=$release"
+	_echod "${FUNCNAME}::$LINENO \$DATEB=$DATEB"
+	_echod "${FUNCNAME}::$LINENO \$release=$release"
 	# existing paths
 	paths_comp=`echo "${PATHS_SOFT["$1"]}"|sed -n 's|^comp_.*=\(.*\)$|\1|p'|xargs`
 	# check if paths_comp exists
@@ -239,7 +239,7 @@ __restore_one() {
 }
 
 __opts() {
-	_echod "${FUNCNAME}():$LINENO IN \$@=$@"
+	_echod "${FUNCNAME}::$LINENO IN \$@=$@"
 
 	opts_given="$@"
 	opts_short="afr:hdq"
@@ -247,7 +247,7 @@ __opts() {
 	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
 	eval set -- "${opts}" || exit 1
 
-	_echod "${FUNCNAME}():$LINENO opts_given=$opts_given opts=$opts"
+	_echod "${FUNCNAME}::$LINENO opts_given=$opts_given opts=$opts"
 	while [ "$1" != "--" ]
 	do
 		case "$1" in
@@ -288,8 +288,8 @@ __opts() {
 		softwares="${!PATHS_SOFT[@]}"
 	fi
 
-	_echod "${FUNCNAME}():$LINENO ALL='$ALL' FORCE='$FORCE' REGEXP='$REGEXP' "
-	_echod "${FUNCNAME}():$LINENO action='${action}' softwares='${softwares}' DATEB='${DATEB}'"
+	_echod "${FUNCNAME}::$LINENO ALL='$ALL' FORCE='$FORCE' REGEXP='$REGEXP' "
+	_echod "${FUNCNAME}::$LINENO action='${action}' softwares='${softwares}' DATEB='${DATEB}'"
 }
 
 __main() {

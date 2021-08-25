@@ -21,15 +21,17 @@ alias du2="__du 2"
 alias dfs="df -x tmpfs -x devtmpfs | grep -v /dev/ploop"
 
 ########################  GIT
+# status
+alias gita='echo "git add *? " && read str && git add * && git status '
 # commit
 alias gitcim='git commit -m '
 # branch
 alias gitbrv='git br -v'
 # merge
-alias gitcom='git br -v && echo "-> master" && read str && git co master && git merge - && git co - && git br -v'
-alias gitcod='git br -v && echo "-> dev" && read str && git co dev && git merge - && git co - && git br -v'
+alias gitcm='git br -v && echo "push -> master? " && read str && git co master && git merge - && git co - && git br -v'
+alias gitcd='git br -v && echo "push -> dev? " && read str && git co dev && git merge - && git co - && git br -v'
 # push
-alias gitpusha='git br -v && read str && git push --all'
+alias gitpa='git br -v && echo "push all? " && read str && git push --all'
 
 ########################  SSH
 alias sshs='ssh-server'
@@ -51,9 +53,11 @@ alias iptlm='iptables -nvL -t mangle --line-number'
 alias iptla='iptables -nvL --line-number; iptables -nvL -t nat --line-number'
 
 ########################  LXC
+# ct
 alias lxc1="lxc start"
 alias lxc0="lxc stop"
 alias lxc^="lxc restart"
+alias lxcd="lxc delete --force"
 # list
 alias lxcal="lxc alias list"
 alias lxcil="lxc image list -c Lfptsu" # Lfpdtsu
