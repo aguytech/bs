@@ -103,7 +103,7 @@ __function_common() {
 				_echod "${FUNCNAME}:${LINENO}  '${file}'"
 				. "${file}"
 			else
-				_exite "${FUNCNAME}() Missing file, unable to source '${file}'"
+				_exite "${FUNCNAME}: Missing file, unable to source '${file}'"
 			fi
 		done
 	}
@@ -111,14 +111,14 @@ __function_common() {
 		local file
 		[ -z "$*" ] && _exite "No arguments to source"
 		for file in $*; do
-			! [ -f "${file}" ] && _exite "${FUNCNAME}() Missing file, unable to find file '${file}'"
+			! [ -f "${file}" ] && _exite "${FUNCNAME}: Missing file, unable to find file '${file}'"
 		done
 	}
 	_requirep() {
 		local file
 		[ -z "$*" ] && _exite "No arguments to source"
 		for file in $*; do
-			! [ -d "${file}" ] && _exite "${FUNCNAME}() Missing file, unable to find path '${file}'"
+			! [ -d "${file}" ] && _exite "${FUNCNAME}: Missing file, unable to find path '${file}'"
 		done
 	}
 
@@ -480,17 +480,17 @@ __function_install() {
 					vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 					;;
 				apache)
-					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _CIDR_VM _AP_PATH_WWW _AP_PATH_DOMAIN" ;; # S_VM_PATH_SHARE
+					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_PATH_DOMAIN" ;; #  S_VM_PATH_SHARE
 				haproxy)
-					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
+					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HPX_DOMAIN_2_NAME _HPX_DOMAIN_2_FQDN _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI" ;;
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 				php)
-					vars="_PHPFPM_SOCK _PHPFPM_ADMIN_SOCK _PH_FPM_SERVICE _PHPFPM_SOCK" ;;
+					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST" ;;
 				rsyslog)
 					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 				*)
-					_exite "${FUNCNAME} Group: '$2' are not implemented yet" ;;
+					_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
 			esac
 
 			for var in ${vars}; do
@@ -499,14 +499,6 @@ __function_install() {
 			done
 
 		done
-	}
-
-	_sed_php1() {
-		[ -f "$3" ]	&& sed -i "s|^;\?\(${1}\s*=\)\(.*\)$|\1 ${2} ;\2|" "$3"
-	}
-
-	_sed_maria1() {
-		[ -f "$3" ]	&& sed -i "s|^#\?\(${1}\s*=\)\(.*\)$|\1 ${2} #\2|" "$3"
 	}
 
 	##############  SERVICE
@@ -554,13 +546,13 @@ __function_lxc() {
 	# 2 path to find variables in file
 	# * group name of variables
 	_lxc_var_replace() {
-		local file ct vars var var2
+		local file opt vars var ct
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
-		ct=$1; shift; file=$2; shift
+		ct=$1; shift; file=$1; shift;
 
 		for opt in $*; do
 
-			case $3 in
+			case ${opt} in
 				all)
 					for var in ${!S_SERVICE[*]}; do
 						vars+="S_SERVICE[${var}]"
@@ -568,27 +560,28 @@ __function_lxc() {
 					vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 					;;
 				apache)
-					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _CIDR_VM _AP_PATH_WWW _AP_PATH_DOMAIN" ;; #  _CIDR_VM S_VM_PATH_SHARE
+					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
 				haproxy)
-					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HP_DOMAIN_2_NAME _HP_DOMAIN_2_FQDN _HP_ACCESS_USER _HP_ACCESS_PWD _HP_ACCESS_URI" ;;
+					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HPX_DOMAIN_2_NAME _HPX_DOMAIN_2_FQDN _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI" ;;
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 				php)
-					vars="_PHPFPM_SOCK _PHPFPM_ADMIN_SOCK _PH_FPM_SERVICE _PHPFPM_SOCK" ;;
+					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST" ;;
 				rsyslog)
 					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 				*)
-					_exite "${FUNCNAME} Group: '$3' are not implemented yet" ;;
+					_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
 			esac
 
 			for var in ${vars}; do
 				#_lxc_exec ${ct} "sed -i 's|${var/[/\\[}|${!var}|g' ${file}"
 				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
-				# _echod "${FUNCNAME}:${LINENO} _lxc_exec ${ct} \"grep -q '${var2}' -r ${file} && grep '${var2}' -rl ${file} | xargs sed -i 's|${var2}|${!var}|g'\""
+				_echod "${FUNCNAME}:${LINENO} _lxc_exec ${ct} \"grep -q '${var2}' -r ${file} && grep '${var2}' -rl ${file} | xargs sed -i 's|${var2}|${!var}|g'\""
 				_lxc_exec ${ct} "grep -q '${var2}' -r ${file} && grep '${var2}' -rl ${file} | xargs sed -i 's|${var2}|${!var}|g'"
 			done
 
-	done
+		done
+	}
 
 }
 
@@ -623,7 +616,7 @@ __data_post() {
 
 	# cluster
 	_CIDR_VM=`sed -n 's|.* s_cidr=\([^ ]*\).*|\1|p' <<<${S_HOST_VM_ETH[default]}`
-	_IPS_CLUSTER=` tr ' ' '\n' <<<${S_CLUSTER[*]} | sed -n 's|^s_ip=\([^ ]*\)|\1|p' | xargs`
+	_IPS_CLUSTER=`tr ' ' '\n' <<<${S_CLUSTER[*]} | sed -n 's|^s_ip=\([^ ]*\)|\1|p' | xargs`
 	_IPS_AUTH=`printf "%q\n" ${S_IPS_ADMIN} ${S_IPS_DEV} | sort -u | xargs`
 
 }
@@ -642,9 +635,10 @@ __data
 if [ "${_INSTALL}" ]; then
 
 	S_PATH_CONF=/etc/server
-	S_GLOBAL_CONF="${S_PATH_CONF}/server.conf"
-	S_FILE_INSTALL_CONF="${S_PATH_CONF}/install.conf"
-	S_FILE_INSTALL_DONE="${S_PATH_CONF}/install.done"
+	S_GLOBAL_CONF=${S_PATH_CONF}/server.conf
+	S_FILE_INSTALL_CONF=${S_PATH_CONF}/install.conf
+	S_FILE_INSTALL_DONE=${S_PATH_CONF}/install.done
+	S_PATH_SCRIPT=/usr/local/bs
 
 	if ! [ -f ${S_FILE_INSTALL_DONE} ] || ! grep -q conf-init ${S_FILE_INSTALL_DONE}; then
 		# get id of first called file
@@ -652,15 +646,19 @@ if [ "${_INSTALL}" ]; then
 		path_base=`dirname "$(readlink -e "${BASH_SOURCE[${first_id}]}")"`
 
 		file="${path_base}/conf-init.install"
-		! [ -f "${file}" ] && echo "${FUNCNAME}():${LINENO} Unable to find file '${file}'" && exit 1
+		! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to find file '${file}'" && exit 1
 		. "${file}"
 	fi
 
+	# env
+	file=${S_PATH_SCRIPT}/conf/env
+	! [ -f ${file} ] &&  echo ":${LINENO}[error] Unable to source properly file '${file}'" && exit 1
+	. ${file}
 fi
 
 # global configuration
 S_GLOBAL_CONF="${S_GLOBAL_CONF:-/etc/server/server.conf}"
-[ -f "${S_GLOBAL_CONF}" ] || echo -e "[error] - Unable to source file '${S_GLOBAL_CONF}' from '${BASH_SOURCE[0]}'"
+[ -f "${S_GLOBAL_CONF}" ] || echo -e ":${LINENO}[error] - Unable to find file '${S_GLOBAL_CONF}' from '${BASH_SOURCE[0]}'"
 . "${S_GLOBAL_CONF}"
 
 # set global data after sourcing S_GLOBAL_CONF
