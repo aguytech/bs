@@ -42,13 +42,20 @@ options:
 __check() {
 	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
-	local confs conf
+	local configs conf
+	configs=
 
-	for conf in $(ls "${path_enabled}/*" 2>/dev/null); do
-		configs=" $configs -f $conf"
+	for conf in $(ls ${path_enabled}/* 2>/dev/null); do
+		configs+=" -f ${conf}"
 	done;
 
-	haproxy -c -f /etc/haproxy/haproxy.cfg $configs >/dev/null && _echo 'OK' || _echoE 'KO'
+	if msg=`haproxy -c -f /etc/haproxy/haproxy.cfg ${configs} 2>&1`; then
+		_echo 'OK'
+	else
+		_echoE 'KO'
+		_echo "${msg}"
+		_exit 1
+	fi
 }
 
 # clear broken links for names of available configuration
@@ -230,8 +237,8 @@ __main() {
 
 	local opts_given opts_short opts_long opts
 	local confs conf regexp path
-	local path_enabled="/etc/haproxy/conf-enabled"
-	local path_available="/etc/haproxy/conf-available"
+	path_enabled="/etc/haproxy/conf-enabled"
+	path_available="/etc/haproxy/conf-available"
 
 	for path in "${path_enabled}" "${path_available}"; do
 		! [ -d "${path}" ] && mkdir -p "${path}"
@@ -253,5 +260,3 @@ __main() {
 ########################  MAIN
 
 __main "$@"
-
-_exit 0
