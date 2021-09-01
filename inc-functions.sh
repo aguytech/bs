@@ -79,19 +79,19 @@ __function_common() {
 
 	_eval() {
 		_echod "${FUNCNAME}:${LINENO} $*"
-		eval $*
+		eval "$*"
 	}
 	_evalr() {
 		_echod "${FUNCNAME}:${LINENO} $*"
-		[ "${USER}" = root ] && eval $* || eval sudo $*
+		[ "${USER}" = root ] && eval $* || eval sudo "$*"
 	}
 	_evalq() {
 		_echod "${FUNCNAME}:${LINENO} $*"
-		eval $* >&4
+		eval "$*" >&4
 	}
-	_evalrq() {
+	_evalqr() {
 		_echod "${FUNCNAME}:${LINENO} $*"
-		[ "${USER}" = root ] && eval $* >&4 || eval sudo $* >&4
+		[ "${USER}" = root ] && eval "$*" >&4 || eval sudo "$*" >&4
 	}
 
 	##############  SOURCE
@@ -140,22 +140,27 @@ __function_common() {
 	}
 	# ask until y or n is given
 	_askyn() {
+		local options
+
 		_ANSWER=
 		options=" y n "
 		while [ "${options/ $_ANSWER }" = "$options" ]; do
 			#_echo- -n "${yellowb}$* y/n ${cclear}"
-			_echo- -n "$* y/n: "
+			_echo- -n "$* (y/n): "
 			read _ANSWER
 		done
 	}
 	# ask $1 until a valid options $* is given
 	_asks() {
-		_ANSWER=
+		local options str
+
+		str=$1
 		shift
+		_ANSWER=
 		[ -z "$*" ] && _exite "invalid options '$*' for _asks()"
-		options="$*"
-		while [ "${options/$_ANSWER/}" = "$options" ]; do
-			_echo- -n "$1: "
+		options=" $* "
+		while [ "${options/ $_ANSWER }" = "$options" ]; do
+			_echo- -n "${str} ($*): "
 			read _ANSWER
 		done
 	}
@@ -206,16 +211,16 @@ __function_common() {
 
 	_keepcpts() {
 		if [ "${USER}" = root ]; then
-			[[ -e "${1}" || -h "${1}" ]] && _evalq cp -a "${1}" "${1}.keep$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalqr cp -a "${1}" "${1}.keep$(date +%s)"
 		else
-			[[ -e "${1}" || -h "${1}" ]] && _evalq sudo cp -a "${1}" "${1}.keep$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalqr sudo cp -a "${1}" "${1}.keep$(date +%s)"
 		fi
 	}
 	_keepmvts() {
 		if [ "${USER}" = root ]; then
-			[[ -e "${1}" || -h "${1}" ]] && _evalq mv "${1}" "${1}.keep$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalqr mv "${1}" "${1}.keep$(date +%s)"
 		else
-			[[ -e "${1}" || -h "${1}" ]] && _evalq sudo mv "${1}" "${1}.keep$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalqr sudo mv "${1}" "${1}.keep$(date +%s)"
 		fi
 	}
 
@@ -432,6 +437,7 @@ __function_install() {
 	}
 	# add part $1 in conf file $2
 	_partadd() {
+		_echod "${FUNCNAME}:${LINENO} echo "$1" >> "$2""
 		! _parthave "$1" "$2" && echo "$1" >> "$2" || return 0
 	}
 
@@ -480,13 +486,13 @@ __function_install() {
 					vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 					;;
 				apache)
-					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_PATH_DOMAIN" ;; #  S_VM_PATH_SHARE
+					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
 				haproxy)
 					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HPX_DOMAIN_2_NAME _HPX_DOMAIN_2_FQDN _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI" ;;
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 				mariadb)
-					vars="_MDB_PATH_LOG" ;;
+					vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
 				php)
 					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
 				rsyslog)
@@ -496,7 +502,7 @@ __function_install() {
 			esac
 
 			for var in ${vars}; do
-				_eval "sed -i 's|${var/[/\\[}|${!var}|g' '${file}'"
+				_evalr "sed -i 's|${var/[/\\[}|${!var}|g' '${file}'"
 				#'\\]}"
 			done
 
@@ -513,13 +519,28 @@ __function_install() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type systemctl >/dev/null 2>&1; then
-			_evalq systemctl "${1}" "${2}.service"
+			_evalqr systemctl "${1}" "${2}.service"
 		elif type service >/dev/null 2>&1; then
-			_evalq service "${2%.*}" "${1}"
+			_evalqr service "${2%.*}" "${1}"
 		elif type rc-service >/dev/null 2>&1; then
-			_evalq service "${2%.*}" "${1}"
+			_evalqr service "${2%.*}" "${1}"
 		else
-			_exite "unable to load service"
+			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
+		fi
+	}
+
+	# use adjusted installer
+	# $1 packages
+	_install() {
+		# wrong number of parameters
+		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
+
+		if type apt >/dev/null 2>&1; then
+			_evalr apt install -y ${1}
+		elif type pacman >/dev/null 2>&1; then
+			_evalr pacman -S --noconfirm --needed ${1}
+		else
+			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
 		fi
 	}
 
@@ -568,7 +589,7 @@ __function_lxc() {
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 				mariadb)
-					vars="_MDB_PATH_LOG" ;;
+					vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
 				php)
 					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
 				rsyslog)
@@ -580,7 +601,6 @@ __function_lxc() {
 			for var in ${vars}; do
 				#_lxc_exec ${ct} "sed -i 's|${var/[/\\[}|${!var}|g' ${file}"
 				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
-				_echod "${FUNCNAME}:${LINENO} _lxc_exec ${ct} \"grep -q '${var2}' -r ${file} && grep '${var2}' -rl ${file} | xargs sed -i 's|${var2}|${!var}|g'\""
 				_lxc_exec ${ct} "grep -q '${var2}' -r ${file} && grep '${var2}' -rl ${file} | xargs sed -i 's|${var2}|${!var}|g'"
 			done
 
