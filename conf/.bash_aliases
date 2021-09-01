@@ -24,14 +24,14 @@ alias dfs="df -x tmpfs -x devtmpfs | grep -v /dev/ploop"
 # status
 alias gita='echo "git add *? " && read str && git add * && git status '
 # commit
-alias gitcim='git commit -m '
+alias gitcim='git commit -m'
 # branch
-alias gitbrv='git br -v'
+alias gitbrv='git branch -v'
 # merge
-alias gitcm='git br -v && echo "push -> master? " && read str && git co master && git merge - && git co - && git br -v'
-alias gitcd='git br -v && echo "push -> dev? " && read str && git co dev && git merge - && git co - && git br -v'
+alias gitcm='git branch -v && echo "push -> master? " && read str && git co master && git merge - && git co - && git branch -v'
+alias gitcd='git branch -v && echo "push -> dev? " && read str && git co dev && git merge - && git co - && git branch -v'
 # push
-alias gitpa='git br -v && echo "push all? " && read str && git push --all'
+alias gitpa='git branch -v && echo "push all? " && read str && git push --all && git branch -v'
 
 ########################  SSH
 alias sshs='ssh-server'
@@ -53,26 +53,35 @@ alias iptlm='iptables -nvL -t mangle --line-number'
 alias iptla='iptables -nvL --line-number; iptables -nvL -t nat --line-number'
 
 ########################  LXC
-# ct
+## ct
 alias lxc1="lxc start"
 alias lxc0="lxc stop"
 alias lxc^="lxc restart"
 alias lxcd="lxc delete --force"
 # list
-alias lxcal="lxc alias list"
-alias lxcil="lxc image list -c Lfptsu" # Lfpdtsu
-alias lxcpl="lxc profile list"
-alias lxcnl="lxc network list"
-alias lxcrl="lxc remote list"
-alias lxcsl="lxc storage list"
-# list ct
 alias lxcl="lxc list -c nsP4tSc"
-alias lxclr="lxc list -c nsbDmMul"
+alias lxclf="lxc list -c f"
+alias lxcls="lxc list -c nsf4tSc"
+alias lxclr="lxc list -c nsbDmMuNl"
 alias lxcla="lxc list -f json | jq -r '.[].name' "
 alias lxcl0="lxc list -f json | jq -r '.[] | select(.status == \"Stopped\").name' "
 alias lxcl1="lxc list -f json | jq -r '.[] | select(.status == \"Running\").name' "
-# profile
+## image
+alias lxcid="lxc image delete"
+# list
+alias lxcil="lxc image list -c Lfptsu" # Lfpdtsu
+alias lxcila="lxc image list -f json | jq -r '.[].aliases[].name'"
+alias lxcilf="lxc image list -f json | jq -r '.[].fingerprint | .[:12]'"
+alias lxcilF="lxc image list -f json | jq -r '.[].fingerprint'"
+## profile
+alias lxcpl="lxc profile list"
 alias lxcpd="lxc profile delete"
+alias lxcps="lxc profile show"
+## list
+alias lxcal="lxc alias list"
+alias lxcnl="lxc network list"
+alias lxcrl="lxc remote list"
+alias lxcsl="lxc storage list"
 
 ########################  BTRFS
 # subvolume
@@ -100,9 +109,10 @@ alias zplv='zpool list -v'
 alias zpga='zpool get all'
 alias zpg1='zpool get size,capacity,free,health,guid zroot'
 # zfs
-alias zfsl='zfs list'
+alias zfsl='zfs list -o name,used,available,mountpoint,mounted -r'
 alias zfsga='zfs get all'
 alias zfsg1='zfs get -o property,value creation,used,available,referenced,compressratio,mounted,readonly,quota'
+alias zfsd='zfs destroy'
 
 ########################  RSYNC
 # dev
