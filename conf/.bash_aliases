@@ -59,9 +59,10 @@ alias lxc0="lxc stop"
 alias lxc^="lxc restart"
 alias lxcd="lxc delete --force"
 # list
-alias lxcl="lxc list -c nsP4tSc"
+alias lxcl="lxc list -c nsf4tSc"
+alias lxclp="lxc list -c nsP4tSc"
+alias lxcln="lxc list -f csv -c n"
 alias lxclf="lxc list -c f"
-alias lxcls="lxc list -c nsf4tSc"
 alias lxclr="lxc list -c nsbDmMuNl"
 alias lxcla="lxc list -f json | jq -r '.[].name' "
 alias lxcl0="lxc list -f json | jq -r '.[] | select(.status == \"Stopped\").name' "
@@ -70,11 +71,13 @@ alias lxcl1="lxc list -f json | jq -r '.[] | select(.status == \"Running\").name
 alias lxcid="lxc image delete"
 # list
 alias lxcil="lxc image list -c Lfptsu" # Lfpdtsu
+alias lxciln="lxc image list -f csv -c l"
 alias lxcila="lxc image list -f json | jq -r '.[].aliases[].name'"
 alias lxcilf="lxc image list -f json | jq -r '.[].fingerprint | .[:12]'"
 alias lxcilF="lxc image list -f json | jq -r '.[].fingerprint'"
 ## profile
 alias lxcpl="lxc profile list"
+alias lxcpln="lxc profile list -f csv|grep -o '^[^,]\+'"
 alias lxcpd="lxc profile delete"
 alias lxcps="lxc profile show"
 ## list
@@ -179,9 +182,9 @@ elif type rc-service >/dev/null 2>&1;then
 	alias scsa='rc-status default|grep apache2'
 	# php
 	alias scp0="rc-service \$(rc-service -l|grep ^php) stop"
-	alias sc1p="systemctl \$(rc-service -l|grep ^php) start"
-	alias scrsp="systemctl \$(rc-service -l|grep ^php) restart"
-	alias scrlp="systemctl \$(rc-service -l|grep ^php) reload"
+	alias sc1p="rc-service \$(rc-service -l|grep ^php) start"
+	alias scrsp="rc-service \$(rc-service -l|grep ^php) restart"
+	alias scrlp="rc-service \$(rc-service -l|grep ^php) reload"
 	alias scsp='rc-status default|grep php'
 	# mariadb
 	alias sc0m='rc-service mysql stop'

@@ -197,26 +197,22 @@ __reload() {
 __opts() {
 	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
-	opts_given="$@"
 	opts_short="hdq"
 	opts_long="help,debug,quiet"
 	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
 	eval set -- "${opts}"
 
-	_echod "${FUNCNAME}::${LINENO} opts_given=${opts_given} opts=${opts}"
+	_echod "${FUNCNAME}::${LINENO} opts=${opts}"
 	while [ "$1" != "--" ]; do
 		case "$1" in
 			--help)
-				echo "${usage}"
+				echo "${usage}" && exit
 				;;
 			-q|--quiet)
 				_redirect quiet
 				;;
 			-d|--debug)
 				_redirect debug
-				;;
-			*)
-				_exite "Wrong argument: '$1' for arguments '$opts_given'"
 				;;
 		esac
 		shift
@@ -226,19 +222,18 @@ __opts() {
 	action="$1"
 	shift
 	opts="$@"
-	_echod "${FUNCNAME}::${LINENO} action='$action' opts='$opts'"
+	_echod "${FUNCNAME}::${LINENO} action='${action}' opts='${opts}'"
 }
 
 __main() {
 	_echod "======================================================"
 	_echod "$(ps -o args= $PPID)"
-
-	! type haproxy &>/dev/null && _exite "Haproxy are not installed !"
-
-	local opts_given opts_short opts_long opts
-	local confs conf regexp path
+	local opts_short opts_long opts
+	local path_available path_enabled path
 	path_enabled="/etc/haproxy/conf-enabled"
 	path_available="/etc/haproxy/conf-available"
+
+	! type haproxy &>/dev/null && _exite "Haproxy are not installed !"
 
 	for path in "${path_enabled}" "${path_available}"; do
 		! [ -d "${path}" ] && mkdir -p "${path}"

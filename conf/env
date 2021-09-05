@@ -12,8 +12,8 @@ export S_CLUSTER
 eval "$(grep S_CLUSTER "${S_GLOBAL_CONF}")"
 
 ########  OTHERS
-type vim 2>/dev/null 1>&2 && export EDITOR=vim && export SYSTEMD_EDITOR=vim
-type most 2>/dev/null 1>&2 && export MANPAGER=most
+type vim >/dev/null 2>&1 && export EDITOR=vim && export SYSTEMD_EDITOR=vim
+type most >/dev/null 2>&1 && export MANPAGER=most
 
 #### JAVA
 #export JAVA_HOME="/usr/lib/jvm/java-15-jdk"

@@ -70,7 +70,7 @@ __function_common() {
 	}
 	# exit, with default error 1
 	_exite() {
-		[ "$1" ] && _echoE "$1" || _echoE "error - ${_SCRIPTFILE}"
+		[ "$1" ] && _echoE "$1" || _echoE "${_SCRIPTFILE}"
 		_echod "${FUNCNAME}:${LINENO} exit - $*"
 		[ "$2" ] && exit $2 || exit 1
 	}
@@ -159,7 +159,7 @@ __function_common() {
 		_ANSWER=
 		[ -z "$*" ] && _exite "invalid options '$*' for _asks()"
 		options=" $* "
-		while [ "${options/ $_ANSWER }" = "$options" ]; do
+		while [ "${options/ ${_ANSWER} }" = "$options" ]; do
 			_echo- -n "${str} ($*): "
 			read _ANSWER
 		done
@@ -171,40 +171,38 @@ __function_common() {
 	_menu() {
 		PS3="$1: "
 		shift
-		select _ANSWER in $*
-			do [ "$_ANSWER" ] && break || echo -e "\nTry again"
+		select _ANSWER in $*; do
+			[ "${_ANSWER}" ] && break || echo -e "\nTry again"
 		done
 	}
 	# make multiselect menu with question $1 & options $* with ++ to add options
 	_menua() {
-		PS3="$1 (by toggling options, q to quit): "
+		PS3="$1 (by toggling options): "
 		shift
-		answer_menu="q $* "
+		ansmenu="valid $* "
 		local anstmp
 		anstmp=
-		while [ "$anstmp" != q ]; do
+		while [ "${anstmp}" != valid ]; do
 			echo "—————————————————————————————————————————"
-			select anstmp in $answer_menu; do [ "${anstmp: -2}" == ++ ] && answer_menu=${answer_menu/ $anstmp / ${anstmp%++} } || answer_menu=${answer_menu/ $anstmp / ${anstmp}++ }; break; done
+			select anstmp in ${ansmenu}; do [ "${anstmp::2}" == ++ ] && ansmenu=${ansmenu/ ${anstmp} / ${anstmp#++} } || ansmenu=${ansmenu/ ${anstmp} / ++${anstmp} }; break; done
 		done
-		answer_menu=${answer_menu#q }
-		_ANSWER=$(echo "$answer_menu" |sed 's|[^ ]\+[^+] ||g' |sed 's|++||g')
-		_ANSWER=${_ANSWER%% }
+		ansmenu=${ansmenu#valid }
+		_ANSWER=$(echo ${ansmenu}|tr ' ' '\n'|sed -n '/^++/ s|++||p')
 	}
 	# make multiselect menu with question $1 & options $* with -- to remove options
 	_menur() {
-		local answer_menu anstmp
+		local ansmenu anstmp
 
-		PS3="$1 (by toggling options, q to quit): "
+		PS3="$1 (by toggling options): "
 		shift
-		answer_menu="q $* "
+		ansmenu="valid $* "
 		anstmp=
-		while [ "$anstmp" != q ]; do
-			echo
-			select anstmp in $answer_menu; do [ "${anstmp: -2}" == -- ] && answer_menu=${answer_menu/ $anstmp / ${anstmp%--} } || answer_menu=${answer_menu/ $anstmp / ${anstmp}-- }; break; done
+		while [ "$anstmp" != valid ]; do
+			echo "—————————————————————————————————————————"
+			select anstmp in ${ansmenu}; do [ "${anstmp::2}" == -- ] && ansmenu=${ansmenu/ ${anstmp} / ${anstmp#--} } || ansmenu=${ansmenu/ ${anstmp} / --${anstmp} }; break; done
 		done
-		answer_menu=${answer_menu#q }
-		_ANSWER=$(echo "$answer_menu" | sed 's|[^ ]\+-- ||g')
-		_ANSWER=${_ANSWER%% }
+		ansmenu=${ansmenu#valid }
+		_ANSWER=$(echo ${ansmenu}|tr ' ' '\n'|sed -n '/^--/ s|--||p')
 	}
 
 	##############  KEEP
@@ -486,15 +484,17 @@ __function_install() {
 					vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 					;;
 				apache)
-					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
+					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_SUBDOMAIN _APA_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
 				haproxy)
-					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HPX_DOMAIN_2_NAME _HPX_DOMAIN_2_FQDN _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI" ;;
+					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN S_DOMAIN_FQDN _HPX_DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT" ;;
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 				mariadb)
 					vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
 				php)
 					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
+				pma)
+					vars="_PMA_URI _PMA_HOST _PMA_PORT _PMA_USER _PMA_PWD _PMA_BLOWFISH _PMA_PATH_UP _PMA_PATH_DW" ;;
 				rsyslog)
 					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 				*)
@@ -532,13 +532,16 @@ __function_install() {
 	# use adjusted installer
 	# $1 packages
 	_install() {
+		local pcks=" $* "
 		# wrong number of parameters
 		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type apt >/dev/null 2>&1; then
-			_evalr apt install -y ${1}
+			_evalr apt install -y $*
 		elif type pacman >/dev/null 2>&1; then
-			_evalr pacman -S --noconfirm --needed ${1}
+			pcks="${pcks/ mariadb-client / mariadb-clients }"
+			pcks="${pcks/ redis-client / redis }"
+			_evalr pacman -S --noconfirm --needed $pcks
 		else
 			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
 		fi
@@ -566,11 +569,21 @@ __function_lxc() {
 	}
 
 	# 1 ct name
+	# 2 cmds
+	_lxc_execq() {
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
+
+		_echod "${FUNCNAME}:${LINENO} lxc exec ${1} -- sh -c \"$2\""
+		lxc exec ${1} -- sh -c "$2" >&4
+	}
+
+	# 1 ct name
 	# 2 path to find variables in file
 	# * group name of variables
 	_lxc_var_replace() {
 		local file opt vars var ct
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
+		_echod "${FUNCNAME}:${LINENO} $*"
 		ct=$1; shift; file=$1; shift;
 
 		for opt in $*; do
@@ -583,15 +596,17 @@ __function_lxc() {
 					vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
 					;;
 				apache)
-					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
+					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_SUBDOMAIN _APA_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
 				haproxy)
-					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_HAPROXY_STATS_PORT _SOMAXCONN S_DOMAIN_NAME S_DOMAIN_FQDN _HPX_DOMAIN_2_NAME _HPX_DOMAIN_2_FQDN _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI" ;;
+					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN S_DOMAIN_FQDN _HPX_DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT" ;;
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 				mariadb)
 					vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
 				php)
 					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
+				pma)
+					vars="_PMA_URI _PMA_HOST _PMA_PORT _PMA_USER _PMA_PWD _PMA_BLOWFISH _PMA_PATH_UP _PMA_PATH_DW" ;;
 				rsyslog)
 					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 				*)
