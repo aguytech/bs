@@ -33,7 +33,7 @@ __push() {
 	local path path_to path_from path_tmp ct
 
 	# path
-	paths_sel="${paths_sel:-${S_PATH_SCRIPT} ${S_PATH_INSTALL}}"
+	paths_sel="${paths_sel:-${S_PATH_SCRIPT}}"
 
 	# cts_sel
 	cts_sel="${cts_sel:-`lxc list -f csv -c n status=Running`}"
