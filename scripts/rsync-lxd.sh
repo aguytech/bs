@@ -16,10 +16,12 @@ rsync-lxd -h, --help
 
 options:
     -h, --help		Print usage of this command
-    -q, --quiet	Don't print
+    -v, --verbose		Print details of files transfer
     -p, --create-dirs   Create any directories necessary
     -r, --recursive	Recursively transfer files
     -d, --delete	Delete files before pushing
+
+    --publish		publish container fater sync
 
     --bs		sync only the path ${S_PATH_SCRIPT}
     --install		sync only the path ${S_PATH_INSTALL}
@@ -57,22 +59,36 @@ __push() {
 	done
 }
 
+__publish() {
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
+	local ct
+
+	for ct in ${cts_sel}; do
+		_echo "publish - ${ct}"
+		# rename
+		lxc image list -f csv -c l | grep -q ^${ct}$ && _eval lxc image alias rename ${ct} ${ct}-${_SDATE}
+		_eval lxc publish --force ${ct} --alias ${ct}
+	done
+}
+
 __opts() {
 	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
-	opts_short="hqrpd"
-	opts_long="help,quiet,recursive,create-dirs,delete,bs,install"
+	opts_short="hvrpd"
+	opts_long="help,verbose,recursive,create-dirs,delete,publish,bs,install"
 	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exit 1
 	eval set -- ${opts}
 	_echod "${FUNCNAME}::${LINENO} opts=${*}"
 
+	args=" --quiet"
 	while [ "$1" != "--" ]; do
 		case "$1" in
 			-h|--help)			echo "${usage}" && exit ;;
-			-q|--quiet)			args+=" --quiet"  ;;
+			-v|--verbose)		args="${args/ --quiet/}"  ;;
 			-r|--recursive)		args+=" --recursive"  ;;
 			-p|--create-dirs)	args+=" --create-dirs"  ;;
 			-d|--delete)			delete=y  ;;
+			--publish)			publish=y  ;;
 			--bs)						paths_sel+=" ${S_PATH_SCRIPT}"  ;;
 			--install)				paths_sel+=" ${S_PATH_INSTALL}"  ;;
 		esac
@@ -93,6 +109,7 @@ __main() {
 
 	__opts "$@"
 	__push
+	[ "${publish}" ] && __publish
 }
 
 ########################  MAIN
