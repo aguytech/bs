@@ -58,6 +58,7 @@ alias lxc1="lxc start"
 alias lxc0="lxc stop"
 alias lxc^="lxc restart"
 alias lxcd="lxc delete --force"
+alias lxcs="lxc shell"
 # list
 alias lxcl="lxc list -c nsf4tSc"
 alias lxclp="lxc list -c nsP4tSc"

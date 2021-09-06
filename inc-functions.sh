@@ -171,6 +171,7 @@ __function_common() {
 	_menu() {
 		PS3="$1: "
 		shift
+		echo "——————————————————————"
 		select _ANSWER in $*; do
 			[ "${_ANSWER}" ] && break || echo -e "\nTry again"
 		done
@@ -183,7 +184,7 @@ __function_common() {
 		local anstmp
 		anstmp=
 		while [ "${anstmp}" != valid ]; do
-			echo "—————————————————————————————————————————"
+			echo "——————————————————————"
 			select anstmp in ${ansmenu}; do [ "${anstmp::2}" == ++ ] && ansmenu=${ansmenu/ ${anstmp} / ${anstmp#++} } || ansmenu=${ansmenu/ ${anstmp} / ++${anstmp} }; break; done
 		done
 		ansmenu=${ansmenu#valid }
@@ -198,7 +199,7 @@ __function_common() {
 		ansmenu="valid $* "
 		anstmp=
 		while [ "$anstmp" != valid ]; do
-			echo "—————————————————————————————————————————"
+			echo "——————————————————————"
 			select anstmp in ${ansmenu}; do [ "${anstmp::2}" == -- ] && ansmenu=${ansmenu/ ${anstmp} / ${anstmp#--} } || ansmenu=${ansmenu/ ${anstmp} / --${anstmp} }; break; done
 		done
 		ansmenu=${ansmenu#valid }
@@ -477,16 +478,10 @@ __function_install() {
 		for opt in $*; do
 
 			case ${opt} in
-				all)
-					for var in ${!S_SERVICE[*]}; do
-						vars+="S_SERVICE[${var}]"
-					done
-					vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
-					;;
 				apache)
-					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_SUBDOMAIN _APA_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
+					vars="_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _SUBDOMAIN _PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
 				haproxy)
-					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_PATH_SCRIPT _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN S_DOMAIN_FQDN _HPX_DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT" ;;
+					vars="S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN S_DOMAIN_FQDN _DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 				mariadb)
@@ -494,9 +489,11 @@ __function_install() {
 				php)
 					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
 				pma)
-					vars="_PMA_URI _PMA_HOST _PMA_PORT _PMA_USER _PMA_PWD _PMA_BLOWFISH _PMA_PATH_UP _PMA_PATH_DW" ;;
+					vars="_APP_URI _PMA_HOST _APP_DB_PORT _APP_DB_USER _APP_DB_PWD _APP_BLOWFISH _APP_PATH_UP _APP_PATH_DW" ;;
 				rsyslog)
 					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+				script)
+					vars="S_PATH_SCRIPT" ;;
 				*)
 					_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
 			esac
@@ -589,16 +586,10 @@ __function_lxc() {
 		for opt in $*; do
 
 			case ${opt} in
-				all)
-					for var in ${!S_SERVICE[*]}; do
-						vars+="S_SERVICE[${var}]"
-					done
-					vars+="S_PATH_CONF_SSL _ACCESS_USER S_RSYSLOG_PORT S_RSYSLOG_PTC"
-					;;
 				apache)
-					vars="S_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_SUBDOMAIN _APA_PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
+					vars="_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _SUBDOMAIN _PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
 				haproxy)
-					vars="S_SERVICE[log] S_SERVICE[http] S_SERVICE[admin] S_RSYSLOG_PORT S_PATH_CONF_SSL S_PATH_SCRIPT _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN S_DOMAIN_FQDN _HPX_DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT" ;;
+					vars="S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN S_DOMAIN_FQDN _DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 				mariadb)
@@ -606,9 +597,11 @@ __function_lxc() {
 				php)
 					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
 				pma)
-					vars="_PMA_URI _PMA_HOST _PMA_PORT _PMA_USER _PMA_PWD _PMA_BLOWFISH _PMA_PATH_UP _PMA_PATH_DW" ;;
+					vars="_APP_URI _PMA_HOST _APP_DB_PORT _APP_DB_USER _APP_DB_PWD _APP_BLOWFISH _APP_PATH_UP _APP_PATH_DW" ;;
 				rsyslog)
 					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+				script)
+					vars="S_PATH_SCRIPT" ;;
 				*)
 					_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
 			esac
