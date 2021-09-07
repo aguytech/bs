@@ -512,7 +512,6 @@ __function_install() {
 	# $1 action
 	# $2 service name
 	_service() {
-		# wrong number of parameters
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type systemctl >/dev/null 2>&1; then
@@ -529,9 +528,9 @@ __function_install() {
 	# use adjusted installer
 	# $1 packages
 	_install() {
+		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 		local pcks=" $* "
 		# wrong number of parameters
-		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type apt >/dev/null 2>&1; then
 			_evalr apt install -y $*
@@ -560,8 +559,8 @@ __function_lxc() {
 	# 2 cmds
 	_lxc_exec() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
-
 		_echod "${FUNCNAME}:${LINENO} lxc exec ${1} -- sh -c \"$2\""
+
 		lxc exec ${1} -- sh -c "$2"
 	}
 
@@ -569,8 +568,8 @@ __function_lxc() {
 	# 2 cmds
 	_lxc_execq() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
-
 		_echod "${FUNCNAME}:${LINENO} lxc exec ${1} -- sh -c \"$2\""
+
 		lxc exec ${1} -- sh -c "$2" >&4
 	}
 
@@ -578,9 +577,9 @@ __function_lxc() {
 	# 2 path to find variables in file
 	# * group name of variables
 	_lxc_var_replace() {
-		local file opt vars var ct
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
+		local file opt vars var ct
 		ct=$1; shift; file=$1; shift;
 
 		for opt in $*; do
@@ -613,6 +612,89 @@ __function_lxc() {
 			done
 
 		done
+	}
+
+	# 1 ct
+	__lxc_meta_path() {
+		#_echod "${FUNCNAME}:${LINENO} $*"
+
+		[ -d /lxd ] && file=/lxd/containers/$1/metadata.yaml
+		if [ -z "${file}" ]; then
+			[ -d "${_LXD_PATH_ROOT}" ] && file=${_LXD_PATH_ROOT}/containers/$1/metadata.yaml || _exite "Unable to find path /lxd or _LXD_PATH_ROOT"
+		fi
+		_evalr [ -f "${file}" ] || _exite "Unable to find file: ${file}"
+	}
+
+	# 1 container
+	# 2 tag
+	_lxc_meta_get() {
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
+		_echod "${FUNCNAME}:${LINENO} $*"
+		local file
+
+		# get file
+		__lxc_meta_path $1
+
+		_evalr "sed -n 's|^ *${2}: \(.*\)|\1|p' ${file}" | tr ',' ' '
+	}
+
+	# 1 container
+	# 2 tag
+	# * value
+	_lxc_meta_set() {
+		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
+		_echod "${FUNCNAME}:${LINENO} $*"
+		local file ct tag path
+		ct=$1 && shift
+		tag=$1 && shift
+
+		# get file
+		__lxc_meta_path ${ct}
+
+		if _evalr grep -q "${tag}:" ${file}; then
+			_evalr "sed -i '/${tag}:/ s|:.*|: $*|' ${file}"
+		else
+			_evalr "sed -i '/^properties:/a\ \ ${tag}: $*' ${file}"
+		fi
+	}
+
+	# 1 container
+	# 2 tag
+	# * value
+	_lxc_meta_add() {
+		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
+		_echod "${FUNCNAME}:${LINENO} $*"
+		local file ct tag path values value
+		ct=$1 && shift
+		tag=$1 && shift
+
+		# get file
+		__lxc_meta_path ${ct}
+
+		values=" $(_lxc_meta_get ${ct} ${tag}) "
+		for value in $*; do 	values+=" ${value}"; done
+		values=`echo ${values}|tr ' ' '\n'|sort -u`
+
+		_lxc_meta_set ${ct} ${tag} ${values}
+	}
+
+	# 1 container
+	# 2 tag
+	# * value
+	_lxc_meta_remove() {
+		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
+		_echod "${FUNCNAME}:${LINENO} $*"
+		local file ct tag path values value
+		ct=$1 && shift
+		tag=$1 && shift
+
+		# get file
+		__lxc_meta_path ${ct}
+
+		values=" $(_lxc_meta_get ${ct} ${tag}) "
+		for value in $*; do 	values="${values// ${value} / }"; done
+
+		_lxc_meta_set ${ct} ${tag} ${values}
 	}
 
 }
