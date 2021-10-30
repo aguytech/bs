@@ -5,29 +5,21 @@
 # Description:			clean all files ended with tile ~
 
 __clean_keep() {
-	path="$1"
-	str="$2"
+	path=${1:-${path}}
 	[ "$USER" != root ] && sudo='sudo ' || sudo=
 
-	path=${1:-$path}
-	! [ -d ${path} ] && echo "path do not do not exists: '${path}'" && exit
-
-	count="$(${sudo}find ${path} -not \( -regex '/\(proc\|run\|sys\|var\/lib\/lxcfs\)' -prune \) -type f -name "$str" -exec echo "{}" \; -exec rm -f "{}" \; | wc -l)"
-
-	echo "${count} file(s) '${str}' are deleted"
+	! [ -d ${path} ] && echo "path do not exist: '${path}'" && exit
+	count="$(${sudo}find ${path} -not \( -regex '/\(proc\|run\|sys\|var\/lib\/lxcfs\)' -prune \) -type f -name "$2" -exec echo "{}" \; -exec rm -fR "{}" \; | wc -l)"
+	echo "${count} file(s) '${2}' are deleted"
 }
 
 __clean_trash() {
-	path="$1"
-	str="$2"
+	path=${1:-${path}}
 	[ "$USER" != root ] && sudo='sudo ' || sudo=
 
-	path=${1:-$path}
-	! [ -d ${path} ] && echo "path do not do not exists: '${path}'" && exit
-
-	count="$(${sudo}find ${path} -not \( -regex '/\(proc\|run\|sys\|var\/lib\/lxcfs\)' -prune \) -type d -name "$str" -exec echo {} \; -exec rm -f {} \; | wc -l)"
-
-	echo "${count} file(s) '${str}' are deleted"
+	! [ -d ${path} ] && echo "path do not exist: '${path}'" && exit
+	count="$(${sudo}find ${path} -not \( -regex '/\(proc\|run\/user\|sys\|var\/lib\/lxcfs\)' -prune \) -type d -name "$2" -exec echo {} \; -exec rm -fR {} \; | wc -l)"
+	echo "${count} file(s) '${2}' are deleted"
 }
 
 __clean_keep '/' '*~'

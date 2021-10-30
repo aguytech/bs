@@ -14,11 +14,7 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 
 declare USAGE="backup-soft : backup softwares from /opt
 default softwares are define in the script in this list:
-	eclipse*
-	smartgit
-	squirrel-sql
-	sublime_text
-	yed
+	eclipse_java, eclipse_tools, smartgit, squirrel-sql, sublime_text, yed
 
 Global usage:
 backup-soft <args> <softwares>
@@ -29,12 +25,14 @@ softwares:
 	if given, desactive option 'all'
 
 args:
-	-a,--all				select all softwares
+	-m,--menu		select options by menu
+	-a,--all		select all softwares
 	-f, --force         	delete existing files before restore
 	-r, --restore [date]
-							 backup date of softwares in format : '+%Y%m%d-%s'
+				backup date of softwares in format : '+%Y%m%d-%s'
+	-v, --version       	add given version to backup/restore
 
-	-h, --help			show usage of functions
+	-h, --help		show usage of functions
 	-q, --quiet		don't show any infomations except interaction informations
 	-d, --debug		output in screen & in file debug informations
 "
@@ -43,81 +41,126 @@ args:
 
 # initialize default paths to backup
 __init() {
-	local version release
+	local theme
+
+	[ -d ${PATH_BACKUP} ] || _exite "Unable to find path: ${PATH_BACKUP}"
 
 	# connectors
-	PATHS_SOFT["connectors"]="path_user=$HOME
-file_soft=connectors
+	PATHS_SOFT["connectors"]="path_user=${HOME}
 comp_path_opt=/opt/connectors"
-	
-	# sublime-text
-	PATHS_SOFT["sublime_text"]="path_user=$HOME
-file_soft=sublime_text
-comp_path_opt=/opt/sublime-text
-comp_path_conf=$HOME/.config/sublime-text-3
-comp_path_user=$HOME/.sublime-project
-comp_file_desk=$HOME/.local/share/applications/sublime-text.desktop"
-	PATHS_EXE["sublime_text"]="/opt/sublime-text/sublime_text"
+
+	# archi
+	PATHS_SOFT[archi]="path_user=${HOME}
+comp_path_opt=/opt/archi
+comp_path_conf=${HOME}/.archi4
+comp_path_user=${HOME}/dev/archi
+comp_file_desk=${HOME}/.local/share/applications/archi.desktop
+comp_file_bin=/usr/bin/archi"
 
 	# eclipse
-	for version in java tools; do
-		release=`ls /opt/ | sed -n "s|^eclipse.${version}.\(.*\)$|\1|p"`
-		PATHS_SOFT["eclipse_${version}"]="path_user=$HOME
-file_soft=eclipse_${version}_${release}
-comp_path_opt=/opt/eclipse_${version}_${release}
-comp_path_conf=$HOME/.eclipse_${version}
-comp_path_user=$HOME/dev/eclipse-workspaces-${version}
-comp_file_desk=$HOME/.local/share/applications/eclipse_${version}.desktop"
-		PATHS_EXE["eclipse_${version}"]="/opt/eclipse_${version}_${release}/eclipse"
+	for theme in java tools; do
+		PATHS_SOFT[eclipse_${theme}]="path_user=${HOME}
+comp_path_opt=/opt/eclipse_${theme}
+comp_path_conf=${HOME}/.eclipse_${theme}
+comp_path_user=${HOME}/dev/eclipse-workspaces-${theme}
+comp_file_desk=${HOME}/.local/share/applications/eclipse_${theme}.desktop
+comp_file_bin=/usr/bin/eclipse_${theme}"
 	done
 
-	# squirrel-sql
-	release=`ls /opt/ | sed -n 's|^squirrel-sql.\(.*\)$|\1|p'`
-	PATHS_SOFT["squirrel-sql"]="path_user=$HOME
-file_soft=squirrel-sql_${release}
-comp_path_opt=/opt/squirrel-sql-${release}
-comp_path_conf=$HOME/.squirrel-sql
-comp_file_desk=$HOME/.local/share/applications/squirrel-sql.desktop"
-	PATHS_EXE["squirrel-sql"]="/opt/squirrel-sql-${release}/squirrel-sql.sh"
+	# mindmaster
+	PATHS_SOFT[mindmaster]="path_user=${HOME}
+comp_path_opt=/opt/mindmaster
+comp_path_conf=${HOME}/Edraw/MindMaster
+comp_file_desk=${HOME}/.local/share/applications/mindmaster.desktop
+comp_file_bin=/usr/bin/mindmaster"
+
+	# pipe
+	PATHS_SOFT[pipe]="path_user=${HOME}
+comp_path_opt=/opt/pipe
+comp_file_desk=${HOME}/.local/share/applications/pipe.desktop
+comp_file_bin=/usr/bin/pipe"
 
 	# smargit
-	release=`ls /opt/ | sed -n 's|^smartgit.\(.*\)$|\1|p'`
-	PATHS_SOFT["smartgit"]="path_user=$HOME
-file_soft=smartgit_${release}
-comp_path_opt=/opt/smartgit_${release}
-comp_path_conf=$HOME/.config/smartgit
-comp_file_desk=$HOME/.local/share/applications/smartgit.desktop"
-	PATHS_EXE["smartgit"]="/opt/smartgit_${release}/bin/smartgit.sh"
+	PATHS_SOFT[smartgit]="path_user=${HOME}
+comp_path_opt=/opt/smartgit
+comp_path_conf=${HOME}/.config/smartgit
+comp_file_desk=${HOME}/.local/share/applications/smartgit.desktop
+comp_file_bin=/usr/bin/smartgit"
+
+	# squirrel-sql
+	PATHS_SOFT[squirrel-sql]="path_user=${HOME}
+comp_path_opt=/opt/squirrel-sql
+comp_path_conf=${HOME}/.squirrel-sql
+comp_file_desk=${HOME}/.local/share/applications/squirrel-sql.desktop
+comp_file_bin=/usr/bin/squirrel-sql"
+
+	# sublime-text
+	PATHS_SOFT[sublime_text]="path_user=${HOME}
+comp_path_opt=/opt/sublime_text
+comp_path_conf=${HOME}/.config/sublime-text-3
+comp_path_user=${HOME}/.sublime-project
+comp_file_desk=${HOME}/.local/share/applications/sublime-text.desktop
+comp_file_bin=/usr/bin/sublime_text"
+
+	# workcraft
+	PATHS_SOFT[workcraft]="path_user=${HOME}
+comp_path_opt=/opt/workcraft
+comp_path_conf=${HOME}/.config/workcraft
+comp_file_desk=${HOME}/.local/share/applications/workcraft.desktop
+comp_file_bin=/usr/bin/workcraft"
 
 	# yed
-	release=`ls /opt/ | sed -n 's|^yed.\(.*\)$|\1|p'`
-	PATHS_SOFT["yed"]="path_user=$HOME
-file_soft=yed_${release}
-comp_path_opt=/opt/yed-${release}
-comp_path_conf=$HOME/.yEd
-comp_file_desk=$HOME/.local/share/applications/yed.desktop"
-	PATHS_EXE["yed"]="/opt/yed-${release}/yed.jar"
+	PATHS_SOFT[yed]="path_user=${HOME}
+comp_path_opt=/opt/yed
+comp_path_conf=${HOME}/.yEd
+comp_file_desk=${HOME}/.local/share/applications/yed.desktop
+comp_file_bin=/usr/bin/yed"
 
-	#_echod "${FUNCNAME}::$LINENO \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
-	#_echod "${FUNCNAME}::$LINENO \${PATHS_SOFT[@]}=${PATHS_SOFT[@]}"
+	# zotero
+	PATHS_SOFT[zotero]="path_user=${HOME}
+comp_path_opt=/opt/zotero
+comp_path_conf=${HOME}/.zotero
+comp_path_user=/home/shared/Zotero
+comp_file_desk=${HOME}/.local/share/applications/zotero.desktop
+comp_file_bin=/usr/bin/zotero"
+
+	#_echod "${FUNCNAME}::${LINENO} \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
+	#_echod "${FUNCNAME}::${LINENO} \${PATHS_SOFT[@]}=${PATHS_SOFT[@]}"
+}
+
+__menu() {
+	local comp_path_opt comp_path_conf comp_file_desk comp_file_bin
+
+	_menu "Select an action" backup restore
+	action=${_ANSWER}
+
+	_menu "Select a software to backup" $(echo ${!PATHS_SOFT[@]}|tr ' ' '\n'|sort)
+	softwares=${_ANSWER}
+
+	# set variables in "${PATHS_SOFT["${software}"]}"
+	eval "${PATHS_SOFT[${softwares}]}"
+	if [ "${action}" = restore ]; then
+		_menu "Select an action" $(ls -1r ${PATH_BACKUP}|sed -n "s|^${softwares}_\([0-9-]\+\)\.tar\.gz$|\1|p")
+		DATEB=${_ANSWER}
+	fi
 }
 
 # $1 list of softwares
 __backup() {
-	_echod "${FUNCNAME}::$LINENO \$1=$1"
+	_echod "${FUNCNAME}::${LINENO} \$1=$1"
 
 	local software
-	
+
 	# COMP PRE
 	_echoT "BACKUP start"
-	
+
 	# COMP EXE
 	for software in $1; do
-		_echod "${FUNCNAME}::$LINENO \$software=$software"
-		_echod "${FUNCNAME}::$LINENO \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
-		
-		if [ "${PATHS_SOFT["${software}"]}" ]; then
-			__backup_one "$software" "${PATHS_SOFT["${software}"]}"
+		_echod "${FUNCNAME}::${LINENO} \$software=${software}"
+		_echod "${FUNCNAME}::${LINENO} \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
+
+		if [ "${PATHS_SOFT[${software}]}" ]; then
+			__backup_one "${software}" "${PATHS_SOFT[${software}]}"
 		else
 			_echoE "backup skipped: unable to find '${software}' in existing softwares configuration"
 		fi
@@ -130,11 +173,11 @@ __backup() {
 # $1 software
 # $2 string of paths definitions
 __backup_one() {
-	_echod "${FUNCNAME}::$LINENO \$1=$1"
-	_echod "${FUNCNAME}::$LINENO \$2=$2"
+	_echod "${FUNCNAME}::${LINENO} \$1=$1"
+	_echod "${FUNCNAME}::${LINENO} \$2=$2"
 
-	local paths_comp
-	local path_user file_soft comp_path_opt comp_path_conf comp_file_desk
+	local path paths_comp
+	local comp_path_opt comp_path_conf comp_file_desk comp_file_bin
 
 	_echoT "--> backup '$1'"
 
@@ -142,10 +185,10 @@ __backup_one() {
 	eval "$2"
 	paths_comp=`echo "${PATHS_SOFT["$1"]}"|sed -n 's|^comp_.*=\(.*\)$|\1|p'|xargs`
 	if [ -z "${comp_path_opt}" ]; then
-		_echoE "backup skipped for '${software}': 'comp_path_opt' is empty"
+		_echoE "backup skipped for '$1': 'comp_path_opt' is empty"
 		return 1
 	fi
-	
+
 	# check if paths_comp exists
 	for path in ${paths_comp}; do
 		if [ ! -e "${path}" ]; then
@@ -154,26 +197,27 @@ __backup_one() {
 		fi
 	done
 
-	cmd="${COMP_CMD} '${PATH_BACKUP}/${file_soft}_${DATE}.${COMP_EXT}' ${paths_comp} 2>&6"
+	version=${VERSION:+-${VERSION}}
+	cmd="${COMP_CMD} '${PATH_BACKUP}/$1${version}_${DATE}.${COMP_EXT}' ${paths_comp} 2>&6"
 	_eval ${cmd} || _echoE "executing '${cmd}'"
 }
 
 # $1 list of softwares
 __restore() {
-	_echod "${FUNCNAME}::$LINENO \$1=$1"
+	_echod "${FUNCNAME}::${LINENO} \$1=$1"
 
 	local software
-	
+
 	# UNCOMP PRE
 	_echoT "RESTORE start"
-	
+
 	# UNCOMP EXE
 	for software in $1; do
-		_echod "${FUNCNAME}::$LINENO \$software=$software"
-		_echod "${FUNCNAME}::$LINENO \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
-		
+		_echod "${FUNCNAME}::${LINENO} \$software=${software}"
+		_echod "${FUNCNAME}::${LINENO} \${!PATHS_SOFT[@]}=${!PATHS_SOFT[@]}"
+
 		if [ "${PATHS_SOFT["${software}"]}" ]; then
-			__restore_one "$software" "${PATHS_SOFT["${software}"]}"
+			__restore_one "${software}" "${PATHS_SOFT["${software}"]}"
 		else
 			_echoE "restore skipped: unable to find '${software}' in existing softwares configuration"
 		fi
@@ -186,35 +230,34 @@ __restore() {
 # $1 software
 # $2 string of paths definitions
 __restore_one() {
-	_echod "${FUNCNAME}::$LINENO \$1=$1"
-	_echod "${FUNCNAME}::$LINENO \$2=$2"
+	_echod "${FUNCNAME}::${LINENO} \$1=$1"
+	_echod "${FUNCNAME}::${LINENO} \$2=$2"
 
-	local paths_comp path path_from path_to file_back release
-	local path_user file_soft comp_path_opt comp_path_conf comp_file_desk
+	local paths_comp path path_from path_to file_back
+	local comp_path_opt comp_path_conf comp_file_desk comp_file_bin
 
 	# set variables in "${PATHS_SOFT["${software}"]}"
 	eval "$2"
-	
-	file_back=`ls "${PATH_BACKUP}/${file_soft}"*"_${DATEB}.${COMP_EXT}"`
-	# file not found 
+	version=${VERSION:+-${VERSION}}
+
+	file_back=`ls "${PATH_BACKUP}/$1${version}_${DATEB}.${COMP_EXT}"`
+	# file not found
 	if ! ls "${file_back}" 1>/dev/null 2>&1; then
 		_echoE "'$1' skipped: unable to find '${file_back}'"
 		return 1
 	fi
-	release=`ls "${file_back}"|sed "s|${PATH_BACKUP}/${file_soft}\(.*\)_${DATEB}.${COMP_EXT}|\1|"`
 
-	_echod "${FUNCNAME}::$LINENO \$DATEB=$DATEB"
-	_echod "${FUNCNAME}::$LINENO \$release=$release"
+	_echod "${FUNCNAME}::${LINENO} \$DATEB=$DATEB"
 	# existing paths
 	paths_comp=`echo "${PATHS_SOFT["$1"]}"|sed -n 's|^comp_.*=\(.*\)$|\1|p'|xargs`
 	# check if paths_comp exists
 	for path in ${paths_comp}; do
 		if [ -e "${path}" ]; then
-			if [ -z "$FORCE" ]; then
+			if [ -z "${FORCE}" ]; then
 				_echoE "'$1' skipped: path exists '${path}', to delete it use option '--force'"
 				return 1
 			else
-				cmd="rm -fR '${path}'"
+				[ -w "${path}" ] && cmd="sudo rm -fR '${path}'"
 				_eval ${cmd} || _echoE "executing '${cmd}'"
 			fi
 		fi
@@ -228,91 +271,80 @@ __restore_one() {
 	cmd="${UNCOMP_CMD} '${file_back}' -C '${path_tmp}' 2>&6"
 	_eval ${cmd} || _echoE "executing '${cmd}'"
 	for path in ${paths_comp}; do
-		[ "${path#/opt/}" != "${path}" ] && path="${path}${release}"
 		path_from=${path_tmp}/${path#/}
 		path_to=${path%/}
-		# rename path
-		#[ -n "$path_user" ] && path_to=${path/#$path_user/$HOME}
-		cmd="mv '${path_from}' '${path_to}'"
+		cmd="sudo mv '${path_from}' '${path_to}'"
 		_eval ${cmd} || _echoE "executing '${cmd}'"
 	done
 }
 
 __opts() {
-	_echod "${FUNCNAME}::$LINENO IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	opts_given="$@"
-	opts_short="afr:hdq"
-	opts_long="all,force,restore:,help,quiet,debug"
+	opts_short="afmr:v:hdq"
+	opts_long="all,force,menu,restore:,version:,help,quiet,debug"
 	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
 	eval set -- "${opts}" || exit 1
 
-	_echod "${FUNCNAME}::$LINENO opts_given=$opts_given opts=$opts"
+	_echod "${FUNCNAME}::${LINENO} opts_given=$opts_given opts=$opts"
 	while [ "$1" != "--" ]
 	do
 		case "$1" in
-			-a|--all)
-				ALL="all"
-				;;
-			-f|--force)
-				FORCE="force"
-				;;
+			-a|--all)				softwares="${!PATHS_SOFT[@]}"  ;;
+			-f|--force)		FORCE="force"  ;;
 			-r|--restore)
 				shift
-				action="restore"
+				action=restore
 				DATEB="$1"
 				;;
-			--help)
-				echo "$USAGE"
+			-m|--menu)		MENU="menu"  ;;
+			-v|--version)
+				shift
+				VERSION="$1"
 				;;
-			-q|--quiet)
-				_redirect quiet
-				;;
-			-d|--debug)
-				_redirect debug
-				;;
-			*)
-				_exite "Wrong argument: '$1' for arguments '$opts_given'"
-				;;
+			-h|--help)			echo "${USAGE}" && _exit 0  ;;
+			-q|--quiet)		_redirect quiet  ;;
+			-d|--debug)		_redirect debug  ;;
+			*)							_exite "Wrong argument: '$1' for arguments '$opts_given'"  ;;
 		esac
 		shift
 	done
 
 	shift
 	[ "$@" ] && softwares="$@"
-	
-	[ -z "${action}" ] && action="backup"
-	[ -z "$ALL" ] && [ -z "$softwares" ] && _exite "You have to select option 'all' or give 'softwares'"
-	if [ "$ALL" ]; then
-		[ "$softwares" ] && _exite "You have to give 'softwares' or option '--all' not both"
-		softwares="${!PATHS_SOFT[@]}"
-	fi
 
-	_echod "${FUNCNAME}::$LINENO ALL='$ALL' FORCE='$FORCE' REGEXP='$REGEXP' "
-	_echod "${FUNCNAME}::$LINENO action='${action}' softwares='${softwares}' DATEB='${DATEB}'"
+	# menu
+	[ "${MENU}" ] && __menu
+	# no softwares
+	[ -z "${softwares}" ] && _exite "You have to give softwares or the option 'all'"
+	# default action
+	[ -z "${action}" ] && action=backup
+
+	_echod "${FUNCNAME}::${LINENO} MENU='${MENU}' FORCE='${FORCE}' REGEXP='${REGEXP}' "
+	_echod "${FUNCNAME}::${LINENO} action='${action}' softwares='${softwares}' DATEB='${DATEB}'"
 }
 
 __main() {
 	_echod "======================================================"
 	_echod "$(ps -o args= $PPID)"
 
-	local opts_given opts_short opts_long opts action DATEB
+	local PATH_BACKUP DATEB opts_given opts_short opts_long opts action
 
 	# array for softwares definition
 	declare -A PATHS_SOFT
-	declare -A PATHS_EXE
 	# path to backup/resore
-	local PATH_BACKUP="$HOME/Soft/multi"
+	[ -d ${HOME}/Soft/multi ] && PATH_BACKUP=${HOME}/Soft/multi/backup || PATH_BACKUP=/ext/shared/Soft/multi/backup
 	# date for files
 	local DATE=`date +%Y%m%d-%s`
 	# compress command options
 	local COMP_CMD="tar --exclude='.cache' -czf"
 	local UNCOMP_CMD="tar -xzf"
 	local COMP_EXT="tar.gz"
-	
+
 	# initialize variables for each softwares
 	__init
-	
+
 	# get options
 	__opts "$@"
 

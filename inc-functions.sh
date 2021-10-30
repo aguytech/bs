@@ -96,6 +96,18 @@ __function_common() {
 
 	##############  SOURCE
 
+	_touch() {
+		local file
+		for file in $*; do
+			! [ -f "${file}" ] && _evalq "${file}"
+		done
+	}
+	_touchr() {
+		local file
+		for file in $*; do
+			! [ -f "${file}" ] && _evalqr "${file}"
+		done
+	}
 	_source() {
 		local file
 		for file in $*; do
@@ -130,6 +142,7 @@ __function_common() {
 		while [ -z "$_ANSWER" ]; do
 			_echo- -n "$*: "
 			read _ANSWER
+			_echod
 		done
 	}
 	# ask one time & accept no _ANSWER
@@ -137,6 +150,7 @@ __function_common() {
 		_ANSWER=
 		_echo- -n "$*: "
 		read _ANSWER
+			_echod
 	}
 	# ask until y or n is given
 	_askyn() {
@@ -148,6 +162,7 @@ __function_common() {
 			#_echo- -n "${yellowb}$* y/n ${cclear}"
 			_echo- -n "$* (y/n): "
 			read _ANSWER
+			_echod
 		done
 	}
 	# ask $1 until a valid options $* is given
@@ -162,6 +177,7 @@ __function_common() {
 		while [ "${options/ ${_ANSWER} }" = "$options" ]; do
 			_echo- -n "${str} ($*): "
 			read _ANSWER
+			_echod
 		done
 	}
 
@@ -175,6 +191,7 @@ __function_common() {
 		select _ANSWER in $*; do
 			[ "${_ANSWER}" ] && break || echo -e "\nTry again"
 		done
+		_echod
 	}
 	# make multiselect menu with question $1 & options $* with ++ to add options
 	_menua() {
@@ -186,6 +203,7 @@ __function_common() {
 		while [ "${anstmp}" != valid ]; do
 			echo "——————————————————————"
 			select anstmp in ${ansmenu}; do [ "${anstmp::2}" == ++ ] && ansmenu=${ansmenu/ ${anstmp} / ${anstmp#++} } || ansmenu=${ansmenu/ ${anstmp} / ++${anstmp} }; break; done
+			_echod
 		done
 		ansmenu=${ansmenu#valid }
 		_ANSWER=$(echo ${ansmenu}|tr ' ' '\n'|sed -n '/^++/ s|++||p')
@@ -201,6 +219,7 @@ __function_common() {
 		while [ "$anstmp" != valid ]; do
 			echo "——————————————————————"
 			select anstmp in ${ansmenu}; do [ "${anstmp::2}" == -- ] && ansmenu=${ansmenu/ ${anstmp} / ${anstmp#--} } || ansmenu=${ansmenu/ ${anstmp} / --${anstmp} }; break; done
+			_echod
 		done
 		ansmenu=${ansmenu#valid }
 		_ANSWER=$(echo ${ansmenu}|tr ' ' '\n'|sed -n '/^--/ s|--||p')
@@ -209,17 +228,17 @@ __function_common() {
 	##############  KEEP
 
 	_keepcpts() {
-		if [ "${USER}" = root ]; then
-			[[ -e "${1}" || -h "${1}" ]] && _evalqr cp -a "${1}" "${1}.keep$(date +%s)"
+		if [ -r "${1}" ]; then
+			[[ -e "${1}" || -h "${1}" ]] && _evalqr cp -a "${1}" "${1}.$(date +%s)"
 		else
-			[[ -e "${1}" || -h "${1}" ]] && _evalqr sudo cp -a "${1}" "${1}.keep$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalqr sudo cp -a "${1}" "${1}.$(date +%s)"
 		fi
 	}
 	_keepmvts() {
-		if [ "${USER}" = root ]; then
-			[[ -e "${1}" || -h "${1}" ]] && _evalqr mv "${1}" "${1}.keep$(date +%s)"
+		if [ -r "${1}" ]; then
+			[[ -e "${1}" || -h "${1}" ]] && _evalqr mv "${1}" "${1}.$(date +%s)"
 		else
-			[[ -e "${1}" || -h "${1}" ]] && _evalqr sudo mv "${1}" "${1}.keep$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalqr sudo mv "${1}" "${1}.$(date +%s)"
 		fi
 	}
 
@@ -284,8 +303,8 @@ __function_common() {
 	 	[ "$S_REDIRECTED" ] && _echod "${FUNCNAME}:${LINENO} Already redirected" && return
 
 		# log path
-		[ "${_INSTALL}" ] && _PATH_LOG="${S_PATH_LOG_INSTALL}"
-		[ -z "$_PATH_LOG" ] && _PATH_LOG="${S_PATH_LOG_SERVER}"
+		[ "${_INSTALL}" ] && _PATH_LOG="${S_PATH_LOG_INSTALL:-/var/log/install}"
+		[ -z "$_PATH_LOG" ] && _PATH_LOG="${S_PATH_LOG_SERVER:-/var/log/server}"
 		if ! [ -d "${_PATH_LOG}" ]; then
 			if [ "${USER}" = root ]; then
 				mkdir -p "${_PATH_LOG}"
@@ -306,11 +325,11 @@ __function_common() {
 
 		# file descriptors
 		case "$opt" in
-			#				sdtout											stderror								info							debug
-			#				1													2											4								6
+			#			sdtout								stderror					info				debug
+			#			1									2							4					6
 			quiet)		exec 1>>${_SF_INF}					2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
-			info)			exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
-			verbose)	exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>&1						6>/dev/null  ;;
+			info)		exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
+			verbose)	exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>&1				6>/dev/null  ;;
 			debug)
 				exec 1> >(tee -a ${_SF_INF} ${_SF_BUG})
 				exec 2> >(tee -a ${_SF_ERR})
@@ -618,6 +637,11 @@ __function_lxc() {
 	__lxc_meta_path() {
 		#_echod "${FUNCNAME}:${LINENO} $*"
 
+		path_ct=${_ZFS_ROOT}${S_HOST_PATH_SP}/default/containers/$1
+		if [ "${S_STORAGE_DRIVER}" = zfs ]  && zfs list -o mounted ${path_ct} -H|grep -q no; then
+				zfs mount ${path_ct}
+		fi
+
 		[ -d /lxd ] && file=/lxd/containers/$1/metadata.yaml
 		if [ -z "${file}" ]; then
 			[ -d "${_LXD_PATH_ROOT}" ] && file=${_LXD_PATH_ROOT}/containers/$1/metadata.yaml || _exite "Unable to find path /lxd or _LXD_PATH_ROOT"
@@ -625,17 +649,25 @@ __function_lxc() {
 		_evalr [ -f "${file}" ] || _exite "Unable to find file: ${file}"
 	}
 
+	# 1 ct
+	__lxc_meta_close() {
+		#_echod "${FUNCNAME}:${LINENO} $*"
+
+		if [ "${S_STORAGE_DRIVER}" = zfs ]  && zfs list -o mounted ${path_ct} -H|grep -q yes; then
+				zfs umount ${path_ct}
+		fi
+	}
+
 	# 1 container
 	# 2 tag
 	_lxc_meta_get() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file
+		local file path_ct
 
-		# get file
-		__lxc_meta_path $1
-
+		__lxc_meta_path $1 # get file
 		_evalr "sed -n 's|^ *${2}: \(.*\)|\1|p' ${file}" | tr ',' ' '
+		__lxc_meta_close $1 # close file
 	}
 
 	# 1 container
@@ -644,18 +676,17 @@ __function_lxc() {
 	_lxc_meta_set() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag path
+		local file ct tag path path_ct
 		ct=$1 && shift
 		tag=$1 && shift
 
-		# get file
-		__lxc_meta_path ${ct}
-
+		__lxc_meta_path ${ct} # get file
 		if _evalr grep -q "${tag}:" ${file}; then
 			_evalr "sed -i '/${tag}:/ s|:.*|: $*|' ${file}"
 		else
 			_evalr "sed -i '/^properties:/a\ \ ${tag}: $*' ${file}"
 		fi
+		__lxc_meta_close ${ct} # close file
 	}
 
 	# 1 container
@@ -664,18 +695,16 @@ __function_lxc() {
 	_lxc_meta_add() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag path values value
+		local file ct tag path path_ct values value
 		ct=$1 && shift
 		tag=$1 && shift
 
-		# get file
-		__lxc_meta_path ${ct}
-
+		__lxc_meta_path ${ct} # get file
 		values=" $(_lxc_meta_get ${ct} ${tag}) "
 		for value in $*; do 	values+=" ${value}"; done
 		values=`echo ${values}|tr ' ' '\n'|sort -u`
-
 		_lxc_meta_set ${ct} ${tag} ${values}
+		__lxc_meta_close ${ct} # close file
 	}
 
 	# 1 container
@@ -684,17 +713,15 @@ __function_lxc() {
 	_lxc_meta_remove() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag path values value
+		local file ct tag path path_ct values value
 		ct=$1 && shift
 		tag=$1 && shift
 
-		# get file
-		__lxc_meta_path ${ct}
-
+		__lxc_meta_path ${ct} # get file
 		values=" $(_lxc_meta_get ${ct} ${tag}) "
 		for value in $*; do 	values="${values// ${value} / }"; done
-
 		_lxc_meta_set ${ct} ${tag} ${values}
+		__lxc_meta_close ${ct} # close file
 	}
 
 }
@@ -759,14 +786,14 @@ if [ "${_INSTALL}" ]; then
 		first_id="${!BASH_SOURCE[*]}" && first_id="${first_id#* }"
 		path_base=`dirname "$(readlink -e "${BASH_SOURCE[${first_id}]}")"`
 
-		file="${path_base}/conf-init.install"
+		file="${path_base/install-desktop/install}/conf-init.install"
 		! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to find file '${file}'" && exit 1
 		. "${file}"
 	fi
 
 	# env
 	file=${S_PATH_SCRIPT}/conf/env
-	! [ -f ${file} ] &&  echo ":${LINENO}[error] Unable to source properly file '${file}'" && exit 1
+	! [ -f ${file} ] && echo ":${LINENO}[error] Unable to source properly file '${file}'" && exit 1
 	. ${file}
 fi
 
