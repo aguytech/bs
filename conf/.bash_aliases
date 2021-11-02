@@ -76,6 +76,12 @@ alias lxciln="lxc image list -f csv -c l"
 alias lxcila="lxc image list -f json | jq -r '.[].aliases[].name'"
 alias lxcilf="lxc image list -f json | jq -r '.[].fingerprint | .[:12]'"
 alias lxcilF="lxc image list -f json | jq -r '.[].fingerprint'"
+## network
+alias lxcnl="lxc network list"
+alias lxcns="lxc network show"
+## storage
+alias lxcsl="lxc storage list"
+alias lxcss="lxc storage show"
 ## profile
 alias lxcpl="lxc profile list"
 alias lxcpln="lxc profile list -f csv|grep -o '^[^,]\+'"
@@ -83,9 +89,7 @@ alias lxcpd="lxc profile delete"
 alias lxcps="lxc profile show"
 ## list
 alias lxcal="lxc alias list"
-alias lxcnl="lxc network list"
 alias lxcrl="lxc remote list"
-alias lxcsl="lxc storage list"
 
 ########################  BTRFS
 # subvolume
