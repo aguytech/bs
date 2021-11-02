@@ -534,11 +534,11 @@ __function_install() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type systemctl >/dev/null 2>&1; then
-			_evalqr systemctl "${1}" "${2}.service"
+			_evalr systemctl "${1}" "${2}.service"
 		elif type service >/dev/null 2>&1; then
-			_evalqr service "${2%.*}" "${1}"
+			_evalr service "${2%.*}" "${1}"
 		elif type rc-service >/dev/null 2>&1; then
-			_evalqr service "${2%.*}" "${1}"
+			_evalr service "${2%.*}" "${1}"
 		else
 			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
 		fi

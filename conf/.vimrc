@@ -3,25 +3,30 @@
 " options, so any other options should be set AFTER setting 'compatible'.
 "set compatible
 
-" vim-monokai now only support 256 colours in terminal.
-set t_Co=256 "set termguicolors
+"enable syntax highlightning
+syntax enable                                                                                                                                                                                                              
 
-let g:sublimemonokai_term_italic = 1
-
-" Vim5 and later versions support syntax highlighting. Uncommenting the next
-" line enables syntax highlighting by default.
-syntax enable
-
-autocmd BufRead,BufNewFile *.conf set filetype=cfg
-
-" If using a dark background within the editing area and syntax highlighting
-" turn on this option as well
-set background=dark
-
-" color theme
 "colorscheme monokai
-"colorscheme monokai2
-colorscheme sublimemonokai
+colorscheme gruvbox
+set background=dark                                                                                                                                                                                                        
+"set termguicolors
+"Use 24-bit (true-color) mode in Vim/Neovim when outside tmux.
+"If you're using tmux version 2.2 or later, you can remove the outermost $TMUX check and use tmux's 24-bit color support
+"(see < http://sunaku.github.io/tmux-24bit-color.html#usage > for more information.)
+if (empty($TMUX))
+	if (has("termguicolors"))
+		set termguicolors
+	else
+		set t_Co=256
+	endif
+	"if (has("nvim"))
+    "	let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+  	"endif
+else
+	set t_Co=256
+endif
+
+autocmd BufRead,BufNewFile *.conf set filetype=cfg                                                                                                                                                                         
 
 " Uncomment the following to have Vim jump to the last position when
 " reopening a file
