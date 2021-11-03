@@ -635,23 +635,22 @@ __function_lxc() {
 
 	# 1 ct
 	__lxc_meta_path() {
-		#_echod "${FUNCNAME}:${LINENO} $*"
+		_echod "${FUNCNAME}:${LINENO} $*"
 
-		path_ct=${_ZFS_ROOT}${S_HOST_PATH_SP}/default/containers/$1
-		if [ "${S_STORAGE_DRIVER}" = zfs ]  && zfs list -o mounted ${path_ct} -H|grep -q no; then
-				zfs mount ${path_ct}
+		if [ "${S_STORAGE_DRIVER}" = btrfs ]; then
+			path_ct=${S_HOST_PATH_SP}/default/containers/$1
+		else
+			path_ct=${_ZFS_ROOT}${S_HOST_PATH_SP}/default/containers/$1
+			zfs list -o mounted ${path_ct} -H|grep -q no && zfs mount ${path_ct}
 		fi
 
-		[ -d /lxd ] && file=/lxd/containers/$1/metadata.yaml
-		if [ -z "${file}" ]; then
-			[ -d "${_LXD_PATH_ROOT}" ] && file=${_LXD_PATH_ROOT}/containers/$1/metadata.yaml || _exite "Unable to find path /lxd or _LXD_PATH_ROOT"
-		fi
+		file=${path_ct}/metadata.yaml
 		_evalr [ -f "${file}" ] || _exite "Unable to find file: ${file}"
 	}
 
 	# 1 ct
 	__lxc_meta_close() {
-		#_echod "${FUNCNAME}:${LINENO} $*"
+		_echod "${FUNCNAME}:${LINENO} $*"
 
 		if [ "${S_STORAGE_DRIVER}" = zfs ]  && zfs list -o mounted ${path_ct} -H|grep -q yes; then
 				zfs umount ${path_ct}
@@ -681,11 +680,12 @@ __function_lxc() {
 		tag=$1 && shift
 
 		__lxc_meta_path ${ct} # get file
-		if _evalr grep -q "${tag}:" ${file}; then
-			_evalr "sed -i '/${tag}:/ s|:.*|: $*|' ${file}"
+		if _evalr "grep -q '^ *${tag}:' ${file}"; then
+			_evalr "sed -i '/^ *${tag}:/ s|:.*|: $*|' ${file}"
 		else
 			_evalr "sed -i '/^properties:/a\ \ ${tag}: $*' ${file}"
 		fi
+		lxc config metadata show ${ct}|grep "^ *${tag}:"
 		__lxc_meta_close ${ct} # close file
 	}
 
@@ -722,6 +722,18 @@ __function_lxc() {
 		for value in $*; do 	values="${values// ${value} / }"; done
 		_lxc_meta_set ${ct} ${tag} ${values}
 		__lxc_meta_close ${ct} # close file
+	}
+
+	# * string
+	_lxc_meta_edit() {
+		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
+		_echod "${FUNCNAME}:${LINENO} $*"
+		ct=$1 && shift
+
+		_echoI "Set:"
+		_echo "$*"
+		_askno "Valid"
+		lxc config metadata edit ${ct}
 	}
 
 }
