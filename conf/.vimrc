@@ -4,29 +4,16 @@
 "set compatible
 
 "enable syntax highlightning
-syntax enable                                                                                                                                                                                                              
+syntax enable
+set background=dark
 
 "colorscheme monokai
+"colorscheme sublimemonokai
 colorscheme gruvbox
-set background=dark                                                                                                                                                                                                        
-"set termguicolors
-"Use 24-bit (true-color) mode in Vim/Neovim when outside tmux.
-"If you're using tmux version 2.2 or later, you can remove the outermost $TMUX check and use tmux's 24-bit color support
-"(see < http://sunaku.github.io/tmux-24bit-color.html#usage > for more information.)
-if (empty($TMUX))
-	if (has("termguicolors"))
-		set termguicolors
-	else
-		set t_Co=256
-	endif
-	"if (has("nvim"))
-    "	let $NVIM_TUI_ENABLE_TRUE_COLOR=1
-  	"endif
-else
-	set t_Co=256
-endif
 
-autocmd BufRead,BufNewFile *.conf set filetype=cfg                                                                                                                                                                         
+set t_Co=256 "set termguicolors
+
+autocmd BufRead,BufNewFile *.conf set filetype=cfg
 
 " Uncomment the following to have Vim jump to the last position when
 " reopening a file
