@@ -31,10 +31,10 @@ __function_common() {
 
 	# error
 	_echoe() {
-		echo -e "[error] ${red}$*${cclear}" >&2
+		echo -e "${red}$*${cclear}" >&2
 	}
 	_echoE() {
-		echo -e "[error] ${redb}$*${cclear}" >&2
+		echo -e "${redb}$*${cclear}" >&2
 	}
 
 	# information
@@ -633,60 +633,31 @@ __function_lxc() {
 		done
 	}
 
-	# 1 ct
-	__lxc_meta_path() {
-		_echod "${FUNCNAME}:${LINENO} $*"
-
-		if [ "${S_STORAGE_DRIVER}" = btrfs ]; then
-			path_ct=${S_HOST_PATH_SP}/default/containers/$1
-		else
-			path_ct=${_ZFS_ROOT}${S_HOST_PATH_SP}/default/containers/$1
-			zfs list -o mounted ${path_ct} -H|grep -q no && zfs mount ${path_ct}
-		fi
-
-		file=${path_ct}/metadata.yaml
-		_evalr [ -f "${file}" ] || _exite "Unable to find file: ${file}"
-	}
-
-	# 1 ct
-	__lxc_meta_close() {
-		_echod "${FUNCNAME}:${LINENO} $*"
-
-		if [ "${S_STORAGE_DRIVER}" = zfs ]  && zfs list -o mounted ${path_ct} -H|grep -q yes; then
-				zfs umount ${path_ct}
-		fi
-	}
-
 	# 1 container
 	# 2 tag
 	_lxc_meta_get() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file path_ct
 
-		__lxc_meta_path $1 # get file
-		_evalr "sed -n 's|^ *${2}: \(.*\)|\1|p' ${file}" | tr ',' ' '
-		__lxc_meta_close $1 # close file
+		lxc config metadata show $1 | sed -n "s|^ *$2: \(.*\)|\1|p"
 	}
 
 	# 1 container
 	# 2 tag
-	# * value
+	# * values
 	_lxc_meta_set() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag path path_ct
+		local ct tag
 		ct=$1 && shift
 		tag=$1 && shift
 
-		__lxc_meta_path ${ct} # get file
-		if _evalr "grep -q '^ *${tag}:' ${file}"; then
-			_evalr "sed -i '/^ *${tag}:/ s|:.*|: $*|' ${file}"
+		if lxc config metadata show ${ct} | grep -q "^ *${tag}:"; then
+			lxc config metadata show ${ct} | sed "/^ *${tag}:/ s|:.*$|: $*|" | lxc config metadata edit ${ct}
 		else
-			_evalr "sed -i '/^properties:/a\ \ ${tag}: $*' ${file}"
+			lxc config metadata show ${ct} | sed "/^properties:/a\ \ ${tag}: $*" | lxc config metadata edit ${ct}
 		fi
 		lxc config metadata show ${ct}|grep "^ *${tag}:"
-		__lxc_meta_close ${ct} # close file
 	}
 
 	# 1 container
@@ -695,16 +666,14 @@ __function_lxc() {
 	_lxc_meta_add() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag path path_ct values value
+		local file ct tag values value
 		ct=$1 && shift
 		tag=$1 && shift
 
-		__lxc_meta_path ${ct} # get file
-		values=" $(_lxc_meta_get ${ct} ${tag}) "
+		values=`_lxc_meta_get ${ct} ${tag}`
 		for value in $*; do 	values+=" ${value}"; done
 		values=`echo ${values}|tr ' ' '\n'|sort -u`
 		_lxc_meta_set ${ct} ${tag} ${values}
-		__lxc_meta_close ${ct} # close file
 	}
 
 	# 1 container
@@ -713,27 +682,13 @@ __function_lxc() {
 	_lxc_meta_remove() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag path path_ct values value
+		local file ct tag values value
 		ct=$1 && shift
 		tag=$1 && shift
 
-		__lxc_meta_path ${ct} # get file
-		values=" $(_lxc_meta_get ${ct} ${tag}) "
+		values=`_lxc_meta_get ${ct} ${tag}`
 		for value in $*; do 	values="${values// ${value} / }"; done
 		_lxc_meta_set ${ct} ${tag} ${values}
-		__lxc_meta_close ${ct} # close file
-	}
-
-	# * string
-	_lxc_meta_edit() {
-		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
-		_echod "${FUNCNAME}:${LINENO} $*"
-		ct=$1 && shift
-
-		_echoI "Set:"
-		_echo "$*"
-		_askno "Valid"
-		lxc config metadata edit ${ct}
 	}
 
 }
