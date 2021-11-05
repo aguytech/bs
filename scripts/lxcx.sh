@@ -5,7 +5,7 @@
 # Description:					functions over lxc to manipulate containers
 
 ######################## GLOBAL FUNCTIONS
-#S_TRACE=debug
+S_TRACE=debug
 
 S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ! . "${S_GLOBAL_FUNCTIONS}" && echo -e "[error] - Unable to source file '${S_GLOBAL_FUNCTIONS}' from '${BASH_SOURCE[0]}'" && exit 1
@@ -13,182 +13,208 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 
 ########################  VARIABLES
 
-usage="lxcx : manage containers
-the container name can be one or few name (separate with space)
-and a special name 'all' to select all containers
+USAGE="lxcx: manage containers
+	delete list publish purge restart start stop
 
-Global usage:    lxcx <args> [action] [containers]
-	start			<ct name>
-	stop			<ct name>
-	restart		<ct name>
-	delete		<ct name>	if option '--force' is given, running container are also deleted
+Global usage: lxcx <args> [action] <containers>
+	[containers] is partial name of containers (allow regexp)
 
 args:
-	-r, --regexp <regexp>    the selection for container name is made with regexp.
-							BE CAREFUL: limit the begin & the end of regexp
+	-r, --running   selects from running containers
+	-s, --stopped   selects from stopped containers
 	-a,--all				select all containers for action
-	-f, --force         	force certain actions (delete, stop, restart, publish...)
+	-f, --force         force certain actions (delete publish)
+	-h, --help          show usage
 
-	-h, --help			show usage of functions
-	-q, --quiet		don't show any infomations except interaction informations
-	-d, --debug		output in screen & in file debug informations
+list, specific arguments:
+	-1                        show containers names in one column (default in one line)
 "
 
 ########################  FUNCTION
 
-# $1 container names to select
-# $2 available container names
-__select() {
-	_echod "${FUNCNAME}::$LINENO \$1=$1"
-	_echod "${FUNCNAME}::$LINENO \$2=$2"
-
-	local cts cts_tmp
-
-	# all
-	if [ "${ALL}" = "all" ]; then
-		cts="$2"
-	else
-		# named containers
-		cts_tmp="$1"
-		#_echod "${FUNCNAME}::$LINENO named cts_tmp=${cts_tmp}"
-		# regexped containers
-		for regexp in $REGEXP; do
-			cts_tmp="${cts_tmp} $(lxc list --format=json ${regexp} | jq -r '.[].name' |xargs)"
-		done
-		#_echod "${FUNCNAME}::$LINENO all cts_tmp=${cts_tmp}"
-		cts_tmp=`echo ${cts_tmp} | tr " " "\n" | sort -u | xargs`
-		# filters containers
-		for ct in $cts_tmp; do
-			[[ " $2 " = *" $ct "* ]] && cts="${cts} ${ct}"
-		done
-	fi
-	_echod "${FUNCNAME}::$LINENO unique cts=${cts}"
-	echo "$cts"
-}
-
-__start() {
-	_echod "${FUNCNAME}::$LINENO IN \$@=$@"
-	_echod "${FUNCNAME}::$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
-
-	local cts cts_selected
-
-	cts_selected=`__lxc_list_stopped`
-	cts=`__select "$*" "$cts_selected"`
-	_echod "${FUNCNAME}::$LINENO cts=${cts}"
-
-	[ "${cts}" ] && _eval lxc start ${cts}
-}
-
-__stop() {
-	_echod "${FUNCNAME}::$LINENO IN \$@=$@"
-	_echod "${FUNCNAME}::$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
-
-	local cts cts_selected
-
-	cts_selected=`__lxc_list_running`
-	cts=`__select "$*" "$cts_selected"`
-	_echod "${FUNCNAME}::$LINENO cts=${cts}"
-
-	[ "${cts}" ] && _eval lxc stop ${cts}
-}
-
-__restart() {
-	_echod "${FUNCNAME}::$LINENO IN \$@=$@"
-	_echod "${FUNCNAME}::$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
-
-	local cts cts_selected
-
-	cts_selected=`__lxc_list_running`
-	cts=`__select "$*" "$cts_selected"`
-	_echod "${FUNCNAME}::$LINENO cts=${cts}"
-
-	[ "${cts}" ] && _eval lxc restart ${cts}
-}
-
+# @ containers
 __delete() {
-	_echod "${FUNCNAME}::$LINENO IN \$@=$@"
-	_echod "${FUNCNAME}::$LINENO ALL=$ALL FORCE=$FORCE REGEXP=$REGEXP"
+	_echod "${FUNCNAME}::${LINENO} IN \$@="$@
+	local cts_stopped= ct= cts_force=
 
-	local cts cts_selected
+	cts_stopped=" $(echo ${CTS_STOPPED}) "
+	for ct in $@; do
+		if [ "${cts_stopped/ ${ct} /}" != "${cts_stopped}" ]; then
+			_eval lxc delete ${ct}
+		elif [[ "${FORCE}" && "${cts_stopped/ ${ct} /}" = "${cts_stopped}" ]]; then
+			_eval lxc delete --force ${ct}
+		else
+			cts_force+=" ${ct}"
+		fi
+	done
 
-	if [ "${FORCE}" ]; then
-		cts_selected=`__lxc_list_existing`
+	[ "${cts_force}" ] && _echoE "Use 'force' argument to delete this running containers:\n${cts_force# }"
+}
+
+# 1 containers
+__list() {
+	_echod "${FUNCNAME}::${LINENO} IN \$@="$@
+
+	[ "${COLUMN}" ] && _echo "$*" || _echo $*
+}
+
+# @ containers
+__publish() {
+	_echod "${FUNCNAME}::${LINENO} IN \$@="$@
+	local cts_stopped= ct= cts_force= cmd=
+
+	cts_stopped=" $(echo ${CTS_STOPPED}) "
+	for ct in $@; do
+		cmd=
+		if [ "${cts_stopped/ ${ct} /}" != "${cts_stopped}" ]; then
+			cmd=" lxc publish ${ct} --alias ${ct}"
+		elif [[ "${FORCE}" && "${cts_stopped/ ${ct} /}" = "${cts_stopped}" ]]; then
+			cmd="lxc publish --force ${ct} --alias ${ct}"
+		else
+			cts_force+=" ${ct}"
+		fi
+		 
+		if [ "${cmd}" ]; then
+			lxc image list -f csv -c l | grep -q ^${ct}$ && _eval lxc image alias rename ${ct} ${ct}-${_SDATE}
+			_echod "${FUNCNAME}::${LINENO} cmd=${cmd}"
+			_eval ${cmd}
+		fi
+	done
+
+	[ "${cts_force}" ] && _echoE "Use 'force' argument to publish this running containers:\n${cts_force# }"
+}
+
+# @ containers
+__purge() {
+
+	__delete $@
+}
+
+# 1 containers
+__restart() {
+	_echod "${FUNCNAME}::${LINENO} IN \$@="$@
+
+	_eval lxc restart $1
+}
+
+# 1 containers
+__start() {
+	_echod "${FUNCNAME}::${LINENO} IN \$@="$@
+
+	_eval lxc start $1
+}
+
+# 1 containers
+__stop() {
+	_echod "${FUNCNAME}::${LINENO} IN \$@="$@
+
+	_eval lxc stop $1
+}
+
+# 1 selected containers
+# 2 containers
+__select_reduce() {
+	_echod "${FUNCNAME}::${LINENO} \$1='"$1"'"
+	_echod "${FUNCNAME}::${LINENO} \$2='"$2"'"
+	local cts ct
+
+	CTS=
+	cts=`echo $2|xargs`
+	for ct in $1; do
+		[[ " ${cts} " = *" ${ct} "* ]] && CTS+="${ct}
+"
+	done
+}
+
+# 1 container names to select
+__select() {
+	_echod "${FUNCNAME}::${LINENO} \$1='$1'"
+
+	[[ " delete publish restart start stop " = *" ${ACTION} "* && -z "${ALL}" && -z "${CTS}" ]] && _exite "You have to give a selection of containers"
+	
+	if [ "${ACTION}" = list ]; then
+		if [ "$1" ]; then
+			CTS=`lxc list --format=json | jq -r '.[] | select(.name | test("'$1'")).name'`
+		else
+			CTS=`lxc list -f csv -c n`
+		fi
+	elif [ "${ACTION}" = purge ]; then
+			CTS=`lxc list --format=json | jq -r '.[] | select(.name | test("-1635.*$")).name'`
 	else
-		cts_selected=`__lxc_list_stopped`
+		if [ "${ALL}" ]; then
+			CTS=`lxc list -f csv -c n`
+		elif [ "$1" ];then
+			CTS=`lxc list --format=json | jq -r '.[] | select(.name | test("'$1'")).name'`
+		fi
 	fi
-	cts=`__select "$*" "$cts_selected"`
-	_echod "${FUNCNAME}::$LINENO cts=${cts}"
+		
+	case "${ACTION}" in
+		start)
+			__select_reduce "${CTS}" "${CTS_STOPPED}";;
+		stop|restart)
+			__select_reduce "${CTS}" "${CTS_RUNNING}";;
+	esac
 
-	[ "${cts}" ] && _eval lxc delete ${FORCE:+--$FORCE} ${cts}
+	_echod "${FUNCNAME}::${LINENO} unique CTS="${CTS}
+	[ -z "${CTS}" ] && _echoI "No containers for your selection" && exit
 }
 
 __opts() {
-	_echod "${FUNCNAME}::$LINENO IN \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
-	opts_given="$@"
-	opts_short="afr:hdq"
-	opts_long="all,force,regexp:,help,quiet,debug"
-	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
-	eval set -- "${opts}"
+	local opts_given="$@"
+	local opts_short="afrsh1"
+	local opts_long="all,force,running,stopped,help"
+	local opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
+	eval set -- "${opts}" || exit 1
 
-	_echod "${FUNCNAME}::$LINENO opts_given=$opts_given opts=$opts"
+	_echod "${FUNCNAME}::${LINENO} opts_given=${opts_given} opts=${opts}"
 	while [ "$1" != "--" ]
 	do
 		case "$1" in
-			-a|--all)
-				ALL="all"
-				;;
-			-f|--force)
-				FORCE="force"
-				;;
-			-r|--regexp)
-				shift
-				REGEXP="${REGEXP} $1"
-				;;
-			--help)
-				echo "$usage"
-				;;
-			-q|--quiet)
-				_redirect quiet
-				;;
-			-d|--debug)
-				_redirect debug
-				;;
-			*)
-				_exite "Wrong argument: '$1' for arguments '$opts_given'"
-				;;
+			-a|--all)					ALL=a  ;;
+			-f|--force)			FORCE=f  ;;
+			-r|--running)		RUNNING=r  	;;
+			-s|--stopped)		STOPPED=s  ;;
+			-h|--help)				echo "${USAGE}" && _exit 0  ;;
+			-1)							COLUMN=1  ;;
+			*)							_exite "Wrong argument: '$1' for arguments '$opts_given'"  ;;
 		esac
 		shift
 	done
 
 	shift
-	action="$1"
+	ACTION="$1"
 	shift
-	_echod "${FUNCNAME}::$LINENO ALL='$ALL' FORCE='$FORCE' REGEXP='$REGEXP' "
-	_echod "${FUNCNAME}::$LINENO action='$action'"
+	CTS="$@"
+	_echod "${FUNCNAME}::${LINENO} ALL='${ALL}' FORCE='${FORCE}'"
+	_echod "${FUNCNAME}::${LINENO} ACTION='${ACTION}' \$@='$@'"
 }
 
 __main()
 {	_echod "======================================================"
 	_echod "$(ps -o args= $PPID)"
+	local ACTION= ALL= FORCE= RUNNING= STOPPED= CTS=
+	local ACTIONS="delete list publish purge restart start stop"
+	local CTS_RUNNING=`lxc list -f csv -c n status=Running`
+	local CTS_STOPPED=`lxc list -f csv -c n status=Stopped`
+	_echod "${FUNCNAME}::${LINENO} CTS_RUNNING="${CTS_RUNNING}
+	_echod "${FUNCNAME}::${LINENO} CTS_STOPPED="${CTS_STOPPED}
 
-	local opts_given opts_short opts_long opts action
-	local  ALL FORCE REGEXP
-
+	type jq >/dev/null 2>&1 || _exite "Unable to find the binary: jq" 
 	# get options
 	__opts "$@"
 
-	[ -z "$action" ] && _exite "You have to give an action to execute"
-	if [[ " start stop restart delete " = *" $action "* ]]; then
-		# call action with arguments
-		__$action "$@"
-	else
-		_exite "Wrong action: '$action'. select in: start stop restart delete"
-	fi
+	[ -z "${ACTION}" ] && _exite "You have to give an action to execute" # no action
+	[[ " ${ACTIONS} " == *" ${ACTION} "* ]] || _exite "Wrong action: '${ACTION}'. select in: ${ACTIONS}"
+	
+	__select "${CTS}"
+
+	# call action with arguments
+	__${ACTION} "${CTS}"
 }
 
 ########################  MAIN
 
 __main "$@"
-
 _exit 0
