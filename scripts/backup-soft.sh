@@ -132,15 +132,15 @@ __menu() {
 	local comp_path_opt comp_path_conf comp_file_desk comp_file_bin
 
 	_menu "Select an action" backup restore
-	action=${_ANSWER}
+	ACTION=${_ANSWER}
 
 	_menu "Select a software to backup" $(echo ${!PATHS_SOFT[@]}|tr ' ' '\n'|sort)
-	softwares=${_ANSWER}
+	SOFTWARES=${_ANSWER}
 
 	# set variables in "${PATHS_SOFT["${software}"]}"
-	eval "${PATHS_SOFT[${softwares}]}"
-	if [ "${action}" = restore ]; then
-		_menu "Select an action" $(ls -1r ${PATH_BACKUP}|sed -n "s|^${softwares}_\([0-9-]\+\)\.tar\.gz$|\1|p")
+	eval "${PATHS_SOFT[${SOFTWARES}]}"
+	if [ "${ACTION}" = restore ]; then
+		_menu "Select an action" $(ls -1r ${PATH_BACKUP}|sed -n "s|^${SOFTWARES}_\([0-9-]\+\)\.tar\.gz$|\1|p")
 		DATEB=${_ANSWER}
 	fi
 }
@@ -281,21 +281,21 @@ __restore_one() {
 __opts() {
 	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
-	opts_given="$@"
-	opts_short="afmr:v:hdq"
-	opts_long="all,force,menu,restore:,version:,help,quiet,debug"
-	opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
+	local opts_given="$@"
+	local opts_short="afmr:v:hdq"
+	local opts_long="all,force,menu,restore:,version:,help,quiet,debug"
+	local opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
 	eval set -- "${opts}" || exit 1
 
-	_echod "${FUNCNAME}::${LINENO} opts_given=$opts_given opts=$opts"
+	_echod "${FUNCNAME}::${LINENO} opts_given=${opts_given} opts=${opts}"
 	while [ "$1" != "--" ]
 	do
 		case "$1" in
-			-a|--all)				softwares="${!PATHS_SOFT[@]}"  ;;
+			-a|--all)				SOFTWARES="${!PATHS_SOFT[@]}"  ;;
 			-f|--force)		FORCE="force"  ;;
 			-r|--restore)
 				shift
-				action=restore
+				ACTION=restore
 				DATEB="$1"
 				;;
 			-m|--menu)		MENU="menu"  ;;
@@ -304,7 +304,6 @@ __opts() {
 				VERSION="$1"
 				;;
 			-h|--help)			echo "${USAGE}" && _exit 0  ;;
-			-q|--quiet)		_redirect quiet  ;;
 			-d|--debug)		_redirect debug  ;;
 			*)							_exite "Wrong argument: '$1' for arguments '$opts_given'"  ;;
 		esac
@@ -312,24 +311,24 @@ __opts() {
 	done
 
 	shift
-	[ "$@" ] && softwares="$@"
+	[ "$@" ] && SOFTWARES="$@"
 
 	# menu
 	[ "${MENU}" ] && __menu
 	# no softwares
-	[ -z "${softwares}" ] && _exite "You have to give softwares or the option 'all'"
+	[ -z "${SOFTWARES}" ] && _exite "You have to give softwares or the option 'all'"
 	# default action
-	[ -z "${action}" ] && action=backup
+	[ -z "${ACTION}" ] && ACTION=backup
 
 	_echod "${FUNCNAME}::${LINENO} MENU='${MENU}' FORCE='${FORCE}' REGEXP='${REGEXP}' "
-	_echod "${FUNCNAME}::${LINENO} action='${action}' softwares='${softwares}' DATEB='${DATEB}'"
+	_echod "${FUNCNAME}::${LINENO} ACTION='${ACTION}' SOFTWARES='${SOFTWARES}' DATEB='${DATEB}'"
 }
 
 __main() {
 	_echod "======================================================"
 	_echod "$(ps -o args= $PPID)"
 
-	local PATH_BACKUP DATEB opts_given opts_short opts_long opts action
+	local PATH_BACKUP DATEB ACTION SOFTWARES
 
 	# array for softwares definition
 	declare -A PATHS_SOFT
@@ -349,12 +348,10 @@ __main() {
 	__opts "$@"
 
 	# call action with arguments
-	__${action} "${softwares}"
+	__${ACTION} "${SOFTWARES}"
 }
 
 ########################  MAIN
 
 __main "$@"
-
 _exit 0
-
