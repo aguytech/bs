@@ -18,7 +18,7 @@ alias histgs="history|sed 's|^ \+[0-9]\+ \+||'|grep"
 alias du0="__du 0"
 alias du1="__du 1"
 alias du2="__du 2"
-alias dfs="df -x tmpfs -x devtmpfs | grep -v /dev/ploop"
+alias dfs="df -x tmpfs -x devtmpfs|grep -v /dev/.*loop"
 
 ########################  GIT
 # status
@@ -63,19 +63,25 @@ alias lxcs="lxc shell"
 alias lxcl="lxc list -c nsf4tSc"
 alias lxclp="lxc list -c nsP4tSc"
 alias lxcln="lxc list -f csv -c n"
-alias lxclf="lxc list -c f"
+alias lxclb="lxc list -f csv -c nf|tr ',' '\t'"
+alias lxclf="lxc list -c nsf4"
 alias lxclr="lxc list -c nsbDmMuNl"
-alias lxcla="lxc list -f json | jq -r '.[].name' "
-alias lxcl0="lxc list -f json | jq -r '.[] | select(.status == \"Stopped\").name' "
-alias lxcl1="lxc list -f json | jq -r '.[] | select(.status == \"Running\").name' "
+alias lxcla="lxc list -f csv -c n" # "lxc list -f json | jq -r '.[].name' "
+alias lxcl0="lxc list -f csv -c n status=Stopped" # "lxc list -f json | jq -r '.[] | select(.status == \"Stopped\").name' "
+alias lxcl1="lxc list -f csv -c n status=Running" # "lxc list -f json | jq -r '.[] | select(.status == \"Running\").name' "
+## config
+alias lxccs="lxc config show"
+alias lxcce="lxc config edit"
+alias lxccms="lxc config metadata show"
+alias lxccme="lxc config metadata edit"
 ## image
 alias lxcid="lxc image delete"
-# list
 alias lxcil="lxc image list -c Lfptsu" # Lfpdtsu
+alias lxcilf="lxc image list -c Lfpts" # Lfpdtsu
 alias lxciln="lxc image list -f csv -c l"
-alias lxcila="lxc image list -f json | jq -r '.[].aliases[].name'"
-alias lxcilf="lxc image list -f json | jq -r '.[].fingerprint | .[:12]'"
-alias lxcilF="lxc image list -f json | jq -r '.[].fingerprint'"
+alias lxcila="lxc image list -f csv -c L" # "lxc image list -f json | jq -r '.[].aliases[].name'"
+alias lxcilb="lxc image list -f csv -c f" # "lxc image list -f json | jq -r '.[].fingerprint | .[:12]'"
+alias lxcilF="lxc image list -f csv -c F" # "lxc image list -f json | jq -r '.[].fingerprint'"
 ## network
 alias lxcnl="lxc network list"
 alias lxcns="lxc network show"
@@ -87,7 +93,7 @@ alias lxcpl="lxc profile list"
 alias lxcpln="lxc profile list -f csv|grep -o '^[^,]\+'"
 alias lxcpd="lxc profile delete"
 alias lxcps="lxc profile show"
-## list
+## others
 alias lxcal="lxc alias list"
 alias lxcrl="lxc remote list"
 
