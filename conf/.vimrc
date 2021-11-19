@@ -3,25 +3,17 @@
 " options, so any other options should be set AFTER setting 'compatible'.
 "set compatible
 
-" vim-monokai now only support 256 colours in terminal.
-set t_Co=256 "set termguicolors
-
-let g:sublimemonokai_term_italic = 1
-
-" Vim5 and later versions support syntax highlighting. Uncommenting the next
-" line enables syntax highlighting by default.
+"enable syntax highlightning
 syntax enable
-
-autocmd BufRead,BufNewFile *.conf set filetype=cfg
-
-" If using a dark background within the editing area and syntax highlighting
-" turn on this option as well
 set background=dark
 
-" color theme
 "colorscheme monokai
-"colorscheme monokai2
-colorscheme sublimemonokai
+"colorscheme sublimemonokai
+colorscheme gruvbox
+
+set t_Co=256 "set termguicolors
+
+autocmd BufRead,BufNewFile *.conf set filetype=cfg
 
 " Uncomment the following to have Vim jump to the last position when
 " reopening a file
