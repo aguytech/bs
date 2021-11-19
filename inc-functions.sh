@@ -31,10 +31,10 @@ __function_common() {
 
 	# error
 	_echoe() {
-		echo -e "[error] ${red}$*${cclear}" >&2
+		echo -e "${red}$*${cclear}" >&2
 	}
 	_echoE() {
-		echo -e "[error] ${redb}$*${cclear}" >&2
+		echo -e "${redb}$*${cclear}" >&2
 	}
 
 	# information
@@ -70,7 +70,7 @@ __function_common() {
 	}
 	# exit, with default error 1
 	_exite() {
-		[ "$1" ] && _echoE "$1" || _echoE "${_SCRIPTFILE}"
+		[ "$1" ] && _echoE "$1" || _echoE "[error] ${_SCRIPTFILE}"
 		_echod "${FUNCNAME}:${LINENO} exit - $*"
 		[ "$2" ] && exit $2 || exit 1
 	}
@@ -81,15 +81,15 @@ __function_common() {
 		_echod "${FUNCNAME}:${LINENO} $*"
 		eval "$*"
 	}
-	_evalr() {
-		_echod "${FUNCNAME}:${LINENO} $*"
-		[ "${USER}" = root ] && eval $* || eval sudo "$*"
-	}
 	_evalq() {
 		_echod "${FUNCNAME}:${LINENO} $*"
 		eval "$*" >&4
 	}
-	_evalqr() {
+	_evalr() {
+		_echod "${FUNCNAME}:${LINENO} $*"
+		[ "${USER}" = root ] && eval $* || eval sudo "$*"
+	}
+	_evalrq() {
 		_echod "${FUNCNAME}:${LINENO} $*"
 		[ "${USER}" = root ] && eval "$*" >&4 || eval sudo "$*" >&4
 	}
@@ -105,7 +105,7 @@ __function_common() {
 	_touchr() {
 		local file
 		for file in $*; do
-			! [ -f "${file}" ] && _evalqr "${file}"
+			! [ -f "${file}" ] && _evalrq "${file}"
 		done
 	}
 	_source() {
@@ -229,16 +229,16 @@ __function_common() {
 
 	_keepcpts() {
 		if [ -r "${1}" ]; then
-			[[ -e "${1}" || -h "${1}" ]] && _evalqr cp -a "${1}" "${1}.$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalrq cp -a "${1}" "${1}.$(date +%s)"
 		else
-			[[ -e "${1}" || -h "${1}" ]] && _evalqr sudo cp -a "${1}" "${1}.$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalrq sudo cp -a "${1}" "${1}.$(date +%s)"
 		fi
 	}
 	_keepmvts() {
 		if [ -r "${1}" ]; then
-			[[ -e "${1}" || -h "${1}" ]] && _evalqr mv "${1}" "${1}.$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalrq mv "${1}" "${1}.$(date +%s)"
 		else
-			[[ -e "${1}" || -h "${1}" ]] && _evalqr sudo mv "${1}" "${1}.$(date +%s)"
+			[[ -e "${1}" || -h "${1}" ]] && _evalrq sudo mv "${1}" "${1}.$(date +%s)"
 		fi
 	}
 
@@ -304,7 +304,7 @@ __function_common() {
 
 		# log path
 		[ "${_INSTALL}" ] && _PATH_LOG="${S_PATH_LOG_INSTALL:-/var/log/install}"
-		[ -z "$_PATH_LOG" ] && _PATH_LOG="${S_PATH_LOG_SERVER:-/var/log/server}"
+		[ -z "${_PATH_LOG}" ] && _PATH_LOG="${S_PATH_LOG_SERVER:-/var/log/server}"
 		if ! [ -d "${_PATH_LOG}" ]; then
 			if [ "${USER}" = root ]; then
 				mkdir -p "${_PATH_LOG}"
@@ -315,9 +315,9 @@ __function_common() {
 			fi
 		fi
 
-		_SF_INF="$_PATH_LOG/${_SCRIPT}.info"
-		_SF_ERR="$_PATH_LOG/${_SCRIPT}.err"
-		_SF_BUG="$_PATH_LOG/${_SCRIPT}.debug"
+		_SF_INF="${_PATH_LOG}/${_SCRIPT}.info"
+		_SF_ERR="${_PATH_LOG}/${_SCRIPT}.err"
+		_SF_BUG="${_PATH_LOG}/${_SCRIPT}.debug"
 
 		opt=${1:-${S_TRACE}}
 		opt=${opt:-${S_TRACEOPT}}
@@ -382,9 +382,10 @@ __function_install() {
 	# 3 optionnal file name
 	_confset() {
 		local file
+
 		file="${3:-${S_FILE_INSTALL_CONF}}"
 		#! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
-		! [ -f "${file}" ] && touch "${file}"
+		[ -f "${file}" ] || touch "${file}"
 
 		if _confhave "$1" "${file}"; then
 			sed -i "\|^$1=| c${1}=${2:+\"$2\"}" "${file}"
@@ -495,14 +496,17 @@ __function_install() {
 		file=$1; shift
 
 		for opt in $*; do
-
 			case ${opt} in
 				apache)
-					vars="_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _SUBDOMAIN _PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
+					vars="S_VM_PATH_SHARE S_RSYSLOG_PTC S_RSYSLOG_PORT _DOMAIN_FQDN _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_ADMIN _SUBDOMAIN _CIDR_VM" ;;
+				fail2ban)
+					vars="S_DOMAIN_FQDN S_DOMAIN_EMAIL_TECH S_HOST_PATH_LOG IPS_IGNORED _SSH_PORT" ;;
 				haproxy)
-					vars="S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN S_DOMAIN_FQDN _DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
+					vars="S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN _DOMAIN_FQDN _DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
+				mail)
+					vars="S_SERVICE[mail] S_PATH_CONF_SSL _DOMAIN_FQDN _PATH_SSL _PATH_LMAIL _DB_HOST _DB_NAME _DB_USER _DB_PWD _SSL_SCHEME _DB_PFA_USER _DB_PFA_PWD" ;;
 				mariadb)
 					vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
 				php)
@@ -510,7 +514,7 @@ __function_install() {
 				pma)
 					vars="_APP_URI _PMA_HOST _APP_DB_PORT _APP_DB_USER _APP_DB_PWD _APP_BLOWFISH _APP_PATH_UP _APP_PATH_DW" ;;
 				rsyslog)
-					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+					vars="S_SERVICE[log] S_SERVICE[mail] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 				script)
 					vars="S_PATH_SCRIPT" ;;
 				*)
@@ -521,7 +525,6 @@ __function_install() {
 				_evalr "sed -i 's|${var/[/\\[}|${!var}|g' '${file}'"
 				#'\\]}"
 			done
-
 		done
 	}
 
@@ -534,11 +537,11 @@ __function_install() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type systemctl >/dev/null 2>&1; then
-			_evalqr systemctl "${1}" "${2}.service"
+			_evalr systemctl "${1}" "${2}.service"
 		elif type service >/dev/null 2>&1; then
-			_evalqr service "${2%.*}" "${1}"
+			_evalr service "${2%.*}" "${1}"
 		elif type rc-service >/dev/null 2>&1; then
-			_evalqr service "${2%.*}" "${1}"
+			_evalr service "${2%.*}" "${1}"
 		else
 			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
 		fi
@@ -575,21 +578,33 @@ __function_install() {
 __function_lxc() {
 
 	# 1 ct name
-	# 2 cmds
+	# * cmds
 	_lxc_exec() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
-		_echod "${FUNCNAME}:${LINENO} lxc exec ${1} -- sh -c \"$2\""
+		local ct=$1 && shift
 
-		lxc exec ${1} -- sh -c "$2"
+		_echod "${FUNCNAME}:${LINENO} lxc exec ${ct} -- sh -c \"$*\""
+		lxc exec ${ct} -- sh -c "$*"
 	}
 
 	# 1 ct name
-	# 2 cmds
+	# * cmds
+	_lxc_exec_e() {
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
+		local ct=$1 && shift
+
+		_echod "${FUNCNAME}:${LINENO} lxc exec ${ct} -- sh -c \"$*\""
+		lxc exec ${ct} -- sh -c "$*" || _exite "unable to execute on ${ct}: $*"
+	}
+
+	# 1 ct name
+	# * cmds
 	_lxc_execq() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
-		_echod "${FUNCNAME}:${LINENO} lxc exec ${1} -- sh -c \"$2\""
+		local ct=$1 && shift
 
-		lxc exec ${1} -- sh -c "$2" >&4
+		_echod "${FUNCNAME}:${LINENO} lxc exec ${ct} -- sh -c \"$*\""
+		lxc exec ${ct} -- sh -c "$*" >&4 || _exite "unable to execute on ${ct}: $*"
 	}
 
 	# 1 ct name
@@ -602,14 +617,17 @@ __function_lxc() {
 		ct=$1; shift; file=$1; shift;
 
 		for opt in $*; do
-
 			case ${opt} in
 				apache)
-					vars="_DOMAIN_FQDN S_RSYSLOG_PTC S_RSYSLOG_PORT _IPTHIS _IPS_AUTH _APA_PATH_WWW _SUBDOMAIN _PATH_DOMAIN _CIDR_VM" ;; #  S_VM_PATH_SHARE
+					vars="S_VM_PATH_SHARE S_RSYSLOG_PTC S_RSYSLOG_PORT _DOMAIN_FQDN _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_ADMIN _SUBDOMAIN _CIDR_VM" ;;
+				fail2ban)
+					vars="S_DOMAIN_FQDN S_DOMAIN_EMAIL_TECH S_HOST_PATH_LOG IPS_IGNORED _SSH_PORT" ;;
 				haproxy)
-					vars="S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN S_DOMAIN_FQDN _DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
+					vars="S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN _DOMAIN_FQDN _DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
 				logrotate)
 					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
+				mail)
+					vars="S_SERVICE[mail] S_PATH_CONF_SSL _DOMAIN_FQDN _PATH_SSL _PATH_LMAIL _DB_HOST _DB_NAME _DB_USER _DB_PWD _SSL_SCHEME _DB_PFA_USER _DB_PFA_PWD" ;;
 				mariadb)
 					vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
 				php)
@@ -617,7 +635,7 @@ __function_lxc() {
 				pma)
 					vars="_APP_URI _PMA_HOST _APP_DB_PORT _APP_DB_USER _APP_DB_PWD _APP_BLOWFISH _APP_PATH_UP _APP_PATH_DW" ;;
 				rsyslog)
-					vars="S_SERVICE[log] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+					vars="S_SERVICE[log] S_SERVICE[mail] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 				script)
 					vars="S_PATH_SCRIPT" ;;
 				*)
@@ -629,33 +647,7 @@ __function_lxc() {
 				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
 				_lxc_exec ${ct} "grep -q '${var2}' -r ${file} && grep '${var2}' -rl ${file} | xargs sed -i 's|${var2}|${!var}|g'"
 			done
-
 		done
-	}
-
-	# 1 ct
-	__lxc_meta_path() {
-		#_echod "${FUNCNAME}:${LINENO} $*"
-
-		path_ct=${_ZFS_ROOT}${S_HOST_PATH_SP}/default/containers/$1
-		if [ "${S_STORAGE_DRIVER}" = zfs ]  && zfs list -o mounted ${path_ct} -H|grep -q no; then
-				zfs mount ${path_ct}
-		fi
-
-		[ -d /lxd ] && file=/lxd/containers/$1/metadata.yaml
-		if [ -z "${file}" ]; then
-			[ -d "${_LXD_PATH_ROOT}" ] && file=${_LXD_PATH_ROOT}/containers/$1/metadata.yaml || _exite "Unable to find path /lxd or _LXD_PATH_ROOT"
-		fi
-		_evalr [ -f "${file}" ] || _exite "Unable to find file: ${file}"
-	}
-
-	# 1 ct
-	__lxc_meta_close() {
-		#_echod "${FUNCNAME}:${LINENO} $*"
-
-		if [ "${S_STORAGE_DRIVER}" = zfs ]  && zfs list -o mounted ${path_ct} -H|grep -q yes; then
-				zfs umount ${path_ct}
-		fi
 	}
 
 	# 1 container
@@ -663,30 +655,26 @@ __function_lxc() {
 	_lxc_meta_get() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file path_ct
 
-		__lxc_meta_path $1 # get file
-		_evalr "sed -n 's|^ *${2}: \(.*\)|\1|p' ${file}" | tr ',' ' '
-		__lxc_meta_close $1 # close file
+		lxc config metadata show $1 | sed -n "s|^ *$2: \(.*\)|\1|p"
 	}
 
 	# 1 container
 	# 2 tag
-	# * value
+	# * values
 	_lxc_meta_set() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag path path_ct
+		local ct tag
 		ct=$1 && shift
 		tag=$1 && shift
 
-		__lxc_meta_path ${ct} # get file
-		if _evalr grep -q "${tag}:" ${file}; then
-			_evalr "sed -i '/${tag}:/ s|:.*|: $*|' ${file}"
+		if lxc config metadata show ${ct} | grep -q "^ *${tag}:"; then
+			lxc config metadata show ${ct} | sed "/^ *${tag}:/ s|:.*$|: $*|" | lxc config metadata edit ${ct}
 		else
-			_evalr "sed -i '/^properties:/a\ \ ${tag}: $*' ${file}"
+			lxc config metadata show ${ct} | sed "/^properties:/a\ \ ${tag}: $*" | lxc config metadata edit ${ct}
 		fi
-		__lxc_meta_close ${ct} # close file
+		lxc config metadata show ${ct}|grep "^ *${tag}:"
 	}
 
 	# 1 container
@@ -695,16 +683,14 @@ __function_lxc() {
 	_lxc_meta_add() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag path path_ct values value
+		local file ct tag values value
 		ct=$1 && shift
 		tag=$1 && shift
 
-		__lxc_meta_path ${ct} # get file
-		values=" $(_lxc_meta_get ${ct} ${tag}) "
+		values=`_lxc_meta_get ${ct} ${tag}`
 		for value in $*; do 	values+=" ${value}"; done
 		values=`echo ${values}|tr ' ' '\n'|sort -u`
 		_lxc_meta_set ${ct} ${tag} ${values}
-		__lxc_meta_close ${ct} # close file
 	}
 
 	# 1 container
@@ -713,15 +699,13 @@ __function_lxc() {
 	_lxc_meta_remove() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag path path_ct values value
+		local file ct tag values value
 		ct=$1 && shift
 		tag=$1 && shift
 
-		__lxc_meta_path ${ct} # get file
-		values=" $(_lxc_meta_get ${ct} ${tag}) "
+		values=`_lxc_meta_get ${ct} ${tag}`
 		for value in $*; do 	values="${values// ${value} / }"; done
 		_lxc_meta_set ${ct} ${tag} ${values}
-		__lxc_meta_close ${ct} # close file
 	}
 
 }
