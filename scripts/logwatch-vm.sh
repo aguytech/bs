@@ -96,7 +96,7 @@ whiteb='\e[1;1m'; redb='\e[1;31m'; greenb='\e[1;32m'; blueb='\e[1;34m'; magentab
 _mail() {
 	(
 	echo "From: logwatch@$HOSTNAME";
-	echo "To: $S_DOMAIN_EMAIL_TECH";
+	echo "To: $S_EMAIL_TECH";
 	echo "Subject: $1";
 	echo "MIME-Version: 1.0";
 	echo "Content-Type: $formatmail; charset=iso-8859-1";

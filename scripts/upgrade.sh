@@ -4,7 +4,7 @@
 # Short-Description:    Upgrade & clean packages
 # Description:          Upgrade & clean packages
 
-color='\e[1;34m'; cclear='\e[0;0m'
+color='\e[1;96m'; cclear='\e[0;0m'
 
 file_release="/etc/os-release"
 [ ${USER} != root ] && pre="sudo"

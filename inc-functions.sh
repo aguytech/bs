@@ -12,23 +12,33 @@ __function_common() {
 	_echo() {
 		echo -e "$*"
 	}
-	_echo-() {
+	_echO() {
+		echo -e "${whiteb}$*${cclear}"
+	}
+	_echo_() {
 		echo -e $*
 	}
-
+	_echO_() {
+		echo -e ${whiteb}$*${cclear}
+	}
 	# debug
 	_echod() {
 		echo "$(date +"%Y%m%d %T") $*" >&6
 	}
-
 	# alert
 	_echoa() {
-		echo -e "${magenta}$*${cclear}" >&2
+		echo -e "${yellow}$*${cclear}"
 	}
 	_echoA() {
-		echo -e "[alert] ${magentab}$*${cclear}" >&2
+		echo -e "${yellowb}$*${cclear}"
 	}
-
+	# warnning
+	_echow() {
+		echo -e "${magenta}$*${cclear}"
+	}
+	_echoW() {
+		echo -e "${magentab}$*${cclear}"
+	}
 	# error
 	_echoe() {
 		echo -e "${red}$*${cclear}" >&2
@@ -36,7 +46,6 @@ __function_common() {
 	_echoE() {
 		echo -e "${redb}$*${cclear}" >&2
 	}
-
 	# information
 	_echoi() {
 		echo -e "$*" >&4
@@ -44,19 +53,15 @@ __function_common() {
 	_echoI() {
 		echo -e "${yellowb}$*${cclear}" >&4
 	}
-
 	# title
 	_echot() {
-		echo -e "${blue}$*${cclear}" >&4
+		echo -e "${cyan}$*${cclear}" >&4
 	}
 	_echoT() {
-		echo -e "${blueb}$*${cclear}" >&4
+		echo -e "${cyanb}$*${cclear}" >&4
 	}
 
 	# only color
-	_echoW() {
-		echo -e "${whiteb}$*${cclear}" >&4
-	}
 	_echoB() {
 		echo -e "${blueb}$*${cclear}" >&4
 	}
@@ -140,7 +145,7 @@ __function_common() {
 	_ask() {
 		_ANSWER=
 		while [ -z "$_ANSWER" ]; do
-			_echo- -n "$*: "
+			_echo_ -n "$*: "
 			read _ANSWER
 			_echod
 		done
@@ -148,7 +153,7 @@ __function_common() {
 	# ask one time & accept no _ANSWER
 	_askno() {
 		_ANSWER=
-		_echo- -n "$*: "
+		_echo_ -n "$*: "
 		read _ANSWER
 			_echod
 	}
@@ -159,8 +164,8 @@ __function_common() {
 		_ANSWER=
 		options=" y n "
 		while [ "${options/ $_ANSWER }" = "$options" ]; do
-			#_echo- -n "${yellowb}$* y/n ${cclear}"
-			_echo- -n "$* (y/n): "
+			#_echo_ -n "${yellowb}$* y/n ${cclear}"
+			_echo_ -n "$* (y/n): "
 			read _ANSWER
 			_echod
 		done
@@ -175,7 +180,7 @@ __function_common() {
 		[ -z "$*" ] && _exite "invalid options '$*' for _asks()"
 		options=" $* "
 		while [ "${options/ ${_ANSWER} }" = "$options" ]; do
-			_echo- -n "${str} ($*): "
+			_echo_ -n "${str} ($*): "
 			read _ANSWER
 			_echod
 		done
@@ -325,11 +330,11 @@ __function_common() {
 
 		# file descriptors
 		case "$opt" in
-			#			sdtout								stderror					info				debug
-			#			1									2							4					6
-			quiet)		exec 1>>${_SF_INF}					2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
-			info)		exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
-			verbose)	exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>&1				6>/dev/null  ;;
+			#					sdtout													stderror									info							debug
+			#					1																2													4									6
+			quiet)		exec 1>>${_SF_INF}						2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
+			info)			exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
+			verbose)	exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>&1							6>/dev/null  ;;
 			debug)
 				exec 1> >(tee -a ${_SF_INF} ${_SF_BUG})
 				exec 2> >(tee -a ${_SF_ERR})
@@ -487,42 +492,54 @@ __function_install() {
 		done
 	}
 
+	# $1 option
+	_var_replace_vars() {
+		local vars
+
+		case $1 in
+			apache)
+				vars="S_VM_PATH_SHARE S_RSYSLOG_PTC S_RSYSLOG_PORT _DOMAIN_FQDN _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_ADMIN _SUBDOMAIN _CIDR_VM" ;;
+			fail2ban)
+				vars="S_DOMAIN_FQDN S_EMAIL_TECH S_HOST_PATH_LOG _IPS_IGNORED _SSH_PORT" ;;
+			haproxy)
+				vars="S_RSYSLOG_PORT _SOMAXCONN _HPX_PATH_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _HPX_DOMAIN_FQDN _HPX_CT_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _HPX_EMAIL _SERVER_DEFAULT" ;;
+			logrotate)
+				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
+			mail)
+				vars="S_SERVICE[mail] S_PATH_CONF _SSL _DOMAIN_FQDN S_EMAIL_TECH S_EMAIL_ADMIN _PATH_SSL _PATH_VMAIL _PATH_LMAIL _PATH_SIEVE _DB_HOST _DB_NAME _DB_USER _DB_PWD _SSL_SCHEME _DB_PFA_USER _DB_PFA_PWD _CIDR _IPS_CLUSTER _VMAIL_USER _VMAIL_UID" ;;
+			rspamd)
+				vars=" S_RSPAMD_PORT[proxy] S_RSPAMD_PORT[normal] S_RSPAMD_PORT[controller] S_CACHE_PORT _CTS_RDS  _IPS_CLUSTER _CIDR _PATH_RSPAMD _PATH_DKIM" ;;
+			mariadb)
+				vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
+			php)
+				vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
+			pma)
+				vars="_APP_URI _PMA_HOST _APP_DB_PORT _APP_DB_USER _APP_DB_PWD _APP_BLOWFISH _APP_PATH_UP _APP_PATH_DW" ;;
+			rsyslog)
+				vars="S_SERVICE[log] S_SERVICE[mail] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
+			script)
+				vars="S_PATH_SCRIPT" ;;
+			*)
+				_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
+		esac
+
+		echo ${vars}
+	}
+
 	# replace values
-	# 1 file
+	# 1 path
 	# * group name of variables
 	_var_replace() {
-		local file opt vars var
+		local path opt var var2
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
-		file=$1; shift
+		path=$1; shift
 
 		for opt in $*; do
-			case ${opt} in
-				apache)
-					vars="S_VM_PATH_SHARE S_RSYSLOG_PTC S_RSYSLOG_PORT _DOMAIN_FQDN _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_ADMIN _SUBDOMAIN _CIDR_VM" ;;
-				fail2ban)
-					vars="S_DOMAIN_FQDN S_DOMAIN_EMAIL_TECH S_HOST_PATH_LOG IPS_IGNORED _SSH_PORT" ;;
-				haproxy)
-					vars="S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN _DOMAIN_FQDN _DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
-				logrotate)
-					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
-				mail)
-					vars="S_SERVICE[mail] S_PATH_CONF_SSL _DOMAIN_FQDN _PATH_SSL _PATH_LMAIL _DB_HOST _DB_NAME _DB_USER _DB_PWD _SSL_SCHEME _DB_PFA_USER _DB_PFA_PWD" ;;
-				mariadb)
-					vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
-				php)
-					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
-				pma)
-					vars="_APP_URI _PMA_HOST _APP_DB_PORT _APP_DB_USER _APP_DB_PWD _APP_BLOWFISH _APP_PATH_UP _APP_PATH_DW" ;;
-				rsyslog)
-					vars="S_SERVICE[log] S_SERVICE[mail] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
-				script)
-					vars="S_PATH_SCRIPT" ;;
-				*)
-					_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
-			esac
-
-			for var in ${vars}; do
-				_evalr "sed -i 's|${var/[/\\[}|${!var}|g' '${file}'"
+			for var in `_var_replace_vars ${opt}`; do
+				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
+				_echod var=${var} var2=${var2}
+				grep -q "${var2}" -r ${path} && grep "${var2}" -rl ${path} | xargs sed -i "s|${var2}|${!var}|g"
+				#_evalr "sed -i 's|${var/[/\\[}|${!var}|g' '${path}'"
 				#'\\]}"
 			done
 		done
@@ -537,7 +554,7 @@ __function_install() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type systemctl >/dev/null 2>&1; then
-			_evalr systemctl "${1}" "${2}.service"
+			_evalr systemctl -q "${1}" "${2}.service"
 		elif type service >/dev/null 2>&1; then
 			_evalr service "${2%.*}" "${1}"
 		elif type rc-service >/dev/null 2>&1; then
@@ -581,7 +598,7 @@ __function_lxc() {
 	# * cmds
 	_lxc_exec() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
-		local ct=$1 && shift
+		local ct=$1; shift
 
 		_echod "${FUNCNAME}:${LINENO} lxc exec ${ct} -- sh -c \"$*\""
 		lxc exec ${ct} -- sh -c "$*"
@@ -591,61 +608,37 @@ __function_lxc() {
 	# * cmds
 	_lxc_exec_e() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
-		local ct=$1 && shift
+		local ct=$1; shift
 
 		_echod "${FUNCNAME}:${LINENO} lxc exec ${ct} -- sh -c \"$*\""
-		lxc exec ${ct} -- sh -c "$*" || _exite "unable to execute on ${ct}: $*"
+		lxc exec ${ct} -- sh -c "$*" || _exite "Unable to execute on ${ct}: $*"
 	}
 
 	# 1 ct name
 	# * cmds
 	_lxc_execq() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
-		local ct=$1 && shift
+		local ct=$1; shift
 
 		_echod "${FUNCNAME}:${LINENO} lxc exec ${ct} -- sh -c \"$*\""
-		lxc exec ${ct} -- sh -c "$*" >&4 || _exite "unable to execute on ${ct}: $*"
+		lxc exec ${ct} -- sh -c "$*" >&4 || _exite "Unable to execute on ${ct}: $*"
 	}
 
 	# 1 ct name
-	# 2 path to find variables in file
+	# 2 path to find variables in files
 	# * group name of variables
 	_lxc_var_replace() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file opt vars var ct
-		ct=$1; shift; file=$1; shift;
+		local ct path opt var var2
+		ct=$1; shift
+		path=$1; shift
 
 		for opt in $*; do
-			case ${opt} in
-				apache)
-					vars="S_VM_PATH_SHARE S_RSYSLOG_PTC S_RSYSLOG_PORT _DOMAIN_FQDN _IPTHIS _IPS_AUTH _APA_PATH_WWW _APA_ADMIN _SUBDOMAIN _CIDR_VM" ;;
-				fail2ban)
-					vars="S_DOMAIN_FQDN S_DOMAIN_EMAIL_TECH S_HOST_PATH_LOG IPS_IGNORED _SSH_PORT" ;;
-				haproxy)
-					vars="S_RSYSLOG_PORT S_PATH_CONF_SSL _HPX_LCRYPT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT _SOMAXCONN _DOMAIN_FQDN _DOMAIN_2_FQDN _HPX_CT_NAME _HPX_CT_2_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
-				logrotate)
-					vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
-				mail)
-					vars="S_SERVICE[mail] S_PATH_CONF_SSL _DOMAIN_FQDN _PATH_SSL _PATH_LMAIL _DB_HOST _DB_NAME _DB_USER _DB_PWD _SSL_SCHEME _DB_PFA_USER _DB_PFA_PWD" ;;
-				mariadb)
-					vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
-				php)
-					vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
-				pma)
-					vars="_APP_URI _PMA_HOST _APP_DB_PORT _APP_DB_USER _APP_DB_PWD _APP_BLOWFISH _APP_PATH_UP _APP_PATH_DW" ;;
-				rsyslog)
-					vars="S_SERVICE[log] S_SERVICE[mail] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
-				script)
-					vars="S_PATH_SCRIPT" ;;
-				*)
-					_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
-			esac
-
-			for var in ${vars}; do
-				#_lxc_exec ${ct} "sed -i 's|${var/[/\\[}|${!var}|g' ${file}"
+			for var in `_var_replace_vars ${opt}`; do
+				#_lxc_exec ${ct} "sed -i 's|${var/[/\\[}|${!var}|g' ${path}"
 				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
-				_lxc_exec ${ct} "grep -q '${var2}' -r ${file} && grep '${var2}' -rl ${file} | xargs sed -i 's|${var2}|${!var}|g'"
+				_lxc_exec ${ct} "grep -q '${var2}' -r ${path} && grep '${var2}' -rl ${path} | xargs sed -i 's|${var2}|${!var}|g'"
 			done
 		done
 	}
@@ -666,9 +659,10 @@ __function_lxc() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
 		local ct tag
-		ct=$1 && shift
-		tag=$1 && shift
+		ct=$1; shift
+		tag=$1; shift
 
+		#_echod "${FUNCNAME}:${LINENO} ct=${ct} tag=${tag} \$*=$*"
 		if lxc config metadata show ${ct} | grep -q "^ *${tag}:"; then
 			lxc config metadata show ${ct} | sed "/^ *${tag}:/ s|:.*$|: $*|" | lxc config metadata edit ${ct}
 		else
@@ -684,9 +678,10 @@ __function_lxc() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
 		local file ct tag values value
-		ct=$1 && shift
-		tag=$1 && shift
+		ct=$1; shift
+		tag=$1; shift
 
+		#_echod "${FUNCNAME}:${LINENO} ct=${ct} tag=${tag} \$*=$*"
 		values=`_lxc_meta_get ${ct} ${tag}`
 		for value in $*; do 	values+=" ${value}"; done
 		values=`echo ${values}|tr ' ' '\n'|sort -u`
@@ -700,9 +695,10 @@ __function_lxc() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
 		local file ct tag values value
-		ct=$1 && shift
-		tag=$1 && shift
+		ct=$1; shift
+		tag=$1; shift
 
+		#_echod "${FUNCNAME}:${LINENO} ct=${ct} tag=${tag} \$*=$*"
 		values=`_lxc_meta_get ${ct} ${tag}`
 		for value in $*; do 	values="${values// ${value} / }"; done
 		_lxc_meta_set ${ct} ${tag} ${values}
@@ -713,8 +709,8 @@ __function_lxc() {
 __data() {
 
 	# colors
-	white='\e[0;0m'; red='\e[0;31m'; green='\e[0;32m'; blue='\e[0;34m'; magenta='\e[0;35m'; yellow='\e[0;33m'
-	whiteb='\e[1;1m'; redb='\e[1;31m'; greenb='\e[1;32m'; blueb='\e[1;34m'; magentab='\e[1;35m'; yellowb='\e[1;33m'; cclear='\e[0;0m'
+	white='\e[0;0m'; red='\e[0;31m'; green='\e[0;32m'; blue='\e[0;34m'; magenta='\e[0;95m'; yellow='\e[0;93m'; cyan='\e[0;96m';
+	whiteb='\e[1;1m'; redb='\e[1;31m'; greenb='\e[1;32m'; blueb='\e[1;34m'; magentab='\e[1;95m'; yellowb='\e[1;93m'; cyanb='\e[1;96m'; cclear='\e[0;0m';
 
 	# date
 	_DATE=`date "+%Y%m%d"`
@@ -765,19 +761,25 @@ if [ "${_INSTALL}" ]; then
 	S_FILE_INSTALL_DONE=${S_PATH_CONF}/install.done
 	S_PATH_SCRIPT=/usr/local/bs
 
-	if ! [ -f ${S_FILE_INSTALL_DONE} ] || ! grep -q conf-init ${S_FILE_INSTALL_DONE}; then
+	[ -d "${S_PATH_CONF}" ] || mkdir -p ${S_PATH_CONF}
+	for file in ${S_FILE_INSTALL_CONF} ${S_FILE_INSTALL_DONE}; do
+		[ -f "${file}" ] || touch ${file}
+	done
+	. ${S_FILE_INSTALL_CONF} # for partial install
+
+	if ! grep -q conf-init ${S_FILE_INSTALL_DONE}; then
 		# get id of first called file
 		first_id="${!BASH_SOURCE[*]}" && first_id="${first_id#* }"
 		path_base=`dirname "$(readlink -e "${BASH_SOURCE[${first_id}]}")"`
 
 		file="${path_base/install-desktop/install}/conf-init.install"
-		! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to find file '${file}'" && exit 1
+		! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to find file: ${file}" && exit 1
 		. "${file}"
 	fi
 
 	# env
 	file=${S_PATH_SCRIPT}/conf/env
-	! [ -f ${file} ] && echo ":${LINENO}[error] Unable to source properly file '${file}'" && exit 1
+	! [ -f ${file} ] && echo ":${LINENO}[error] Unable to source properly file: '${file}'" && exit 1
 	. ${file}
 fi
 
