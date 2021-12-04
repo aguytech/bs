@@ -14,6 +14,8 @@ export S_GLOBAL_FUNCTIONS="/usr/local/bs/inc-functions.sh"
 ########  OTHERS
 type vim >/dev/null 2>&1 && export EDITOR=vim && export SYSTEMD_EDITOR=vim
 type most >/dev/null 2>&1 && export MANPAGER=most
+# for tmux in remote session
+test -f /etc/lsb-release && grep -iq ubuntu /etc/lsb-release && export TERM=xterm-256color # or screen-256color
 
 #### JAVA
 #export JAVA_HOME="/usr/lib/jvm/java-15-jdk"
