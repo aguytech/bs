@@ -37,6 +37,7 @@ alias gitpa='git branch -v && echo "push all? " && read str && git push --all &&
 alias sshs='ssh-server'
 alias sshs1='ssh-server node1'
 alias sshs2='ssh-server node2'
+alias sshs3='ssh-server node3'
 alias sshpi='ssh root@pi -p2002'
 alias sshcw='ssh coworkinur@ssh.cluster026.hosting.ovh.net'
 alias sshvz='ssh-vz'
