@@ -502,19 +502,21 @@ __function_install() {
 			fail2ban)
 				vars="S_DOM_FQDN S_EMAIL_TECH S_HOST_PATH_LOG _IPS_IGNORED _SSH_PORT" ;;
 			haproxy)
-				vars="S_RSYSLOG_PORT S_SERVICE[mail] S_EMAIL_ADMIN _SOMAXCONN _HPX_PATH_SSL _HPX_CERTBOT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT S_DOM_FQDN _HPX_CT_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
+				vars="S_RSYSLOG_PORT S_SERVICE[mail] S_EMAIL_ADMIN _SOMAXCONN _HPX_PATH_SSL _HPX_CERTBOT_PORT _HPX_STATS_PORT _HPX_STATS_2_PORT S_DOM_FQDN S_DOM_NAME _HPX_CT_NAME _HPX_ACCESS_USER _HPX_ACCESS_PWD _HPX_ACCESS_URI _HPX_DNS_DEFAULT _SERVER_DEFAULT" ;;
 			logrotate)
 				vars="S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_PATH_LOG_INSTALL S_PATH_LOG_SERVER" ;;
 			mail)
 				vars="S_SERVICE[mail] S_PATH_CONF S_DOM_FQDN S_EMAIL_TECH S_EMAIL_ADMIN _MEL_PATH_SQL _MEL_PATH_SSL _MEL_PATH_VMAIL _MEL_PATH_LOCAL _MEL_PATH_SIEVE _MEL_DB_HOST _MEL_DB_NAME _MEL_DB_USER _MEL_DB_PWD _MEL_SSL_SCHEME _MEL_DB_PFA_USER _MEL_DB_PFA_PWD _MEL_CIDR _IPS_CLUSTER _MEL_VMAIL_USER _MEL_VMAIL_UID" ;;
 			rspamd)
-				vars="S_RSPAMD_PORT[proxy] S_RSPAMD_PORT[normal] S_RSPAMD_PORT[controller] S_CACHE_PORT _MEL_CTS_RDS _IPS_CLUSTER _MEL_CIDR _MEL_PATH_SPAM _MEL_PATH_DKIM" ;;
+				vars="S_RSPAMD_PORT[proxy] S_RSPAMD_PORT[normal] S_RSPAMD_PORT[controller] S_CACHE_PORT S_CACHE_READ_PORT _MEL_CTS_RDS _IPS_CLUSTER _MEL_CIDR _MEL_PATH_SPAM _MEL_PATH_DKIM" ;;
 			mariadb)
 				vars="S_DB_MARIA_PORT _MDB_VM_PATH _MDB_PATH_BINLOG _MDB_PATH_LOG _MDB_MAX_BIN_SIZE _MDB_EXPIRE_LOGS_DAYS _MDB_MASTER_ID _MDB_SLAVE_ID _MDB_REPLICATE_EXCEPT _MDB_REPLICATE_ONLY" ;;
 			php)
 				vars="_PHP_SERVICE _PHP_FPM_SOCK _PHP_FPM_ADMIN_SOCK _IP_HOST_VM" ;;
 			pma)
 				vars="_APP_URI _PMA_HOST _APP_DB_PORT _APP_DB_USER _APP_DB_PWD _APP_BLOWFISH _APP_PATH_UP _APP_PATH_DW" ;;
+			redis)
+				vars="S_PATH_LOG S_CACHE_PORT S_CACHE_READ_PORT _RDS_PATH_LIB _RDS_CT_NAME _RDS_QUORUM _RDS_SYNC _RDS_DOWN _RDS_FAILOVER _RDS_BACKLOG _RDS_TIMEOUT _RDS_KEEPALIVE _RDS_MEM_MAX _RDS_MEM_POL _RDS_DATABASES _RDS_LOGLEVEL _RDS_FILE_SENTINEL _RDS_PROXY" ;;
 			rsyslog)
 				vars="S_SERVICE[log] S_SERVICE[mail] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 			script)
@@ -575,8 +577,8 @@ __function_install() {
 			_evalr apt install -y $*
 		elif type pacman >/dev/null 2>&1; then
 			pcks="${pcks/ mariadb-client / mariadb-clients }"
-			pcks="${pcks/ redis-client / redis }"
-			_evalr pacman -S --noconfirm --needed $pcks
+			pcks="${pcks/ redis-tools / redis }"
+			[ "$(pacman -Ss redis|grep installed)" ] || _evalr pacman -S --noconfirm --needed ${pcks}
 		else
 			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
 		fi
@@ -602,6 +604,16 @@ __function_lxc() {
 
 		_echod "${FUNCNAME}:${LINENO} lxc exec ${ct} -- sh -c \"$*\""
 		lxc exec ${ct} -- sh -c "$*"
+	}
+
+	# 1 ct name
+	# * cmds
+	_lxc_exec_t() {
+		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} wrong parameters numbers (2): $#\nfor command: $*"
+		local ct=$1; shift
+
+		_echod "${FUNCNAME}:${LINENO} lxc exec ${ct} -- sh -c \"$*\""
+		lxc exec -T ${ct} -- sh -c "$*"
 	}
 
 	# 1 ct name
@@ -635,7 +647,7 @@ __function_lxc() {
 		path=$1; shift
 
 		for opt in $*; do
-			for var in `_var_replace_vars ${opt}`; do
+			for var in $(_var_replace_vars ${opt}); do
 				#_lxc_exec ${ct} "sed -i 's|${var/[/\\[}|${!var}|g' ${path}"
 				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
 				_lxc_exec ${ct} "grep -q '${var2}' -r ${path} && grep '${var2}' -rl ${path} | xargs sed -i 's|${var2}|${!var}|g'"
