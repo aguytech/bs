@@ -14,13 +14,13 @@ for domain in `ls ${path_live}/*/ -d 2>/dev/null`; do
 	domain=`basename ${domain}`
 
 	[ "${domain#mail.}" = "${domain}" ] && path=${path_ssl} || path=${path_ssl_mail}
-	if [ "${path}" ]; then
+	if [ -d "${path}" ]; then
 		cp -prL ${path_live}/${domain}/fullchain.pem ${path}/certs/${domain}-fullchain.pem
 		cp -prL ${path_live}/${domain}/privkey.pem ${path}/private/${domain}-privkey.pem
 		chmod g=,o= -R ${path}/private
+
+		cat ${path_live}/${domain}/fullchain.pem ${path_live}/${domain}/privkey.pem > ${path_ssl}/haproxy/${domain}.pem
 	fi
-	
-	cat ${path_live}/${domain}/fullchain.pem ${path_live}/${domain}/privkey.pem > ${path_ssl}/haproxy/${domain}.pem
 done
 
 # generate list of pem files
