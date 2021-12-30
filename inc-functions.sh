@@ -526,7 +526,7 @@ __function_install() {
 			rsyslog)
 				vars="S_SERVICE[log] S_SERVICE[mail] S_PATH_LOG S_HOST_PATH_LOG S_VM_PATH_LOG S_RSYSLOG_PORT S_RSYSLOG_PTC" ;;
 			script)
-				vars="S_PATH_SCRIPT" ;;
+				vars="S_PATH_SCRIPT S_PATH_LOG S_VM_PATH_SAVE" ;;
 			*)
 				_exite "${FUNCNAME} Group: '${opt}' are not implemented yet" ;;
 		esac
