@@ -28,10 +28,10 @@ alias gitcim='git commit -m'
 # branch
 alias gitbrv='git branch -v'
 # merge
-alias gitcm='git branch -v && echo "push -> master? " && read str && git co master && git merge - && git co - && git branch -v'
-alias gitcd='git branch -v && echo "push -> dev? " && read str && git co dev && git merge - && git co - && git branch -v'
+alias gitcm='git branch -v && echo -n "push -> master? " && read str && git co master && git merge - && git co - && git branch -v'
+alias gitcd='git branch -v && echo -n "push -> dev? " && read str && git co dev && git merge - && git co - && git branch -v'
 # push
-alias gitpa='git branch -v && echo "push all? " && read str && git push --all && git branch -v'
+alias gitpa='git branch -v && echo -n "push all? " && read str && git push --all && git branch -v'
 
 ########################  SSH
 alias sshs='ssh-server'
