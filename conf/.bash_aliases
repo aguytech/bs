@@ -1,13 +1,13 @@
-#!/bin/bash
-#
-# alias for server
-
 ########################  GLOBAL
 alias l='ls -CF --color=auto'
 alias la='ls -A --color=auto'
 alias ls='ls --color=auto'
 alias ll='ls -alF --color=auto'
+alias llm='ls -AhlF --block-size=M'
+alias lsm='ls -AhlF --block-size=M'
+alias lsblku='lsblk -o name,maj:min,size,type,mountpoint,uuid,label'
 alias df='df -h'
+alias dfs="df -h -x tmpfs -x devtmpfs|grep -v /dev/.*loop"
 alias st='sublime-text'
 alias watch='watch --color'
 alias nanoc='nano -wY conf'
@@ -15,10 +15,9 @@ alias grep='grep --color'
 alias ced='clean-files trash'
 alias histg='history|grep'
 alias histgs="history|sed 's|^ \+[0-9]\+ \+||'|grep"
-alias du0="__du 0"
-alias du1="__du 1"
-alias du2="__du 2"
-alias dfs="df -x tmpfs -x devtmpfs|grep -v /dev/.*loop"
+alias du0="du -hd0"
+alias du1="du -hd1"
+
 
 ########################  GIT
 # status
