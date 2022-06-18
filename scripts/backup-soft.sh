@@ -333,7 +333,7 @@ __main() {
 	# array for softwares definition
 	declare -A PATHS_SOFT
 	# path to backup/resore
-	[ -d ${HOME}/Soft/multi ] && PATH_BACKUP=${HOME}/Soft/multi/backup || PATH_BACKUP=/ext/shared/Soft/multi/backup
+	[ -d ${HOME}/Soft/multi ] && PATH_BACKUP=${HOME}/Soft/linux/backup || PATH_BACKUP=/ext/shared/Soft/linux/backup
 	# date for files
 	local DATE=`date +%Y%m%d-%s`
 	# compress command options
