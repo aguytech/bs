@@ -17,8 +17,7 @@ if grep -qi manjaro "${file_release}"; then
 	${cmd} -Syu  --noconfirm
 
 	echo -e "${color}pacman clean orphans${cclear}"
-	pcks="$(pacman -Qdtq)"
-	[ "${pcks}" ] && ${cmd} -R ${pcks}
+	${cmd} -R $(pacman -Qdtq)
 
 	echo -e "${color}pacman clear cache${cclear}"
 	${cmd} -Sc --noconfirm
@@ -26,8 +25,8 @@ if grep -qi manjaro "${file_release}"; then
 	echo -e "${color}yay update${cclear}"
 	yay -Syu
 
-	 echo -e "${color}yay clean orphans${cclear}"
-	yay -Rs
+	echo -e "${color}yay clean orphans${cclear}"
+	yay -R  $(yay -Qdt)
 
 	echo -e "${color}pacman clear cache${cclear}"
 	yay -Sc --noconfirm
