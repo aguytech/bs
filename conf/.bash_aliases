@@ -18,7 +18,6 @@ alias histgs="history|sed 's|^ \+[0-9]\+ \+||'|grep"
 alias du0="du -hd0"
 alias du1="du -hd1"
 
-
 ########################  GIT
 # status
 alias gita='echo "git add *? " && read str && git add * && git status '
@@ -31,6 +30,10 @@ alias gitcm='git branch -v && echo -n "push -> master? " && read str && git co m
 alias gitcd='git branch -v && echo -n "push -> dev? " && read str && git co dev && git merge - && git co - && git branch -v'
 # push
 alias gitpa='git branch -v && echo -n "push all? " && read str && git push --all && git branch -v'
+
+########################  GH
+# gist
+alias gitga='read -p "validate to clone $(gh gist list -L1000 | wc -l) gists" _ANSWER; gh gist list -L1000 | sed -n "s|^\(.\+\)\t\[\(.\+\)\].*|\1 \2|p" | while read i n; do echo "- $n $i"; ! [ -d "$n" ] && git clone -q https://gist.github.com/aguytech/${i} && mv $i "$n:$i"; done'
 
 ########################  SSH
 alias sshs='ssh-server'
