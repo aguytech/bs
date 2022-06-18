@@ -546,7 +546,7 @@ __function_install() {
 			for var in `_var_replace_vars ${opt}`; do
 				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
 				_echod var=${var} var2=${var2}
-				grep -q "${var2}" -r ${path} && grep "${var2}" -rl ${path} | xargs sed -i "s|${var2}|${!var}|g"
+				grep -q "${var2}" -r ${path} && grep "${var2}" -rl ${path} | xargs sudo sed -i "s|${var2}|${!var}|g"
 				#_evalr "sed -i 's|${var/[/\\[}|${!var}|g' '${path}'"
 				#'\\]}"
 			done
