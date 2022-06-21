@@ -170,44 +170,44 @@ _echod "$FUNCNAME:$LINENO \$*='$*'"
 case "$1" in
 	# dev
 	ddn1|dev-desktop-node1)
-		from="/home/shared/dev/"
+		from="/home/shared/repo/"
 		to="root@node1:/save/sync/dev/"
 		excludefrom+="${dev_exclude}"
 		;;
 	dn1d|dev-node1-desktop)
 		from="root@node1:/save/sync/dev/"
-		to="/home/shared/dev/"
+		to="/home/shared/repo/"
 		excludefrom+="${dev_exclude}"
 		;;
 	ddn2|dev-desktop-node2)
-		from="/home/shared/dev/"
+		from="/home/shared/repo/"
 		to="root@node2:/save/sync/dev/"
 		excludefrom+="${dev_exclude}"
 		;;
 	dn2d|dev-node2-desktop)
 		from="root@node2:/save/sync/dev/"
-		to="/home/shared/dev/"
+		to="/home/shared/repo/"
 		excludefrom+="${dev_exclude}"
 		;;
 	# install server
 	idn1|install-desktop-node1)
-		from="/home/shared/dev/install/"
+		from="/home/shared/repo/install/"
 		to="root@node1:/usr/local/bs/install/"
 		excludefrom+="${install_exclude}"
 		;;
 	in1d|install-node1-desktop)
 		from="root@node1:/usr/local/bs/install/"
-		to="/home/shared/dev/install/"
+		to="/home/shared/repo/install/"
 		excludefrom+="${install_exclude}"
 		;;
 	idn2|install-desktop-node2)
-		from="/home/shared/dev/install/"
+		from="/home/shared/repo/install/"
 		to="root@node2:/usr/local/bs/install/"
 		excludefrom+="${install_exclude}"
 		;;
 	in2d|install-node2-desktop)
 		from="root@node2:/usr/local/bs/install/"
-		to="/home/shared/dev/install/"
+		to="/home/shared/repo/install/"
 		excludefrom+="${install_exclude}"
 		;;
 	# bs

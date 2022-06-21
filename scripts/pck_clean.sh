@@ -3,7 +3,7 @@
 path_pck="/var/cache/pacman/pkg"
 path_base="/tmp"
 # ls /var/cache/pacman/pkg/| sed 's|^\([-\.0-9a-z]\+\)-[0-9]\+\..*|\1| |sort -ur > /home/.tmp/pck_head_manjaro'
-path_pck_head="/home/shared/dev/install-desktop/xtra/pck_head_manjaro"
+path_pck_head="/home/shared/repo/install-desktop/xtra/pck_head_manjaro"
 path_pck_tmp="${path_base}/pck_tmp"
 path_pck_del="${path_base}/pck_del"
 path_pck_keep="${path_base}/pck_keep"
