@@ -32,8 +32,6 @@ alias gitcd='git branch -v && echo -n "push -> dev? " && read str && git co dev 
 alias gitpa='git branch -v && echo -n "push all? " && read str && git push --all && git branch -v'
 
 ########################  GH
-# gist
-alias gitga='read -p "validate to clone $(gh gist list -L1000 | wc -l) gists" _ANSWER; gh gist list -L1000 | sed -n "s|^\(.\+\)\t\[\(.\+\)\].*|\1 \2|p" | while read i n; do echo "- $n $i"; ! [ -d "$n" ] && git clone -q https://gist.github.com/aguytech/${i} && mv $i "$n:$i"; done'
 
 ########################  SSH
 alias sshs='ssh-server'
