@@ -95,7 +95,7 @@ comp_file_desk=${HOME}/.local/share/applications/squirrel-sql.desktop
 comp_file_bin=/usr/local/bin/squirrel-sql"
 
 	# sublime-text
-	PATHS_SOFT[sublime_text_4]="path_user=${HOME}
+	PATHS_SOFT[sublime_text]="path_user=${HOME}
 comp_path_opt=/opt/sublime_text
 comp_path_conf=${HOME}/.config/sublime-text
 comp_path_user=${HOME}/.sublime-project
@@ -104,7 +104,7 @@ comp_file_icon=${HOME}/.local/share/icons/sublime-text.png
 comp_file_bin=/usr/local/bin/sublime_text"
 
 	# sublime-merge
-	PATHS_SOFT[sublime_merge_2]="path_user=${HOME}
+	PATHS_SOFT[sublime_merge]="path_user=${HOME}
 comp_path_opt=/opt/sublime_merge
 comp_path_conf=${HOME}/.config/sublime-merge
 comp_file_desk=${HOME}/.local/share/applications/sublime_merge.desktop
