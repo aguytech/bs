@@ -5,7 +5,7 @@
 __filter() {
 	echo -n "filter ${NUM}: "
 	NUM=$(($NUM + 1))
-	[ -e ${files_del} ] && rm ${files_del}
+	[ -e "${files_del}" ] && rm ${files_del}
 
 	shorts=`eval $1`
 	for short in ${shorts}; do

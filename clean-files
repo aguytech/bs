@@ -8,7 +8,7 @@ __clean_keep() {
 	path=${1:-${path}}
 	[ "$USER" != root ] && sudo='sudo ' || sudo=
 
-	! [ -d ${path} ] && echo "path do not exist: '${path}'" && exit
+	! [ -d "${path}" ] && echo "path do not exist: '${path}'" && exit
 	count="$(${sudo}find ${path} -not \( -regex '/\(proc\|run\|sys\|var\/lib\/lxcfs\)' -prune \) -type f -name "$2" -exec echo "{}" \; -exec rm -fR "{}" \; | wc -l)"
 	echo "${count} file(s) '${2}' are deleted"
 }
@@ -17,7 +17,7 @@ __clean_trash() {
 	path=${1:-${path}}
 	[ "$USER" != root ] && sudo='sudo ' || sudo=
 
-	! [ -d ${path} ] && echo "path do not exist: '${path}'" && exit
+	! [ -d "${path}" ] && echo "path do not exist: '${path}'" && exit
 	count="$(${sudo}find ${path} -not \( -regex '/\(proc\|run\/user\|sys\|var\/lib\/lxcfs\)' -prune \) -type d -name "$2" -exec echo {} \; -exec rm -fR {} \; | wc -l)"
 	echo "${count} file(s) '${2}' are deleted"
 }

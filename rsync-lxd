@@ -53,7 +53,7 @@ __push() {
 		for ct in ${cts_sel}; do
 			_echo "${path} -> ${ct}"
 
-			[ "${delete}" ] && _lxc_exec ${ct} "[ -d ${path_to} ] && rm -fR ${path_to}"
+			[ "${delete}" ] && _lxc_exec ${ct} "[ -d "${path_to}" ] && rm -fR ${path_to}"
 			_eval lxc file push ${args} ${path_from} $ct${path_to%/*}
 		done
 	done

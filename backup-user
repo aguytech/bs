@@ -153,7 +153,7 @@ _rsync() {
 _echoT "########################
 EXPORT to ${path_backup}\n"
 
-if ! [ -d ${path_backup} ]; then
+if ! [ -d "${path_backup}" ]; then
 	(sudo mkdir -p ${path_backup} && sudo chown 1000:1000 ${path_backup}) || _exite "unable to create/modify rights to directory '${path_backup}'"
 fi
 

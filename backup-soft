@@ -13,8 +13,8 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions.sh}"
 ########################  VARIABLES
 
 declare USAGE="backup-soft : backup softwares from /opt
-default softwares are define in the script in this list:
-	eclipse_java, eclipse_tools, smartgit, squirrel-sql, sublime_text, sublime_merge, yed
+Available softwares:
+    eclipse_java eclipse_tools smartgit squirrel-sql sublime_text sublime_merge yed
 
 Global usage:
 backup-soft <args> <softwares>
@@ -43,7 +43,7 @@ args:
 __init() {
 	local theme
 
-	[ -d ${PATH_BACKUP} ] || _exite "Unable to find path: ${PATH_BACKUP}"
+	[ -d "${PATH_BACKUP}" ] || _exite "Unable to find path: ${PATH_BACKUP}"
 
 	# connectors
 	PATHS_SOFT["connectors"]="path_user=${HOME}
@@ -291,8 +291,8 @@ __opts() {
 	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
 	local opts_given="$@"
-	local opts_short="afmr:v:hdq"
-	local opts_long="all,force,menu,restore:,version:,help,quiet,debug"
+	local opts_short="aflmr:v:hdq"
+	local opts_long="all,force,list,menu,restore:,version:,help,quiet,debug"
 	local opts=$(getopt -o ${opts_short} -l ${opts_long} -n "${0##*/}" -- "$@") || _exite "Wrong or missing options"
 	eval set -- "${opts}" || exit 1
 
@@ -300,21 +300,38 @@ __opts() {
 	while [ "$1" != "--" ]
 	do
 		case "$1" in
-			-a|--all)				SOFTWARES="${!PATHS_SOFT[@]}"  ;;
-			-f|--force)		FORCE="force"  ;;
+			-a|--all)
+				SOFTWARES="${!PATHS_SOFT[@]}"
+				;;
+			-f|--force)	
+				FORCE="force"
+				;;
 			-r|--restore)
 				shift
 				ACTION=restore
 				DATEB="$1"
 				;;
-			-m|--menu)		MENU="menu"  ;;
+			-m|--menu)
+				MENU="menu"
+				;;
 			-v|--version)
 				shift
 				VERSION="$1"
 				;;
-			-h|--help)			echo "${USAGE}" && _exit 0  ;;
-			-d|--debug)		_redirect debug  ;;
-			*)							_exite "Wrong argument: '$1' for arguments '$opts_given'"  ;;
+			-l|--list)
+				echo ${!PATHS_SOFT[@]}
+				_exit 0
+				;;
+			-h|--help)
+				echo "${USAGE}"
+				_exit 0
+				;;
+			-d|--debug)	
+				_redirect debug
+				;;
+			*)	
+				_exite "Wrong argument: '$1' for arguments '$opts_given'"
+				;;
 		esac
 		shift
 	done

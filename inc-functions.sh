@@ -791,7 +791,7 @@ if [ "${_INSTALL}" ]; then
 
 	# env
 	file=${S_PATH_SCRIPT}/conf/env
-	! [ -f ${file} ] && echo ":${LINENO}[error] Unable to source properly file: '${file}'" && exit 1
+	! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to source properly file: '${file}'" && exit 1
 	. ${file}
 fi
 
