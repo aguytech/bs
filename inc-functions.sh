@@ -116,12 +116,9 @@ __function_common() {
 	_source() {
 		local file
 		for file in $*; do
-			if [ -f "${file}" ]; then
-				_echod "${FUNCNAME}:${LINENO}  '${file}'"
-				. "${file}"
-			else
-				_exite "${FUNCNAME}: Missing file, unable to source '${file}'"
-			fi
+			[ -f "${file}" ] || _exite "${FUNCNAME}: Unable to find file: ${file}"
+			_echod "${FUNCNAME}:${LINENO} . ${file}"
+			. "${file}" || _exite "Error during ${file} \nSee log file"
 		done
 	}
 	_require() {
@@ -159,11 +156,9 @@ __function_common() {
 	}
 	# ask until y or n is given
 	_askyn() {
-		local options
-
 		_ANSWER=
-		options=" y n "
-		while [ "${options/ $_ANSWER }" = "$options" ]; do
+		local options=" y n "
+		while [ "${options/ ${_ANSWER} }" = "${options}" ]; do
 			#_echo_ -n "${yellowb}$* y/n ${cclear}"
 			_echo_ -n "$* (y/n): "
 			read _ANSWER
@@ -172,14 +167,12 @@ __function_common() {
 	}
 	# ask $1 until a valid options $* is given
 	_asks() {
-		local options str
-
-		str=$1
+		local str=$1
 		shift
 		_ANSWER=
 		[ -z "$*" ] && _exite "invalid options '$*' for _asks()"
-		options=" $* "
-		while [ "${options/ ${_ANSWER} }" = "$options" ]; do
+		local options=" $* "
+		while [ "${options/ ${_ANSWER} }" = "${options}" ]; do
 			_echo_ -n "${str} ($*): "
 			read _ANSWER
 			_echod
@@ -203,8 +196,7 @@ __function_common() {
 		PS3="$1 (by toggling options): "
 		shift
 		ansmenu="valid $* "
-		local anstmp
-		anstmp=
+		local anstmp=
 		while [ "${anstmp}" != valid ]; do
 			echo "——————————————————————"
 			select anstmp in ${ansmenu}; do [ "${anstmp::2}" == ++ ] && ansmenu=${ansmenu/ ${anstmp} / ${anstmp#++} } || ansmenu=${ansmenu/ ${anstmp} / ++${anstmp} }; break; done
@@ -215,12 +207,10 @@ __function_common() {
 	}
 	# make multiselect menu with question $1 & options $* with -- to remove options
 	_menur() {
-		local ansmenu anstmp
-
 		PS3="$1 (by toggling options): "
 		shift
-		ansmenu="valid $* "
-		anstmp=
+		local ansmenu="valid $* "
+		local anstmp=
 		while [ "$anstmp" != valid ]; do
 			echo "——————————————————————"
 			select anstmp in ${ansmenu}; do [ "${anstmp::2}" == -- ] && ansmenu=${ansmenu/ ${anstmp} / ${anstmp#--} } || ansmenu=${ansmenu/ ${anstmp} / --${anstmp} }; break; done
@@ -232,19 +222,31 @@ __function_common() {
 
 	##############  KEEP
 
+	_keepcp() {
+		local _su=
+		[ -r "$1" ] || _su=sudo
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  \
+		&& ! ( ${_su} [ -e "$1.keep" ] || ${_su} [ -h "$1.keep" ] ) \
+		&& _evalrq ${_su} cp -a "$1" "$1.keep"
+	}
+	_keepmv() {
+		local _su=
+		[ -w "$1" ] || _su=sudo
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  \
+		&& ! ( ${_su} [ -e "$1.keep" ] || ${_su} [ -h "$1.keep" ] ) \
+		&& _evalrq ${_su} mv "$1" "$1.keep"
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq  ${_su} rm -fR "$1"
+	}
+
 	_keepcpts() {
-		if [ -r "${1}" ]; then
-			[[ -e "${1}" || -h "${1}" ]] && _evalrq cp -a "${1}" "${1}.$(date +%s)"
-		else
-			[[ -e "${1}" || -h "${1}" ]] && _evalrq sudo cp -a "${1}" "${1}.$(date +%s)"
-		fi
+		local _su=
+		[ -r "$1" ] || _su=sudo
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq ${_su} cp -a "$1" "$1.$(date +%s)"
 	}
 	_keepmvts() {
-		if [ -r "${1}" ]; then
-			[[ -e "${1}" || -h "${1}" ]] && _evalrq mv "${1}" "${1}.$(date +%s)"
-		else
-			[[ -e "${1}" || -h "${1}" ]] && _evalrq sudo mv "${1}" "${1}.$(date +%s)"
-		fi
+		local _su=
+		[ -w "$1" ] || _su=sudo
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  && _evalrq ${_su} mv "$1" "$1.$(date +%s)"
 	}
 
 	##############  PWD
@@ -255,8 +257,7 @@ __function_common() {
 	############## IP / CTID
 
 	_get_ip() {
-		local interface
-		interface="${1:-$(ip -4 -o route show to default|cut -d' ' -f5|head -n1)}"
+		local interface="${1:-$(ip -4 -o route show to default|cut -d' ' -f5|head -n1)}"
 		#ifconfig $inter | sed -n 's|^\s\+inet \(addr:\)\?\([0-9\.]\+\) .*|\2|p'
 		[ "${interface}" ] && ip -4 -o address show dev ${interface}|sed 's|.*inet\s\([0-9\.]\+\)/.*|\1|'
 		#[ "${interface}" ] && ip -br -4 -o address show dev ${interface}|sed 's|.*\s\+\([0-9\.]\+\)/.*|\1|'
@@ -266,8 +267,7 @@ __function_common() {
 	}
 
 	_get_ipv6() {
-		local interface
-		interface="${1:-$(ip -6 -o route show to default|cut -d' ' -f5|head -n1)}"
+		local interface="${1:-$(ip -6 -o route show to default|cut -d' ' -f5|head -n1)}"
 		#ifconfig ${interface} | sed -n 's|^\s\+inet6 \(addr:\)\?\([0-9a-z\:]\+\) .*128.*|\2|p'
 		[ "${interface}" ] && ip -6 -o address show dev ${interface}|sed -n 's|.*inet6\s\([0-9a-z:.]\+\)/128.*|\1|p'
 		#[ "${interface}" ] && ip -br -6 -o address show dev ${interface}|sed 's|.*\s\+\([0-9a-z:]\+\)/128.*|\1|'
@@ -300,12 +300,10 @@ __function_common() {
 	##############  REDIRECT
 
 	_redirect() {
-		local opt
-
 		# preserve sourcing directly from bash
-	 	[ "${0%*bash}" != "$0" ] && echo "No file descriptors are instancied (preserving from direct bash sourcing)" >&2 && return
+		[ "${0%*bash}" != "$0" ] && echo "No file descriptors are instancied (preserving from direct bash sourcing)" >&2 && return
 
-	 	[ "$S_REDIRECTED" ] && _echod "${FUNCNAME}:${LINENO} Already redirected" && return
+		[ "${S_REDIRECTED}" ] && _echod "${FUNCNAME}:${LINENO} Already redirected" && return
 
 		# log path
 		[ "${_INSTALL}" ] && _PATH_LOG="${S_PATH_LOG_INSTALL:-/var/log/install}"
@@ -320,26 +318,26 @@ __function_common() {
 			fi
 		fi
 
-		_SF_INF="${_PATH_LOG}/${_SCRIPT}.info"
-		_SF_ERR="${_PATH_LOG}/${_SCRIPT}.err"
-		_SF_BUG="${_PATH_LOG}/${_SCRIPT}.debug"
+		local file_info="${_PATH_LOG}/${_SCRIPT%.*}.info"
+		local file_err="${_PATH_LOG}/${_SCRIPT%.*}.err"
+		local file_debug="${_PATH_LOG}/${_SCRIPT%.*}.debug"
 
-		opt=${1:-${S_TRACE}}
+		local opt=${1:-${S_TRACE}}
 		opt=${opt:-${S_TRACEOPT}}
 		opt=${opt:-info}
 
 		# file descriptors
-		case "$opt" in
-			#					sdtout													stderror									info							debug
-			#					1																2													4									6
-			quiet)		exec 1>>${_SF_INF}						2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
-			info)			exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>>${_SF_INF}		6>/dev/null  ;;
-			verbose)	exec 1> >(tee -a ${_SF_INF})		2> >(tee -a ${_SF_ERR})		4>&1							6>/dev/null  ;;
+		case "${opt}" in
+			#				sdtout											stderror							info							debug
+			#				1													2										4								6
+			quiet)		exec 1>>${file_info}					2> >(tee -a ${file_err})		4>>${file_info}		6>/dev/null  ;;
+			info)			exec 1> >(tee -a ${file_info})		2> >(tee -a ${file_err})		4>>${file_info}		6>/dev/null  ;;
+			verbose)	exec 1> >(tee -a ${file_info})		2> >(tee -a ${file_err})		4>&1						6>/dev/null  ;;
 			debug)
-				exec 1> >(tee -a ${_SF_INF} ${_SF_BUG})
-				exec 2> >(tee -a ${_SF_ERR})
+				exec 1> >(tee -a ${file_info} ${file_debug})
+				exec 2> >(tee -a ${file_err})
 				exec 4>&1
-				exec 6>>${_SF_BUG}
+				exec 6>>${file_debug}
 				;;
 		esac
 
@@ -355,8 +353,7 @@ __function_install() {
 	# 1 variable name
 	# 2 optionnal file name
 	_confhave() {
-		local file
-		file="${2:-${S_FILE_INSTALL_CONF}}"
+		local file="${2:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		grep -q "^$1=.*" "${file}"
 	}
@@ -365,37 +362,33 @@ __function_install() {
 	# 2 key name
 	# 3 optionnal file name
 	_confhave_array() {
-		local file
-		file="${3:-${S_FILE_INSTALL_CONF}}"
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
-		grep -q "^${1}\[${2}\]=.*" "${file}"
+		grep -q "^$1\[$2\]=.*" "${file}"
 	}
 
 	# 1 variable name
 	# 2 optionnal file name
 	_confget() {
-		local file
-		file="${2:-${S_FILE_INSTALL_CONF}}"file=
+		local file="${2:-${S_FILE_INSTALL_CONF}}"file=
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		#! [ -f "${file}" ] && return 1
 
-		_confhave "$1" "${file}" && sed -n "s|^${1}=||p" ${file} | sed 's/"//g'
+		_confhave "$1" "${file}" && sed -n "s|^$1=||p" ${file} | sed 's/"//g'
 	}
 
 	# 1 variable name
 	# 2 variable value
 	# 3 optionnal file name
 	_confset() {
-		local file
-
-		file="${3:-${S_FILE_INSTALL_CONF}}"
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		#! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		[ -f "${file}" ] || touch "${file}"
 
 		if _confhave "$1" "${file}"; then
-			sed -i "\|^$1=| c${1}=${2:+\"$2\"}" "${file}"
+			sed -i "\|^$1=| c$1=${2:+\"$2\"}" "${file}"
 		else
-			echo "${1}=${2:+\"$2\"}" >> "${file}"
+			echo "$1=${2:+\"$2\"}" >> "${file}"
 		fi
 	}
 
@@ -404,14 +397,13 @@ __function_install() {
 	# 3 value
 	# 4 optionnal file name
 	_confset_array() {
-		local file
-		file="${4:-${S_FILE_INSTALL_CONF}}"
+		local file="${4:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		if _confhave_array "$1" "$2" "${file}"; then
-			sed -i "\|^${1}\[${2}\]=| c${1}\[${2}\]=${3:+\"$3\"}" "${file}"
+			sed -i "\|^$1\[$2\]=| c$1\[$2\]=${3:+\"$3\"}" "${file}"
 		else
-			echo "${1}[${2}]=${3:+\"$3\"}" >> "${file}"
+			echo "$1[$2]=${3:+\"$3\"}" >> "${file}"
 		fi
 	}
 
@@ -419,9 +411,8 @@ __function_install() {
 	# 2 variable value
 	# 3 optionnal file name
 	_confmulti_havevalue() {
-		local file
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
-		file="${3:-${S_FILE_INSTALL_CONF}}"
 
 		[[ " $(_confget "$1" "${file}") " = *" $2 "* ]]
 	}
@@ -430,26 +421,24 @@ __function_install() {
 	# 2 variable value
 	# 3 optionnal file name
 	_confmulti_add() {
-		local file str
-		file="${3:-${S_FILE_INSTALL_CONF}}"
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		_confmulti_havevalue "$1" "$2" "${file}" && return 0
-		str="$(tr ' ' '\n' <<<"$(_confget "$1" "${file}") $2" | sort | xargs)"
-		sed -i "\|^${1}=| c${1}=\"${str}\"" "${file}"
+		local str="$(tr ' ' '\n' <<<"$(_confget "$1" "${file}") $2" | sort | xargs)"
+		sed -i "\|^$1=| c$1=\"${str}\"" "${file}"
 	}
 
 	# 1 variable name
 	# 2 variable value
 	# 3 optionnal file name
 	_confmulti_remove() {
-		local file str
-		file="${3:-${S_FILE_INSTALL_CONF}}"
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		_confmulti_havevalue "$1" "$2" "${file}" || return 0
-		str=`sed "y/ /\n/;s/^${2}$//M" <<<"$(_confget "$1" "${file}")" | xargs`
-		sed -i "\|^${1}=| c${1}=\"${str}\"" "${file}"
+		local str=`sed "y/ /\n/;s/^$2$//M" <<<"$(_confget "$1" "${file}")" | xargs`
+		sed -i "\|^$1=| c$1=\"${str}\"" "${file}"
 	}
 
 	##############  PART
@@ -538,17 +527,17 @@ __function_install() {
 	# 1 path
 	# * group name of variables
 	_var_replace() {
-		local path opt var var2
+		local opt var
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
-		path=$1; shift
+		local path=$1; shift
 
 		for opt in $*; do
 			for var in `_var_replace_vars ${opt}`; do
-				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
+				local var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
 				_echod var=${var} var2=${var2}
 				grep -q "${var2}" -r ${path} && grep "${var2}" -rl ${path} | xargs sudo sed -i "s|${var2}|${!var}|g"
 				#_evalr "sed -i 's|${var/[/\\[}|${!var}|g' '${path}'"
-				#'\\]}"
+				#}"
 			done
 		done
 	}
@@ -562,11 +551,11 @@ __function_install() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type systemctl >/dev/null 2>&1; then
-			_evalr systemctl -q "${1}" "${2}.service"
+			_evalr systemctl -q "$1" "$2.service"
 		elif type service >/dev/null 2>&1; then
-			_evalr service "${2%.*}" "${1}"
+			_evalr service "${2%.*}" "$1"
 		elif type rc-service >/dev/null 2>&1; then
-			_evalr service "${2%.*}" "${1}"
+			_evalr service "${2%.*}" "$1"
 		else
 			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
 		fi
@@ -594,8 +583,7 @@ __function_install() {
 
 	# clear password in installation files
 	_clear_conf_pwd() {
-		local file
-		file="${1:-S_FILE_INSTALL_CONF}"
+		local file="${1:-S_FILE_INSTALL_CONF}"
 		sed -i 's|^\(_[^=]*PWD[^=]*=\).*|\1""|g' "${file}"
 	}
 }
@@ -666,6 +654,7 @@ __function_lxc() {
 				#_lxc_exec ${ct} "sed -i 's|${var/[/\\[}|${!var}|g' ${path}"
 				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
 				_lxc_exec ${ct} "grep -q '${var2}' -r ${path} && grep '${var2}' -rl ${path} | xargs sed -i 's|${var2}|${!var}|g'"
+				#}"
 			done
 		done
 	}
@@ -685,9 +674,8 @@ __function_lxc() {
 	_lxc_meta_set() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local ct tag
-		ct=$1; shift
-		tag=$1; shift
+		local ct=$1; shift
+		local tag=$1; shift
 
 		#_echod "${FUNCNAME}:${LINENO} ct=${ct} tag=${tag} \$*=$*"
 		if lxc config metadata show ${ct} | grep -q "^ *${tag}:"; then
@@ -704,12 +692,12 @@ __function_lxc() {
 	_lxc_meta_add() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag values value
-		ct=$1; shift
-		tag=$1; shift
+		local value
+		local ct=$1; shift
+		local tag=$1; shift
 
 		#_echod "${FUNCNAME}:${LINENO} ct=${ct} tag=${tag} \$*=$*"
-		values=`_lxc_meta_get ${ct} ${tag}`
+		local values=`_lxc_meta_get ${ct} ${tag}`
 		for value in $*; do 	values+=" ${value}"; done
 		values=`echo ${values}|tr ' ' '\n'|sort -u`
 		_lxc_meta_set ${ct} ${tag} ${values}
@@ -721,12 +709,12 @@ __function_lxc() {
 	_lxc_meta_remove() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local file ct tag values value
-		ct=$1; shift
-		tag=$1; shift
+		local value
+		local ct=$1; shift
+		local tag=$1; shift
 
 		#_echod "${FUNCNAME}:${LINENO} ct=${ct} tag=${tag} \$*=$*"
-		values=`_lxc_meta_get ${ct} ${tag}`
+		local values=`_lxc_meta_get ${ct} ${tag}`
 		for value in $*; do 	values="${values// ${value} / }"; done
 		_lxc_meta_set ${ct} ${tag} ${values}
 	}
@@ -734,7 +722,6 @@ __function_lxc() {
 }
 
 __data() {
-
 	# colors
 	white='\e[0;0m'; red='\e[0;31m'; green='\e[0;32m'; blue='\e[0;34m'; magenta='\e[0;95m'; yellow='\e[0;93m'; cyan='\e[0;96m';
 	whiteb='\e[1;1m'; redb='\e[1;31m'; greenb='\e[1;32m'; blueb='\e[1;34m'; magentab='\e[1;95m'; yellowb='\e[1;93m'; cyanb='\e[1;96m'; cclear='\e[0;0m';
