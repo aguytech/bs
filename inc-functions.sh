@@ -790,7 +790,7 @@ if [ "${_INSTALL}" ]; then
 	fi
 
 	# env
-	file=${S_PATH_SCRIPT}/conf/env
+	file=${S_PATH_SCRIPT}/conf/.bash_env
 	! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to source properly file: '${file}'" && exit 1
 	. ${file}
 fi
