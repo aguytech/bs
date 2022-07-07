@@ -43,7 +43,7 @@ args:
 __init() {
 	local theme
 
-	[ -d "${PATH_BACKUP}" ] || _exite "Unable to find path: ${PATH_BACKUP}"
+	[ -d "${_PATH_BACKUP}" ] || _exite "Unable to find path: ${_PATH_BACKUP}"
 
 	# connectors
 	PATHS_SOFT["connectors"]="path_user=${HOME}
@@ -141,16 +141,16 @@ __menu() {
 	local comp_path_opt comp_path_conf comp_file_desk comp_file_bin
 
 	_menu "Select an action" backup restore
-	ACTION=${_ANSWER}
+	_ACTION=${_ANSWER}
 
 	_menu "Select a software to backup" $(echo ${!PATHS_SOFT[@]}|tr ' ' '\n'|sort)
-	SOFTWARES=${_ANSWER}
+	_SOFTS=${_ANSWER}
 
 	# set variables in "${PATHS_SOFT["${software}"]}"
-	eval "${PATHS_SOFT[${SOFTWARES}]}"
-	if [ "${ACTION}" = restore ]; then
-		_menu "Select an action" $(ls -1r ${PATH_BACKUP}|sed -n "s|^${SOFTWARES}_\([0-9-]\+\)\.tar\.gz$|\1|p")
-		DATEB=${_ANSWER}
+	eval "${PATHS_SOFT[${_SOFTS}]}"
+	if [ "${_ACTION}" = restore ]; then
+		_menu "Select an action" $(ls -1r ${_PATH_BACKUP}|sed -n "s|^${_SOFTS}_\([0-9-]\+\)\.tar\.gz$|\1|p")
+		_DATEB=${_ANSWER}
 	fi
 }
 
@@ -207,7 +207,7 @@ __backup_one() {
 	done
 
 	version=${VERSION:+-${VERSION}}
-	cmd="${COMP_CMD} '${PATH_BACKUP}/$1${version}_${DATE}.${COMP_EXT}' ${paths_comp} 2>&6"
+	cmd="${COMP_CMD} '${_PATH_BACKUP}/$1${version}_${DATE}.${COMP_EXT}' ${paths_comp} 2>&6"
 	_eval ${cmd} || _echoE "executing '${cmd}'"
 }
 
@@ -249,14 +249,14 @@ __restore_one() {
 	eval "$2"
 	version=${VERSION:+-${VERSION}}
 
-	file_back=`ls "${PATH_BACKUP}/$1${version}_${DATEB}.${COMP_EXT}"`
+	file_back=`ls "${_PATH_BACKUP}/$1${version}_${_DATEB}.${COMP_EXT}"`
 	# file not found
 	if ! ls "${file_back}" 1>/dev/null 2>&1; then
 		_echoE "'$1' skipped: unable to find '${file_back}'"
 		return 1
 	fi
 
-	_echod "${FUNCNAME}::${LINENO} \$DATEB=${DATEB}"
+	_echod "${FUNCNAME}::${LINENO} \$_DATEB=${_DATEB}"
 	# existing paths
 	paths_comp=`echo "${PATHS_SOFT["$1"]}"|sed -n 's|^comp_.*=\(.*\)$|\1|p'|xargs`
 	# check if paths_comp exists
@@ -301,15 +301,15 @@ __opts() {
 	do
 		case "$1" in
 			-a|--all)
-				SOFTWARES="${!PATHS_SOFT[@]}"
+				_SOFTS="${!PATHS_SOFT[@]}"
 				;;
 			-f|--force)	
 				FORCE="force"
 				;;
 			-r|--restore)
 				shift
-				ACTION=restore
-				DATEB="$1"
+				_ACTION=restore
+				_DATEB="$1"
 				;;
 			-m|--menu)
 				MENU="menu"
@@ -337,29 +337,29 @@ __opts() {
 	done
 
 	shift
-	[ "$@" ] && SOFTWARES="$@"
+	[ "$@" ] && _SOFTS="$@"
 
 	# menu
 	[ "${MENU}" ] && __menu
 	# no softwares
-	[ -z "${SOFTWARES}" ] && _exite "You have to give softwares or the option 'all'"
+	[ -z "${_SOFTS}" ] && _exite "You have to give softwares or the option 'all'"
 	# default action
-	[ -z "${ACTION}" ] && ACTION=backup
+	[ -z "${_ACTION}" ] && _ACTION=backup
 
 	_echod "${FUNCNAME}::${LINENO} MENU='${MENU}' FORCE='${FORCE}' REGEXP='${REGEXP}' "
-	_echod "${FUNCNAME}::${LINENO} ACTION='${ACTION}' SOFTWARES='${SOFTWARES}' DATEB='${DATEB}'"
+	_echod "${FUNCNAME}::${LINENO} _ACTION='${_ACTION}' _SOFTS='${_SOFTS}' _DATEB='${_DATEB}'"
 }
 
 __main() {
 	_echod "======================================================"
 	_echod "$(ps -o args= ${PPID})"
 
-	local PATH_BACKUP DATEB ACTION SOFTWARES
+	local _PATH_BACKUP _DATEB _ACTION _SOFTS
 
 	# array for softwares definition
 	declare -A PATHS_SOFT
 	# path to backup/resore
-	[ -d ${HOME}/Soft/multi ] && PATH_BACKUP=${HOME}/Soft/linux/backup || PATH_BACKUP=/ext/shared/Soft/linux/backup
+	[ -d ${HOME}/Soft/multi ] && _PATH_BACKUP=${HOME}/Soft/linux/backup || _PATH_BACKUP=/ext/shared/Soft/linux/backup
 	# date for files
 	local DATE=`date +%Y%m%d-%s`
 	# compress command options
@@ -374,7 +374,7 @@ __main() {
 	__opts "$@"
 
 	# call action with arguments
-	__${ACTION} "${SOFTWARES}"
+	__${_ACTION} "${_SOFTS}"
 }
 
 ########################  MAIN

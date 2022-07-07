@@ -204,3 +204,10 @@ for path_sync in ${!paths_sync[*]}; do
 		_exite "warning - skipped unable to find '$path_comp'"
 	fi
 done
+
+# SYNC POST
+
+_echoT "END
+########################"
+
+
