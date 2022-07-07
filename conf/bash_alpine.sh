@@ -12,4 +12,3 @@ export RELEASE=`sed -n '/^ID=/ s|.*=||p' /etc/os-release`
 
 # path
 [ -d /usr/local/bs ] && export PATH=${PATH}:/usr/local/bs
-
