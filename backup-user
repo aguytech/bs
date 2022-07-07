@@ -154,7 +154,7 @@ _echoT "########################
 EXPORT to ${path_backup}\n"
 
 if ! [ -d "${path_backup}" ]; then
-	(sudo mkdir -p ${path_backup} && sudo chown 1000:1000 ${path_backup}) || _exite "unable to create/modify rights to directory '${path_backup}'"
+	(sudo mkdir -p ${path_backup} && sudo chown ${USER}:${USER} ${path_backup}) || _exite "unable to create/modify rights to directory '${path_backup}'"
 fi
 
 
@@ -216,7 +216,7 @@ _echoT "END
 #VirtFrom="$VirtFrom/export"
 #VirtTo="${path_backup}/.virt-manager-"$"ddate
 #if ! [ -d "$VirtTo"" ]; then mkdir "$VirtTo"; fi
-#sudo chown .1000 -R "$VirtBase"
+#sudo chown .${USER} -R "$VirtBase"
 #sudo chmod g+rw -R "$VirtBase"
 #echo "---> copy virt-manager"
 #sudo cp -R "$VirtFrom/*" "$VirtTo"
