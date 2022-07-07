@@ -45,14 +45,14 @@ Actions:
 ########################  FUNCTION
 
 __connect() {
-	_echod "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
+	_echod "${FUNCNAME}:${LINENO} db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
 
 	timeout 2 mysql -h${db_host} -u${db_user} -p${db_pwd} -e "" >/dev/null 2>&1
 }
 
 __exec() {
 	# require argument
-	_echod "$FUNCNAME:$LINENO \$*='$*'}"
+	_echod "${FUNCNAME}:${LINENO} \$*='$*'}"
 	! [ "$*" ] && _exite "Internal error, function need arguments"
 
 	# init
@@ -74,7 +74,7 @@ __exec() {
 
 		report="$report\n$user @ $host - $pwd"
 		echo "SET PASSWORD FOR $user_host = PASSWORD('$pwd');" >> "$file_sql"
-		_echod "$FUNCNAME:$LINENO user='$user' user_host='$user_host' pwd='$pwd'"
+		_echod "${FUNCNAME}:${LINENO} user='$user' user_host='$user_host' pwd='$pwd'"
 	done < <(echo -e "$results")
 
 	# allow local access whitout password for innotop
@@ -85,7 +85,7 @@ __exec() {
 	cat "$file_sql"|column -t
 	! $force && _askno "Confirm execution of requests, (n) to exit"
 	# exit
-	[ "$_ANSWER" == "n" ] && _exit
+	[ "${_ANSWER}" == "n" ] && _exit
 
 	# execute sql queries
 	__exec_sql_file "$file_sql"
@@ -104,12 +104,12 @@ __exec() {
 __exec_add_percona() {
 	! type pt-show-grants >/dev/null 2>&1 && _echo "Unable to find pt-show-grants (from percona-toolkit)" >&5 && return 1
 
-	SQLperconaFILE="/tmp/${_SCRIPT}-percona-$(_pwd)"
-	> "$SQLperconaFILE"
+	sqlperconafile="/tmp/${_SCRIPT}-percona-$(_pwd)"
+	> "$sqlperconafile"
 
 	# update root password with if new one exists
 	[ "${users[${db_user}]}" ] && db_pwd="${users[${db_user}]}"
-	_echod "$FUNCNAME:$LINENO db_pwd='${db_pwd}'"
+	_echod "${FUNCNAME}:${INENO} db_pwd='${db_pwd}'"
 
 	# update percona acces if new password
 	[ "${users[percona]}" ] && _evalq "sed -i 's|^\(.*,p=\).*|\1${users[percona]}|' ~/.percona-toolkit.conf"
@@ -117,23 +117,23 @@ __exec_add_percona() {
 	# create sql file
 	for user in $users_list; do
 		pwd="${users[$user]}"
-		_echod "$FUNCNAME:$LINENO user='$user' pwd='$pwd'"
+		_echod "${FUNCNAME}:${INENO} user='$user' pwd='$pwd'"
 
-		pt-show-grants --only $user| grep ' IDENTIFIED ' >> "$SQLperconaFILE"
+		pt-show-grants --only $user| grep ' IDENTIFIED ' >> "$sqlperconafile"
 	done
 
 	# execute sql queries
-	__exec_sql_file "$SQLperconaFILE" && RETURN=0 || RETURN=1
+	__exec_sql_file "$sqlperconafile" && RETURN=0 || RETURN=1
 
 	# delete sql queries file
-	rm "$SQLperconaFILE"
+	rm "$sqlperconafile"
 
-	return $RETURN
+	return ${RETURN}
 }
 
 __exec_percona() {
 	# require argument
-	_echod "$FUNCNAME:$LINENO \$*='$*'}"
+	_echod "${FUNCNAME}:${INENO} \$*='$*'}"
 	! [ "$*" ] && _exite "Internal error, function need arguments"
 
 	# init
@@ -153,7 +153,7 @@ __exec_percona() {
 		echo "-- $user - $pwd" >> "$file_sql"
 		pt-show-grants --only $user|grep ' IDENTIFIED '|sed "s|^\(.* TO '$user'@'.\+' IDENTIFIED BY\) PASSWORD '.\+'\(.*\)$|\1 '$pwd'\2|" >> "$file_sql"
 
-		_echod "$FUNCNAME:$LINENO user='$user' user_host='$user_host' pwd='$pwd'"
+		_echod "${FUNCNAME}:${INENO} user='$user' user_host='$user_host' pwd='$pwd'"
 	done
 
 	report="$(sed "s|.* TO '\(.\+\)'@'\(.\+\)' IDENTIFIED BY '\(.\+\)'[ |;].*|\1 @ \2 - \3|" "$file_sql"|grep ' @ '|sort|column -t)"
@@ -162,7 +162,7 @@ __exec_percona() {
 	cat "$file_sql"
 	! $force && _askno "--------------------------------------------\nConfirm execution of requests, 'n' to exit"
 	# exit
-	[ "$_ANSWER" == "n" ] && _exit
+	[ "${_ANSWER}" == "n" ] && _exit
 
 	# execute sql queries
 	 __exec_sql_file "$file_sql"
@@ -179,28 +179,28 @@ __exec_percona() {
 }
 
 __exec_sql() {
-	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "${FUNCNAME}:${INENO} \$1='$1' \$*='$*'"
 
 	results="$(_evalq "mysql -Ns -h${db_host} -u${db_user} -p${db_pwd} -e \"$*\"|tr '\t' ' '")"
 }
 
 __exec_sql_file() {
 	local ERROR
-	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "${FUNCNAME}:${INENO} \$1='$1' \$*='$*'"
 
 	for FILE in $*; do
-		if [ -f "$FILE" ]; then
-			! _evalq "mysql -Ns -h${db_host} -u${db_user} -p${db_pwd} < '$FILE'" && _echoE "Error during executing sql file '$file_sql'"
+		if [ -f "${FILE}" ]; then
+			! _evalq "mysql -Ns -h${db_host} -u${db_user} -p${db_pwd} < '${FILE}'" && _echoE "Error during executing sql file '$file_sql'"
 		else
-			ERROR="$FILE\n$ERROR"
+			ERROR="${FILE}\n${ERROR}"
 		fi
 	done
 
-	[ "$ERROR" ] && _echoE "Following files are not available" && _echo "$ERROR"
+	[ "${ERROR}" ] && _echoE "Following files are not available" && _echo "${ERROR}"
 }
 
 __get_users() {
-	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "${FUNCNAME}:${INENO} \$1='$1' \$*='$*'"
 
 	# get users from sgbd
 	if [ "$*" == "*" ]; then
@@ -209,12 +209,12 @@ __get_users() {
 	else
 		users_list="$*"
 	fi
-	_echod "$FUNCNAME:$LINENO users_list='$users_list'"
-	_echod "$FUNCNAME:$LINENO sql_and='$sql_and'"
+	_echod "${FUNCNAME}:${INENO} users_list='$users_list'"
+	_echod "${FUNCNAME}:${INENO} sql_and='$sql_and'"
 }
 
 __get_pwds() {
-	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "${FUNCNAME}:${INENO} \$1='$1' \$*='$*'"
 
 	users_list="$*"
 
@@ -231,14 +231,14 @@ __get_pwds() {
 		done < <(echo -e "${users_list// /\\n}")
 		users_list=${!users[*]}
 	fi
-	_echod "$FUNCNAME:$LINENO users_list='$users_list'"
-	_echod "$FUNCNAME:$LINENO !users[*]=${!users[*]}"
-	_echod "$FUNCNAME:$LINENO users[*]=${users[*]}"
+	_echod "${FUNCNAME}:${INENO} users_list='$users_list'"
+	_echod "${FUNCNAME}:${INENO} !users[*]=${!users[*]}"
+	_echod "${FUNCNAME}:${INENO} users[*]=${users[*]}"
 
 }
 
 __init() {
-	_echod "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
+	_echod "${FUNCNAME}:${INENO} db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
 
 	_askno "Give DB server address (${db_host})" && db_host=${_ANSWER:-${db_host}}
 	_askno "Give DB user name (${db_user})" && db_user=${_ANSWER:-${db_user}}
@@ -260,7 +260,7 @@ force=false
 ########################  MAIN
 #_clean && _redirect debug
 
-_echod "$FUNCNAME:$LINENO $_SCRIPT / $(date +"%d-%m-%Y %T : %N") ---- start"
+_echod "${FUNCNAME}:${INENO} ${_SCRIPT} / $(date +"%d-%m-%Y %T : %N") ---- start"
 
 opts_given="$@"
 opts_short="dfh:u:p:"
@@ -268,9 +268,9 @@ opts_long="help,debug,force,percona,host:,user:,pwd:"
 opts="$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- $* 2>/tmp/${0##*/})" || _exite "Bad options '$(</tmp/${0##*/})'"
 eval set -- $opts
 
-_echod "$FUNCNAME:$LINENO opts='$opts' opts_given='$opts_given'"
+_echod "${FUNCNAME}:${INENO} opts='$opts' opts_given='$opts_given'"
 while true; do
-	_echod "$FUNCNAME:$LINENO \$1='$1' \$*='$*'"
+	_echod "${FUNCNAME}:${INENO} \$1='$1' \$*='$*'"
 	case "$1" in
 		--help)
 			_echo "$usage"; _exit
@@ -288,17 +288,17 @@ while true; do
 			;;
 		-h|--host)
 			shift
-			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exite "host requires an arguments\n${cclear}Use '$_SCRIPT --help' for help"
+			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exite "host requires an arguments\n${cclear}Use '${_SCRIPT} --help' for help"
 			db_host="$1"
 			;;
 		-u|--user)
 			shift
-			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exite "user requires an arguments\n${cclear}Use '$_SCRIPT --help' for help"
+			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exite "user requires an arguments\n${cclear}Use '${_SCRIPT} --help' for help"
 			db_user="$1"
 			;;
 		-p|--pwd)
 			shift
-			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exite "pwd requires an arguments\n${cclear}Use '$_SCRIPT --help' for help"
+			( ! [ "$1" ] || [ "$1" == "--" ] ) && _exite "pwd requires an arguments\n${cclear}Use '${_SCRIPT} --help' for help"
 			db_pwd="$1"
 			;;
 		--)
@@ -306,7 +306,7 @@ while true; do
 		update|update-up)
 			action="$1"
 			shift
-			! [ "$*" ] && _exite "Action '$action' needs options\n${cclear}Use '$_SCRIPT -h' for help"
+			! [ "$*" ] && _exite "Action '$action' needs options\n${cclear}Use '${_SCRIPT} -h' for help"
 			$percona && cmd="__exec_percona" || cmd="__exec"
 			args="$*"
 			break
@@ -326,7 +326,7 @@ while true; do
 		reset)
 			action="$1"
 			shift
-			! [ "$*" ] && _exite "Action '$action' needs options\n${cclear}Use '$_SCRIPT -h' for help"
+			! [ "$*" ] && _exite "Action '$action' needs options\n${cclear}Use '${_SCRIPT} -h' for help"
 			$percona && cmd="__exec_percona" || cmd="__exec"
 			args="$*"
 			break
@@ -344,13 +344,13 @@ while true; do
 			break
 			;;
 		*)
-			[ "$1" ] && _echoE "Bad options: '$1'" && _exite "${cclear}Use '$_SCRIPT -h' for help"
+			[ "$1" ] && _echoE "Bad options: '$1'" && _exite "${cclear}Use '${_SCRIPT} -h' for help"
 			_echo "$usage" && _exit
 			;;
 	esac
 	shift
 done
-_echod "$FUNCNAME:$LINENO db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
+_echod "${FUNCNAME}:${INENO} db_host='${db_host}' db_user='${db_user}' db_pwd='${db_pwd}'"
 
 while ! __connect; do __init; done
 

@@ -30,20 +30,20 @@ __port_name() {
 	echo ${port:+"-e 'ssh -p $port' "}
 }
 __rsync() {
-	_echod "$FUNCNAME:$LINENO cmd='${cmd}' from='${from}' to='${to}' exclude='${exclude}' excludefrom='${excludefrom}'"
-	_echod "$FUNCNAME:$LINENO _IPTHIS='${_IPTHIS}' include='${include}' includefrom='${includefrom}'"
-	_echod "$FUNCNAME:$LINENO delete='${delete}' dryrun='${dryrun}' archive='${archive}' verbose='${verbose}'"
+	_echod "${FUNCNAME}:${LINENO} cmd='${cmd}' from='${from}' to='${to}' exclude='${exclude}' excludefrom='${excludefrom}'"
+	_echod "${FUNCNAME}:${LINENO} _IPTHIS='${_IPTHIS}' include='${include}' includefrom='${includefrom}'"
+	_echod "${FUNCNAME}:${LINENO} delete='${delete}' dryrun='${dryrun}' archive='${archive}' verbose='${verbose}'"
 
-	_opts="${opts}${archive}${verbose}${dryrun}" && _opts=${_opts:+" -$_opts"}
+	_opts="${opts}${archive}${verbose}${dryrun}" && _opts=${_opts:+" -${_opts}"}
 
 	_delete=${delete:+" --delete"}
 
 	ip_from=$(__ip_name ${from})
 	ip_to=$(__ip_name ${to})
 	# check origin
-	[ "${ip_from}" = "${_IPTHIS}" ] && ! [ "${force}" ] && _askyn "This IP is the same as the origin, please confirm" && [ "$_ANSWER" = "n" ] && exit 1
+	[ "${ip_from}" = "${_IPTHIS}" ] && ! [ "${force}" ] && _askyn "This IP is the same as the origin, please confirm" && [ "${_ANSWER}" = "n" ] && exit 1
 	# check destination
-	[ "${ip_to}" = "${_IPTHIS}" ] && ! [ "${force}" ] && _askyn "This IP is the same as the destination, please confirm" && [ "$_ANSWER" = "n" ] && exit 1
+	[ "${ip_to}" = "${_IPTHIS}" ] && ! [ "${force}" ] && _askyn "This IP is the same as the destination, please confirm" && [ "${_ANSWER}" = "n" ] && exit 1
 
 	for str in ${exclude}; do _exclude+="--exclude=\"${str}\""; done
 	for str in ${excludefrom}; do _excludefrom+="--exclude-from=\"${str}\""; done
@@ -94,7 +94,7 @@ eval set -- "${opts}"
 opts=
 
 # options
-_echod "$FUNCNAME:$LINENO opts_given='${opts_given}' opts='${opts}'"
+_echod "${FUNCNAME}:${LINENO} opts_given='${opts_given}' opts='${opts}'"
 while true; do
 	case "$1" in
 		--help)
@@ -166,7 +166,7 @@ while true; do
 	shift
 done
 
-_echod "$FUNCNAME:$LINENO \$*='$*'"
+_echod "${FUNCNAME}:${LINENO} \$*='$*'"
 case "$1" in
 	# dev
 	ddn1|dev-desktop-node1)
@@ -245,4 +245,4 @@ shift
 # call command
 _eval ${cmd}
 
-_echod "$FUNCNAME:$LINENO $0 END"
+_echod "${FUNCNAME}:${LINENO} $0 END"

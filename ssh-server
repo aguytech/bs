@@ -52,8 +52,8 @@ for id in ${!S_CLUSTER[*]}; do
 			while read ctid ctname; do
 				if [[ "${ctid}" && "${ctname}" ]]; then
 					ips[${id}.${name}.${ctid}]="${s_ip}"
-					ports[${id}.${name}.${ctid}]="$S_HOST_PORT_PRE_SSH${ctid}"
-					users[${id}.${name}.${ctid}]="$S_HOST_PORT_PRE_SSH${ctid}"
+					ports[${id}.${name}.${ctid}]="${S_HOST_PORT_PRE_SSH}${ctid}"
+					users[${id}.${name}.${ctid}]="${S_HOST_PORT_PRE_SSH}${ctid}"
 				fi
 
 				# direct connection to server
@@ -67,4 +67,4 @@ done
 
 _menu "Select a VM" $(tr " " "\n" <<<${!ips[*]}|sort|xargs) || _exite
 
-__ssh "${users[$_ANSWER]}" "${ips[$_ANSWER]}" "${ports[$_ANSWER]}"
+__ssh "${users[${_ANSWER}]}" "${ips[${_ANSWER}]}" "${ports[${_ANSWER}]}"

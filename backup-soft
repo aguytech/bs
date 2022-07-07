@@ -256,7 +256,7 @@ __restore_one() {
 		return 1
 	fi
 
-	_echod "${FUNCNAME}::${LINENO} \$DATEB=$DATEB"
+	_echod "${FUNCNAME}::${LINENO} \$DATEB=${DATEB}"
 	# existing paths
 	paths_comp=`echo "${PATHS_SOFT["$1"]}"|sed -n 's|^comp_.*=\(.*\)$|\1|p'|xargs`
 	# check if paths_comp exists
@@ -352,7 +352,7 @@ __opts() {
 
 __main() {
 	_echod "======================================================"
-	_echod "$(ps -o args= $PPID)"
+	_echod "$(ps -o args= ${PPID})"
 
 	local PATH_BACKUP DATEB ACTION SOFTWARES
 

@@ -101,7 +101,7 @@ __opts() {
 
 __main() {
 	_echod "======================================================"
-	_echod "$(ps -o args= $PPID)"
+	_echod "$(ps -o args= ${PPID})"
 	local opts_short opts_long opts
 	local paths_sel args delete cts_sel
 

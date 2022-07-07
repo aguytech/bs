@@ -27,7 +27,7 @@ __init() {
 
 # reload php-fpm or apache service
 __reload() {
-	if [ $RELEASE = alpine ]; then
+	if [ ${RELEASE} = alpine ]; then
 		rc-service ${_FPM_SERVICE} reload
 	else
 		systemctl reload ${_FPM_SERVICE}.service
@@ -36,7 +36,7 @@ __reload() {
 
 # restart php-fpm or apache service
 __restart() {
-	if [ $RELEASE = alpine ]; then
+	if [ ${RELEASE} = alpine ]; then
 		rc-service ${_FPM_SERVICE} restart
 	else
 		systemctl restart ${_FPM_SERVICE}.service

@@ -163,4 +163,4 @@ ex ()
 [ -f ~/.bash_functions ] && . ~/.bash_functions
 
 # tmux
-#type tmux &>/dev/null && tmux ls &>/dev/null && [ -z $TMUX ] && [[ ! $TERM =~ screen ]] && tmux attach
+#type tmux &>/dev/null && tmux ls &>/dev/null && [ -z ${TMUX} ] && [[ ! ${TERM} =~ screen ]] && tmux attach

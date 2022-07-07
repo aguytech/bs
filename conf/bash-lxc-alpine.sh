@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # PS1
-if [ $USER = root ]; then
+if [ ${USER} = root ]; then
 	PS1="\e[1;38;5;214m\h\e[1;37m:\W\e[1;31m#\e[0;0m"
 else
 	PS1="\e[1;38;5;214m\u\e[1;37m@\e[1;38;5;214m\h\e[1;37m:\W\e[1;38;5;214m$\e[0;0m"

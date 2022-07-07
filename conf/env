@@ -31,6 +31,6 @@ test -f /etc/lsb-release && grep -iq ubuntu /etc/lsb-release && export TERM=xter
 
 ###  PYTHON
 
-#export PATH="~/.pyenv/bin:$PATH"
+#export PATH="${HOME}/.pyenv/bin:${PATH}"
 #eval "$(pyenv init -)"
 #eval "$(pyenv virtualenv-init -)"

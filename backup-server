@@ -45,7 +45,7 @@ __compress() {
 	! [ -d "$path_to" ] && mkdir -p "$path_to"
 
 	cd "$path_from"
-	_echoT "$PWD"
+	_echoT "${PWD}"
 
 	for path_sub in $paths_sub; do
 		path_sub=$(echo "$path_sub")
@@ -101,9 +101,9 @@ __main() {
 ########################  MAIN
 
 _echod "======================================================"
-_echod "$(ps -o args= $PPID)"
+_echod "$(ps -o args= ${PPID})"
 
-path_save="$S_PATH_BACKUP/$_DATE"
+path_save="${S_PATH_BACKUP}/${_DATE}"
 cmd_opt=" --exclude='.cache' -czf"
 cmd_ext=tgz
 
@@ -113,9 +113,9 @@ opts_long="all,vz,vz-dump,vz-cleanlog,help,debug,kvm,quiet"
 opts=$(getopt -o $opts_short -l $opts_long -n "${0##*/}" -- "$@" 2>/tmp/${0##*/}) || _exite "wrong options '$(</tmp/${0##*/})'"
 eval set -- "$opts"
 
-if [ "${_CLUSTER_IPS/$_IPTHIS/}" == "${_CLUSTER_IPS}" ]; then
+if [ "${_CLUSTER_IPS/${_IPTHIS}/}" == "${_CLUSTER_IPS}" ]; then
 	_askyn "This server is not in S_CLUSTER, confirm"
-	[ "$_ANSWER" == "n" ] && _exit
+	[ "${_ANSWER}" == "n" ] && _exit
 fi
 
 _echod "${FUNCNAME}::${LINENO} opts_given='$opts_given' opts='$opts'"

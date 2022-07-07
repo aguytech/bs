@@ -4,7 +4,7 @@
 # command to list $path_pkg
 __filter() {
 	echo -n "filter ${NUM}: "
-	NUM=$(($NUM + 1))
+	NUM=$((${NUM} + 1))
 	[ -e "${files_del}" ] && rm ${files_del}
 
 	shorts=`eval $1`

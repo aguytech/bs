@@ -6,7 +6,7 @@
 
 __clean_keep() {
 	path=${1:-${path}}
-	[ "$USER" != root ] && sudo='sudo ' || sudo=
+	[ "${USER}" != root ] && sudo='sudo ' || sudo=
 
 	! [ -d "${path}" ] && echo "path do not exist: '${path}'" && exit
 	count="$(${sudo}find ${path} -not \( -regex '/\(proc\|run\|sys\|var\/lib\/lxcfs\)' -prune \) -type f -name "$2" -exec echo "{}" \; -exec rm -fR "{}" \; | wc -l)"
@@ -15,7 +15,7 @@ __clean_keep() {
 
 __clean_trash() {
 	path=${1:-${path}}
-	[ "$USER" != root ] && sudo='sudo ' || sudo=
+	[ "${USER}" != root ] && sudo='sudo ' || sudo=
 
 	! [ -d "${path}" ] && echo "path do not exist: '${path}'" && exit
 	count="$(${sudo}find ${path} -not \( -regex '/\(proc\|run\/user\|sys\|var\/lib\/lxcfs\)' -prune \) -type d -name "$2" -exec echo {} \; -exec rm -fR {} \; | wc -l)"

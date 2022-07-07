@@ -25,8 +25,8 @@ path_backup_base="/ext/backups"
 
 # COMPRESS: sub level to compress
 paths_comp["/"]="etc"
-paths_comp["/home"]="$USER" # option 'all' take all /home subdirectories
-paths_comp["$HOME"]=".config
+paths_comp["/home"]="${USER}" # option 'all' take all /home subdirectories
+paths_comp["${HOME}"]=".config
 .eclipse
 .FreeCAD
 .squirrel-sql
@@ -204,30 +204,3 @@ for path_sync in ${!paths_sync[*]}; do
 		_exite "warning - skipped unable to find '$path_comp'"
 	fi
 done
-
-# SYNC POST
-
-_echoT "END
-########################"
-
-<<KEEP
-# virt-manager
-#VirtBase="/home/shared/.virt-manager"
-#VirtFrom="$VirtFrom/export"
-#VirtTo="${path_backup}/.virt-manager-"$"ddate
-#if ! [ -d "$VirtTo"" ]; then mkdir "$VirtTo"; fi
-#sudo chown .${USER} -R "$VirtBase"
-#sudo chmod g+rw -R "$VirtBase"
-#echo "---> copy virt-manager"
-#sudo cp -R "$VirtFrom/*" "$VirtTo"
-
-# var
-#paths="/var"
-#pathssub="svn www"
-#_compress "$(expr "$paths" : '.*\(/.*\)')" "$pathssub"
-
-# ext/stock
-#paths="/ext/stock"
-#pathssub="Dev Help"
-#_compress "$(expr "$paths" : '.*\(/.*\)')" "$pathssub"
-KEEP
