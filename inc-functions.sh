@@ -784,7 +784,7 @@ if [ "${_INSTALL}" ]; then
 		first_id="${!BASH_SOURCE[*]}" && first_id="${first_id#* }"
 		path_base=`dirname "$(readlink -e "${BASH_SOURCE[${first_id}]}")"`
 
-		file="${path_base/install-desktop/install}/conf-init.install"
+		file="${path_base/install-desktop/install}/conf-init"
 		! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to find file: ${file}" && exit 1
 		. "${file}"
 	fi
