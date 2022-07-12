@@ -142,7 +142,7 @@ __function_common() {
 	_ask() {
 		_ANSWER=
 		while [ -z "${_ANSWER}" ]; do
-			_echo_ -n "$*: "
+			echo -e -n "${yellow}$*: ${cclear}"
 			read _ANSWER
 			_echod
 		done
@@ -150,7 +150,7 @@ __function_common() {
 	# ask one time & accept no _ANSWER
 	_askno() {
 		_ANSWER=
-		_echo_ -n "$*: "
+		echo -e -n "${yellow}$*: ${cclear}"
 		read _ANSWER
 			_echod
 	}
@@ -160,7 +160,7 @@ __function_common() {
 		local options=" y n "
 		while [ "${options/ ${_ANSWER} }" = "${options}" ]; do
 			#_echo_ -n "${yellowb}$* y/n ${cclear}"
-			_echo_ -n "$* (y/n): "
+			echo -e -n "${yellow}$* (y/n): ${cclear}"
 			read _ANSWER
 			_echod
 		done
@@ -173,7 +173,7 @@ __function_common() {
 		[ -z "$*" ] && _exite "invalid options '$*' for _asks()"
 		local options=" $* "
 		while [ "${options/ ${_ANSWER} }" = "${options}" ]; do
-			_echo_ -n "${str} ($*): "
+			echo -e -n "${yellow}${str} ($*): ${cclear}"
 			read _ANSWER
 			_echod
 		done
