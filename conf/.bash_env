@@ -4,7 +4,7 @@
 # file for global configuration
 export S_GLOBAL_CONF="/etc/server/server.conf"
 # file for global functions
-export S_GLOBAL_FUNCTIONS="/usr/local/bs/inc-functions.sh"
+export S_GLOBAL_FUNCTIONS="/usr/local/bs/inc-functions"
 
 ###  QT
 export QT_QPA_PLATFORMTHEME="qt5ct"
