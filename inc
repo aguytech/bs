@@ -475,7 +475,10 @@ __function_install() {
 
 	_source_sub() {
 		# skip perso if not found
-		[ "$1" = perso ] && ! [ -f ${_PATH_BASE}/perso/perso ] && return
+		if [ "$1" = perso ]; then
+			[ -f ${_PATH_BASE}/perso/perso ] && . ${_PATH_BASE}/perso/perso
+			return
+		fi
 
 		if ! grep -q ^$1 ${_FILE_DONE}; then
 			_echoA "\n> $1"
