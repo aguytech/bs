@@ -352,7 +352,7 @@ __function_install() {
 	# 1 variable name
 	# 2 optionnal file name
 	_confget() {
-		local file="${2:-${_FILE_CONF}}"file=
+		local file="${2:-${_FILE_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		#! [ -f "${file}" ] && return 1
 
@@ -472,6 +472,26 @@ __function_install() {
 			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
 		fi
 	}
+
+	_source_sub() {
+		# skip perso if not found
+		[ "$1" = perso ] && ! [ -f ${_PATH_BASE}/perso/perso ] && return
+
+		if ! grep -q ^$1 ${_FILE_DONE}; then
+			_echoA "\n> $1"
+			local file="${_PATH_BASE}/sub/$1"
+			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
+			if . "${file}"; then
+				echo $1 >> ${_FILE_DONE}
+				_echoA "< $1\n"
+				_askno "Validate to continue"
+			else
+				_echoE "See file log $1 for errors"
+				exit
+			fi
+		fi
+	}
+
 }
 
 __data() {
