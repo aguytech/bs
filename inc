@@ -486,7 +486,7 @@ __function_install() {
 			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
 			if . "${file}"; then
 				echo $1 >> ${_FILE_DONE}
-				_echoA "< $1\n"
+				_echoA "< $1"
 				[ "${_HALT}" ] && _askno "Validate to continue"
 			else
 				_echoE "See file log $1 for errors"
