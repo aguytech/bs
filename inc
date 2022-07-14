@@ -487,7 +487,7 @@ __function_install() {
 			if . "${file}"; then
 				echo $1 >> ${_FILE_DONE}
 				_echoA "< $1\n"
-				_askno "Validate to continue"
+				[ "${_HALT}" ] && _askno "Validate to continue"
 			else
 				_echoE "See file log $1 for errors"
 				exit
