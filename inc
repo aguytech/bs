@@ -473,7 +473,11 @@ __function_install() {
 		fi
 	}
 
+	# 1 part to source
+	# 2 relative path for sourcing
 	_source_sub() {
+		local relpath=${2:-sub}
+		
 		# skip perso if not found
 		if [ "$1" = perso ]; then
 			[ -f ${_PATH_BASE}/perso/perso ] && . ${_PATH_BASE}/perso/perso
@@ -482,7 +486,7 @@ __function_install() {
 
 		if ! grep -q ^$1 ${_FILE_DONE}; then
 			_echoA "\n> $1"
-			local file="${_PATH_BASE}/sub/$1"
+			local file="${_PATH_BASE}/${relpath}/$1"
 			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
 			if . "${file}"; then
 				echo $1 >> ${_FILE_DONE}
