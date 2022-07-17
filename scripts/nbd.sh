@@ -86,12 +86,6 @@ __init() {
 	# variables
 	script=${0##*/}
 	_NBD_FILE=/tmp/${script}
-	# log
-	path_log=/var/log/${script}
-	[ -d "${path_log}" ] || sudo mkdir -p ${path_log}
-	echo -e "\n### $( date "+%Y%m%d-%H:%M:%S" )" | tee -a ${path_log}/${script}.log > tee -a ${path_log}/${script}.err
-	# exec
-	exec 1> >( tee -a ${path_log}/${script}.log )    2> >( tee -a ${path_log}/${script}.err )
 
 	# nbd path
 	! [ -d "${_PATH_NBD}" ] && echo "Unable to find path: _PATH_NBD=${_PATH_NBD}" >&2 && exit 1
@@ -101,6 +95,12 @@ __init() {
 	[ "${USER}" != root  ] && echo "Root privileges are needed" >&2 && __usage
 	# Wrong parameters numbers
 	[ "$#" -lt 2 ] && echo "Wrong parameters numbers: $#" >&2 && __usage
+
+	# log
+	path_log=/var/log/${script}
+	[ -d "${path_log}" ] || mkdir -p ${path_log}
+	exec 1> >( tee -a ${path_log}/${script}.log )    2> >( tee -a ${path_log}/${script}.err )
+	echo -e "\n### $( date "+%Y%m%d-%H:%M:%S" )" | tee -a ${path_log}/${script}.log > tee -a ${path_log}/${script}.err
 }
 
 _PATH_NBD=
