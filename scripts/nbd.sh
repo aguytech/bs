@@ -103,7 +103,7 @@ __init() {
 	[ "$#" -lt 2 ] && echo "Wrong parameters numbers: $#" >&2 && __usage
 }
 
-_PATH_NBD=/vms/${script}
+_PATH_NBD=
 
 __init $*
 
