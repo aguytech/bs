@@ -1,6 +1,4 @@
 #!/bin/bash
-#
-# write by Aguy
 
 ########################  FUNCTION
 
