@@ -475,7 +475,7 @@ __function_install() {
 	# 2 relative path for sourcing
 	_source_sub() {
 		local relpath=${2:-sub}
-		local lpart=$( [ "$2" ] && echo "$2 $1" || echo "$1" )
+		local lpart=$( [ "$2" ] && echo "$2_$1" || echo "$1" )
 		
 		# skip perso if not found
 		if [ "$1" = perso ]; then
