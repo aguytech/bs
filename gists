@@ -2,18 +2,16 @@
 
 __usage() {
 	echo "
-${script} [options] <clone/pull/push> [gist]
+${script} [options] <clone/pull/push/purge> [gist]
 Manage gists with token privileges
     Without given [gist] option do for all existing"
 	exit
 }
 __mod_origin() {
 	cd "$1"
-
 	origin=$( git config remote.origin.url )
 	origin="https://${token}@${origin#https://}"
 	git config remote.origin.url ${origin}
-
 	cd ..
 }
 
@@ -30,36 +28,59 @@ __select() {
 }
 
 __valid() {
-	read -p "validate to ${action} $(wc -l <<<${gists}) gists Y/n: " _ANSWER
+	read -p "Validate to ${action} $(wc -l <<<${gists}) gists Y/n: " _ANSWER
 	! [[ "${_ANSWER}" =~ ^([yY]|)$ ]] && exit
 }
 
 __clone() {
 	path_in=$(pwd)
-	cd "${path_gists}" 
+	cd "${path_gists}"
 
 	while read i n; do
 		echo "- ${n} ${i}"
-		if ! [ -d "${n}" ]; then
+		if ! [ -d "${n}:${i}" ]; then
 			git clone -q https://gist.github.com/aguytech/${i}
 			__mod_origin ${i}
 			mv $i "${n}:${i}"
 		fi
-	done <<< ${gists}
+	done <<<${gists}
 
 	cd ${path_in}
 }
 
 __cmd() {
 	path_in=$(pwd)
-	cd ${path_gists}
 
 	while read id name; do
-		cd ${name}:${id}
-			echo -e "${yellow}- ${name} ${id}${cclear}"
-			git $*
-		cd ..
-	done <<< ${gists}
+		path="${path_gists}/${name}:${id}"
+		if ! [ -d "${path}" ]; then
+			echo -e "${red}- ${name} missing \nUse 'gists clone ${id}'${cclear}"
+			continue
+		fi
+		cd "${path_gists}/${name}:${id}"
+		echo -e "${yellow}- ${name} ${id}${cclear}"
+		git $*
+	done <<<${gists}
+
+	cd ${path_in}
+}
+
+__purge() {
+	path_in=$(pwd)
+	cd "${path_gists}" 
+
+	paths=
+	while read path; do
+		if ! echo "${gists}" | grep -q "${path##*:} ${path%%:*}"; then
+			paths+="${path} "
+		fi
+	done <<< $( ls )
+	if [ "${paths}" ]; then
+		echo "Confirm following deletions:"
+		echo ${paths} | tr ' ' '\n'
+		read -p "Y/n: " _ANSWER
+		[ -z "${_ANSWER/y/}" ] && rm -fR ${paths}
+	fi
 
 	cd ${path_in}
 }
@@ -84,7 +105,7 @@ __init() {
 
 	[ "$#" -lt 1 ] && echo "Wrong parameters numbers: $#" && __usage
 
-	yellow='\e[0;93m'; cclear='\e[0;0m';
+	yellow='\e[0;93m'; red='\e[0;31m'; cclear='\e[0;0m';
 }
 
 __init $*
@@ -97,6 +118,7 @@ case ${action} in
 	pull)     __cmd pull --all ;;
 	push)   __cmd push --all ;;
 	status)   __cmd status ;;
+	purge)   __purge ;;
 	*)
 		echo "No good command given to ${script}"
 		__usage
