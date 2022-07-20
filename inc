@@ -483,12 +483,13 @@ __function_install() {
 			return
 		fi
 
-		if ! grep -q "^${lpart}" ${_FILE_DONE}; then
+		if ! grep -q "^${lpart} ${lpart}" ${_FILE_DONE}; then
+			grep -q "^${lpart}$" ${_FILE_DONE} || echo ${lpart} >> ${_FILE_DONE}
 			_echoA "\n> ${lpart}"
 			local file="${_PATH_BASE}/${relpath}/$1"
 			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
 			if . "${file}"; then
-				echo ${lpart} >> ${_FILE_DONE}
+				sed -i "/^${lpart}$/ s|$| ${lpart}|" ${_FILE_DONE} ${_FILE_DONE}
 				_echoA "< ${lpart}"
 				[ "${_HALT}" = y ] && _askno "Validate to continue"
 			else
