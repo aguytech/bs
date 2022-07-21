@@ -39,7 +39,7 @@ __clone() {
 	while read i n; do
 		echo "- ${n} ${i}"
 		if ! [ -d "${n}:${i}" ]; then
-			git clone -q https://gist.github.com/aguytech/${i}
+			git clone https://gist.github.com/aguytech/${i}
 			__mod_origin ${i}
 			mv $i "${n}:${i}"
 		fi
