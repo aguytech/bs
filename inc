@@ -453,6 +453,19 @@ __function_install() {
 		fi
 	}
 
+	# get file from _PATH_SOFT or download it with curl
+	# $1 file
+	# $2 url
+	_get_curl() {
+		if [ -f "${_PATH_SOFTS}/$1" ]; then
+			echo ${_PATH_SOFTS}/$1
+		else
+			file=/tmp/$1
+			_eval curl -s -o ${file} $2 || _exite "Unable to curl $2"
+			echo ${file}
+		fi
+	}
+
 	# use adjusted installer
 	# $1 packages
 	_install() {
