@@ -768,7 +768,6 @@ __data() {
 		else
 			[ -z "$_PATH_BASE" ] && _PATH_BASE=$(dirname $(readlink -f "$0"))
 		fi
-		_PATH_BASE_SUB="$_PATH_BASE/sub"
 	fi
 
 	# IP server
