@@ -13,12 +13,6 @@ __function_common() {
 	_echO() {
 		echo -e "${whiteb}$*${cclear}"
 	}
-	_echo_() {
-		echo -e $*
-	}
-	_echO_() {
-		echo -e ${whiteb}$*${cclear}
-	}
 	# debug
 	_echod() {
 		echo "$(date +"%Y%m%d %T") $*" >&6
@@ -139,8 +133,8 @@ __function_common() {
 	# ask while not answer
 	_ask() {
 		_ANSWER=
-		while [ -z "$_ANSWER" ]; do
-			_echo_ -n "$*: "
+		while [ -z "${_ANSWER}" ]; do
+			echo -e -n "${yellow}$*: ${cclear}"
 			read _ANSWER
 			_echod
 		done
@@ -148,7 +142,7 @@ __function_common() {
 	# ask one time & accept no _ANSWER
 	_askno() {
 		_ANSWER=
-		_echo_ -n "$*: "
+		echo -e -n "${yellow}$*: ${cclear}"
 		read _ANSWER
 			_echod
 	}
@@ -157,8 +151,7 @@ __function_common() {
 		_ANSWER=
 		local options=" y n "
 		while [ "${options/ ${_ANSWER} }" = "${options}" ]; do
-			#_echo_ -n "${yellowb}$* y/n ${cclear}"
-			_echo_ -n "$* (y/n): "
+			echo -e -n "${yellow}$* (y/n): ${cclear}"
 			read _ANSWER
 			_echod
 		done
@@ -171,7 +164,7 @@ __function_common() {
 		[ -z "$*" ] && _exite "invalid options '$*' for _asks()"
 		local options=" $* "
 		while [ "${options/ ${_ANSWER} }" = "${options}" ]; do
-			_echo_ -n "${str} ($*): "
+			echo -e -n "${yellow}${str} ($*): ${cclear}"
 			read _ANSWER
 			_echod
 		done
@@ -209,7 +202,7 @@ __function_common() {
 		shift
 		local ansmenu="valid $* "
 		local anstmp=
-		while [ "$anstmp" != valid ]; do
+		while [ "${anstmp}" != valid ]; do
 			echo "——————————————————————"
 			select anstmp in ${ansmenu}; do [ "${anstmp::2}" == -- ] && ansmenu=${ansmenu/ ${anstmp} / ${anstmp#--} } || ansmenu=${ansmenu/ ${anstmp} / --${anstmp} }; break; done
 			_echod
@@ -225,26 +218,26 @@ __function_common() {
 		[ -r "$1" ] || _su=sudo
 		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  \
 		&& ! ( ${_su} [ -e "$1.keep" ] || ${_su} [ -h "$1.keep" ] ) \
-		&& _evalrq ${_su} cp -a "$1" "$1.keep"
+		&& _evalrq cp -a "$1" "$1.keep"
 	}
 	_keepmv() {
 		local _su=
 		[ -w "$1" ] || _su=sudo
 		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  \
 		&& ! ( ${_su} [ -e "$1.keep" ] || ${_su} [ -h "$1.keep" ] ) \
-		&& _evalrq ${_su} mv "$1" "$1.keep"
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq  ${_su} rm -fR "$1"
+		&& _evalrq mv "$1" "$1.keep"
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq  rm -fR "$1"
 	}
 
 	_keepcpts() {
 		local _su=
 		[ -r "$1" ] || _su=sudo
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq ${_su} cp -a "$1" "$1.$(date +%s)"
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq cp -a "$1" "$1.$(date +%s)"
 	}
 	_keepmvts() {
 		local _su=
 		[ -w "$1" ] || _su=sudo
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  && _evalrq ${_su} mv "$1" "$1.$(date +%s)"
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  && _evalrq mv "$1" "$1.$(date +%s)"
 	}
 
 	##############  PWD
@@ -298,10 +291,7 @@ __function_common() {
 	##############  REDIRECT
 
 	_redirect() {
-		# preserve sourcing directly from bash
-		[ "${0%*bash}" != "$0" ] && echo "No file descriptors are instancied (preserving from direct bash sourcing)" >&2 && return
-
-		[ "${S_REDIRECTED}" ] && _echod "${FUNCNAME}:${LINENO} Already redirected" && return
+		[ "${S_REDIRECTED}" ] && _echod "${FUNCNAME}:${LINENO} Already redirected" && return 1
 
 		# log path
 		[ "${_INSTALL}" ] && _PATH_LOG="${S_PATH_LOG_INSTALL:-/var/log/install}"
@@ -321,7 +311,6 @@ __function_common() {
 		local file_debug="${_PATH_LOG}/${_SCRIPT%.*}.debug"
 
 		local opt=${1:-${S_TRACE}}
-		opt=${opt:-${S_TRACEOPT}}
 		opt=${opt:-info}
 
 		# file descriptors
@@ -368,7 +357,7 @@ __function_install() {
 	# 1 variable name
 	# 2 optionnal file name
 	_confget() {
-		local file="${2:-${S_FILE_INSTALL_CONF}}"file=
+		local file="${2:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		#! [ -f "${file}" ] && return 1
 
@@ -549,13 +538,26 @@ __function_install() {
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
 
 		if type systemctl >/dev/null 2>&1; then
-			_evalr systemctl -q "$1" "$2.service"
+			_evalr systemctl $1 ${2%.service}.service
 		elif type service >/dev/null 2>&1; then
-			_evalr service "${2%.*}" "$1"
+			_evalr service ${2%.*} $1
 		elif type rc-service >/dev/null 2>&1; then
-			_evalr service "${2%.*}" "$1"
+			_evalr service ${2%.*} $1
 		else
 			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
+		fi
+	}
+
+	# get file from _PATH_SOFT or download it with curl
+	# $1 file
+	# $2 url
+	_get_curl() {
+		if [ -f "${_PATH_SOFTS}/$1" ]; then
+			echo ${_PATH_SOFTS}/$1
+		else
+			file=/tmp/$1
+			_eval curl -s -o ${file} $2 || _exite "Unable to curl $2"
+			echo ${file}
 		fi
 	}
 
@@ -584,6 +586,35 @@ __function_install() {
 		local file="${1:-S_FILE_INSTALL_CONF}"
 		sed -i 's|^\(_[^=]*PWD[^=]*=\).*|\1""|g' "${file}"
 	}
+
+	# 1 part to source
+	# 2 relative path for sourcing
+	_source_sub() {
+		local relpath=${2:-sub}
+		local lpart=$( [ "$2" ] && echo "$2_$1" || echo "$1" )
+		
+		# skip perso if not found
+		if [ "$1" = perso ]; then
+			[ -f ${_PATH_BASE}/perso/perso ] && . ${_PATH_BASE}/perso/perso
+			return
+		fi
+
+		if ! grep -q "^${lpart} ${lpart}" ${S_FILE_INSTALL_DONE}; then
+			grep -q "^${lpart}$" ${S_FILE_INSTALL_DONE} || echo ${lpart} >> ${S_FILE_INSTALL_DONE}
+			_echoA "\n> ${lpart}"
+			local file="${_PATH_BASE}/${relpath}/$1"
+			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
+			if . "${file}"; then
+				sed -i "/^${lpart}$/ s|$| ${lpart}|" ${S_FILE_INSTALL_DONE}
+				_echoA "< ${lpart}"
+				[ "${_HALT}" = y ] && _askno "Validate to continue"
+			else
+				_echoE "See logs for errors"
+				exit
+			fi
+		fi
+	}
+
 }
 
 __function_lxc() {
@@ -756,10 +787,12 @@ __data_post() {
 
 ########################  MAIN
 
-# init functions
+# preserve sourcing directly from bash
+[ "${0%*bash}" != "$0" ] && echo "No file descriptors are instancied (preserving from direct bash sourcing)" >&2 && return 1
+
+# initialize functions
 __function_common
 __function_install
-__function_lxc
 
 # set global data
 __data
@@ -775,14 +808,10 @@ if [ "${_INSTALL}" ]; then
 
 	[ -d "${S_PATH_CONF}" ] || mkdir -p ${S_PATH_CONF}
 	for file in ${S_FILE_INSTALL_CONF} ${S_FILE_INSTALL_DONE}; do [ -f "${file}" ] || touch ${file};	done
-	. ${S_FILE_INSTALL_CONF} # for partial install
+	. ${S_FILE_INSTALL_CONF}
 
 	if ! grep -q conf-init ${S_FILE_INSTALL_DONE}; then
-		# get id of first called file
-		first_id="${!BASH_SOURCE[*]}" && first_id="${first_id#* }"
-		path_base=`dirname "$(readlink -e "${BASH_SOURCE[${first_id}]}")"`
-
-		file="${path_base/install-desktop/install}/conf-init"
+		file="${_PATH_BASE/install-desktop/install}/conf-init"
 		! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to find file: ${file}" && exit 1
 		. "${file}"
 	fi

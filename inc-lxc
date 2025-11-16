@@ -1,8 +1,4 @@
 #!/bin/bash
-#
-# Provides:						inc-lxc
-# Short-Description:		tools functions to manipulate container, to be sourced by commands & scripts
-# Description:					tools functions to manipulate container, to be sourced by commands & scripts
 
 ########################  GLOBAL FUNCTIONS
 #S_TRACE=debug

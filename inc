@@ -13,12 +13,6 @@ __function_common() {
 	_echO() {
 		echo -e "${whiteb}$*${cclear}"
 	}
-	_echo_() {
-		echo -e $*
-	}
-	_echO_() {
-		echo -e ${whiteb}$*${cclear}
-	}
 	# debug
 	_echod() {
 		echo "$(date +"%Y%m%d %T") $*" >&6
@@ -157,7 +151,6 @@ __function_common() {
 		_ANSWER=
 		local options=" y n "
 		while [ "${options/ ${_ANSWER} }" = "${options}" ]; do
-			#_echo_ -n "${yellowb}$* y/n ${cclear}"
 			echo -e -n "${yellow}$* (y/n): ${cclear}"
 			read _ANSWER
 			_echod
@@ -225,26 +218,26 @@ __function_common() {
 		[ -r "$1" ] || _su=sudo
 		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  \
 		&& ! ( ${_su} [ -e "$1.keep" ] || ${_su} [ -h "$1.keep" ] ) \
-		&& _evalrq ${_su} cp -a "$1" "$1.keep"
+		&& _evalrq cp -a "$1" "$1.keep"
 	}
 	_keepmv() {
 		local _su=
 		[ -w "$1" ] || _su=sudo
 		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  \
 		&& ! ( ${_su} [ -e "$1.keep" ] || ${_su} [ -h "$1.keep" ] ) \
-		&& _evalrq ${_su} mv "$1" "$1.keep"
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq  ${_su} rm -fR "$1"
+		&& _evalrq mv "$1" "$1.keep"
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq  rm -fR "$1"
 	}
 
 	_keepcpts() {
 		local _su=
 		[ -r "$1" ] || _su=sudo
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq ${_su} cp -a "$1" "$1.$(date +%s)"
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq cp -a "$1" "$1.$(date +%s)"
 	}
 	_keepmvts() {
 		local _su=
 		[ -w "$1" ] || _su=sudo
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  && _evalrq ${_su} mv "$1" "$1.$(date +%s)"
+		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  && _evalrq mv "$1" "$1.$(date +%s)"
 	}
 
 	##############  PWD
@@ -298,13 +291,13 @@ __function_common() {
 	##############  REDIRECT
 
 	_redirect() {
-		[ "${_REDIRECTED}" ] && _echod "${FUNCNAME}:${LINENO} Already redirected" && return 1
+		[ "${S_REDIRECTED}" ] && _echod "${FUNCNAME}:${LINENO} Already redirected" && return 1
 
 		local file_info="${_PATH_LOG}/${_SCRIPT%.*}.info"
 		local file_err="${_PATH_LOG}/${_SCRIPT%.*}.err"
 		local file_debug="${_PATH_LOG}/${_SCRIPT%.*}.debug"
 
-		local opt=${_TRACE:-info}
+		local opt=${S_TRACE:-info}
 
 		# file descriptors
 		case "${opt}" in
@@ -322,7 +315,7 @@ __function_common() {
 		esac
 
 		# singleton
-		_REDIRECTED=true
+		S_REDIRECTED=true
 	}
 }
 
@@ -333,7 +326,7 @@ __function_install() {
 	# 1 variable name
 	# 2 optionnal file name
 	_confhave() {
-		local file="${2:-${_FILE_CONF}}"
+		local file="${2:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		grep -q "^$1=.*" "${file}"
 	}
@@ -342,7 +335,7 @@ __function_install() {
 	# 2 key name
 	# 3 optionnal file name
 	_confhave_array() {
-		local file="${3:-${_FILE_CONF}}"
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		grep -q "^$1\[$2\]=.*" "${file}"
 	}
@@ -350,7 +343,7 @@ __function_install() {
 	# 1 variable name
 	# 2 optionnal file name
 	_confget() {
-		local file="${2:-${_FILE_CONF}}"
+		local file="${2:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		#! [ -f "${file}" ] && return 1
 
@@ -361,7 +354,7 @@ __function_install() {
 	# 2 variable value
 	# 3 optionnal file name
 	_confset() {
-		local file="${3:-${_FILE_CONF}}"
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		#! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		[ -f "${file}" ] || touch "${file}"
 
@@ -377,7 +370,7 @@ __function_install() {
 	# 3 value
 	# 4 optionnal file name
 	_confset_array() {
-		local file="${4:-${_FILE_CONF}}"
+		local file="${4:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		if _confhave_array "$1" "$2" "${file}"; then
@@ -391,7 +384,7 @@ __function_install() {
 	# 2 variable value
 	# 3 optionnal file name
 	_confmulti_havevalue() {
-		local file="${3:-${_FILE_CONF}}"
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		[[ " $(_confget "$1" "${file}") " = *" $2 "* ]]
@@ -401,7 +394,7 @@ __function_install() {
 	# 2 variable value
 	# 3 optionnal file name
 	_confmulti_add() {
-		local file="${3:-${_FILE_CONF}}"
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		_confmulti_havevalue "$1" "$2" "${file}" && return 0
@@ -413,7 +406,7 @@ __function_install() {
 	# 2 variable value
 	# 3 optionnal file name
 	_confmulti_remove() {
-		local file="${3:-${_FILE_CONF}}"
+		local file="${3:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 
 		_confmulti_havevalue "$1" "$2" "${file}" || return 0
@@ -484,6 +477,8 @@ __function_install() {
 		fi
 	}
 
+	##############  OTHERS
+
 	# 1 part to source
 	# 2 relative path for sourcing
 	_source_sub() {
@@ -496,13 +491,13 @@ __function_install() {
 			return
 		fi
 
-		if ! grep -q "^${lpart} ${lpart}" ${_FILE_DONE}; then
-			grep -q "^${lpart}$" ${_FILE_DONE} || echo ${lpart} >> ${_FILE_DONE}
+		if ! grep -q "^${lpart} ${lpart}" ${S_FILE_INSTALL_DONE}; then
+			grep -q "^${lpart}$" ${S_FILE_INSTALL_DONE} || echo ${lpart} >> ${S_FILE_INSTALL_DONE}
 			_echoA "\n> ${lpart}"
 			local file="${_PATH_BASE}/${relpath}/$1"
 			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
 			if . "${file}"; then
-				sed -i "/^${lpart}$/ s|$| ${lpart}|" ${_FILE_DONE} ${_FILE_DONE}
+				sed -i "/^${lpart}$/ s|$| ${lpart}|" ${S_FILE_INSTALL_DONE}
 				_echoA "< ${lpart}"
 				[ "${_HALT}" = y ] && _askno "Validate to continue"
 			else
@@ -528,8 +523,8 @@ __data() {
 	[ -d "/ext/shared/Soft/linux" ] && _PATH_SOFT=/ext/shared/Soft/linux
 	[ -d "${HOME}/Soft/linux" ] && _PATH_SOFT="${HOME}/Soft/linux"
 	[ -d "${_PATH_SOFT}" ] && _PATH_SOFT_BACKUP=${_PATH_SOFT}/backup
-	_FILE_CONF=${_FILE_CONF:-${_PATH_CONF}/install.conf}
-	_FILE_DONE=${_FILE_DONE:-${_PATH_CONF}/install.done}
+	S_FILE_INSTALL_CONF=${S_FILE_INSTALL_CONF:-${_PATH_CONF}/install.conf}
+	S_FILE_INSTALL_DONE=${S_FILE_INSTALL_DONE:-${_PATH_CONF}/install.done}
 	_FILE_PCK=${_PATH_CONF}/install.pck
 
 	PATH="${HOME}/.local/bin:${PATH}"
@@ -542,8 +537,11 @@ __data() {
 # no root user
 [ "${USER}" = root ] && echo "Do not use root user for installation" >&2 && exit 1
 
+# initialize functions
 __function_common
 __function_install
+
+# set global data
 __data
 
 for path in ${_PATH_CONF} ${_PATH_LOG}; do
@@ -553,11 +551,11 @@ for path in ${_PATH_CONF} ${_PATH_LOG}; do
 	fi
 done
 
-for file in ${_FILE_CONF} ${_FILE_DONE}; do
+for file in ${S_FILE_INSTALL_CONF} ${S_FILE_INSTALL_DONE}; do
 	[ -f "${file}" ] || touch ${file}
 done
 
-. ${_FILE_CONF} # for partial install
+. ${S_FILE_INSTALL_CONF} # for partial install
 
 # print major variables
 echo > ${_PATH_CONF}/vars
