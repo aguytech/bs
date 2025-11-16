@@ -1,3 +1,5 @@
+#!/bin/sh
+
 ########################  GLOBAL
 alias l='ls -CF --color=auto'
 alias la='ls -A --color=auto'

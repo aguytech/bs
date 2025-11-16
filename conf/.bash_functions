@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Provides:             .bash_functions
 # Short-Description:    local functions with global scope

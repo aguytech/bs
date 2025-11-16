@@ -7,7 +7,7 @@ export S_GLOBAL_CONF="/etc/server/server.conf"
 export S_GLOBAL_FUNCTIONS="/usr/local/bs/inc-functions"
 
 ###  QT
-export QT_QPA_PLATFORMTHEME="qt5ct"
+export QT_QPA_PLATFORMTHEME="qt6ct"
 
 ###  EDITOR
 type vim >/dev/null 2>&1 && export EDITOR=vim && export SYSTEMD_EDITOR=vim
