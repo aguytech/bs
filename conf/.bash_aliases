@@ -26,12 +26,12 @@ alias gita='echo "git add *? " && read str && git add * && git status '
 # commit
 alias gitcim='git commit -m'
 # branch
-alias gitbrv='git branch -v'
+alias gitbrv='git --no-pager branch -v'
 # merge
-alias gitcm='git branch -v && echo -n "push -> master? " && read str && git co master && git merge - && git co - && git branch -v'
-alias gitcd='git branch -v && echo -n "push -> dev? " && read str && git co dev && git merge - && git co - && git branch -v'
+alias gitcm='git --no-pager branch -v && echo -n "push -> main? " && read str && git co main && git merge - && git co - && git --no-pager branch -v'
+alias gitcd='git --no-pager branch -v && echo -n "push -> dev? " && read str && git co dev && git merge - && git co - && git --no-pager branch -v'
 # push
-alias gitpa='git branch -v && echo -n "push all? " && read str && git push --all && git push --tag && git branch -v'
+alias gitpa='git --no-pager branch -v && echo -n "push all? " && read str && git push --all && git push --tag && git --no-pager branch -v'
 
 ########################  SSH
 alias sshs='ssh-server'
