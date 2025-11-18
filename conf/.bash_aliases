@@ -29,10 +29,10 @@ alias gitcim='git commit -m'
 alias gitbrv='git --no-pager branch -v'
 alias gitbrr='git --no-pager branch -rv'
 # merge
-alias gitcm='git --no-pager branch -v && echo -n "push -> main? " && read str && git co main && git merge - && git co - && git --no-pager branch -rv && git --no-pager branch -v'
-alias gitcd='git --no-pager branch -v && echo -n "push -> dev? " && read str && git co dev && git merge - && git co - && git --no-pager branch -rv && git --no-pager branch -v'
+alias gitcm='git --no-pager branch -v && echo -n "push -> main? " && read str && git co main && git merge - && git co - && git --no-pager branch -v'
+alias gitcd='git --no-pager branch -v && echo -n "push -> dev? " && read str && git co dev && git merge - && git co - && git --no-pager branch -v'
 # push
-alias gitpa='git --no-pager branch -v && echo -n "push all? " && read str && git push --all && git push --tag && git --no-pager branch -rv && git --no-pager branch -v'
+alias gitpa='git --no-pager branch -v && echo -n "push all to remote ? " && read str && git push --all && git push --tag && git --no-pager branch -rv && git --no-pager branch -v'
 
 ########################  SSH
 alias sshs='ssh-server'
