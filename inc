@@ -321,6 +321,67 @@ __function_common() {
 
 __function_install() {
 
+	# use adjusted installer
+	# $1 packages
+	_install() {
+		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
+		local pcks=" $* "
+		# wrong number of parameters
+
+		if type apt >/dev/null 2>&1; then
+			_evalr apt install -y $*
+		elif type pacman >/dev/null 2>&1; then
+			pcks="${pcks/ mariadb-client / mariadb-clients }"
+			pcks="${pcks/ redis-tools / redis }"
+			[ "$(pacman -Ss redis|grep installed)" ] || _evalr pacman -S --noconfirm --needed ${pcks}
+		else
+			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
+		fi
+	}
+
+	# install packages from aur
+	_install_aur() {
+		for package in $*; do
+			if ! yay -Qi ${package} >/dev/null 2>&1; then
+				_echot "------- install ${package}"
+				if yay -S --noconfirm --needed ${package}; then
+					_partadd "${package}" ${_FILE_PCK_AUR}
+				else
+					_exite "Unable to install aur package: ${package}"
+				fi
+			else
+				_echoe "Unable to find aur package: ${package}"
+			fi
+		done
+	}
+
+	# 1 part to source
+	# 2 relative path for sourcing
+	_source_sub() {
+		local relpath=${2:-sub}
+		local lpart=$( [ "$2" ] && echo "$2_$1" || echo "$1" )
+		
+		# skip perso if not found
+		if [ "$1" = perso ]; then
+			[ -f ${_PATH_BASE}/perso/perso ] && . ${_PATH_BASE}/perso/perso
+			return
+		fi
+
+		if ! grep -q "^${lpart}" ${S_FILE_INSTALL_DONE}; then
+			_echoA "\n=======================> ${lpart}"
+			local file="${_PATH_BASE}/${relpath}/$1"
+			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
+			if . "${file}"; then
+				echo "${lpart}" >> ${S_FILE_INSTALL_DONE}
+				_echoA "<==== ${lpart}"
+				[ "${_HALT}" = y ] && _askno "Validate to continue"
+			else
+				_echoE "See logs for errors"
+				exit
+			fi
+		fi
+	}
+
 	##############  CONF
 
 	# 1 variable name
@@ -459,54 +520,6 @@ __function_install() {
 		fi
 	}
 
-	# use adjusted installer
-	# $1 packages
-	_install() {
-		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
-		local pcks=" $* "
-		# wrong number of parameters
-
-		if type apt >/dev/null 2>&1; then
-			_evalr apt install -y $*
-		elif type pacman >/dev/null 2>&1; then
-			pcks="${pcks/ mariadb-client / mariadb-clients }"
-			pcks="${pcks/ redis-tools / redis }"
-			[ "$(pacman -Ss redis|grep installed)" ] || _evalr pacman -S --noconfirm --needed ${pcks}
-		else
-			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
-		fi
-	}
-
-	##############  OTHERS
-
-	# 1 part to source
-	# 2 relative path for sourcing
-	_source_sub() {
-		local relpath=${2:-sub}
-		local lpart=$( [ "$2" ] && echo "$2_$1" || echo "$1" )
-		
-		# skip perso if not found
-		if [ "$1" = perso ]; then
-			[ -f ${_PATH_BASE}/perso/perso ] && . ${_PATH_BASE}/perso/perso
-			return
-		fi
-
-		if ! grep -q "^${lpart} ${lpart}" ${S_FILE_INSTALL_DONE}; then
-			grep -q "^${lpart}$" ${S_FILE_INSTALL_DONE} || echo ${lpart} >> ${S_FILE_INSTALL_DONE}
-			_echoA "\n> ${lpart}"
-			local file="${_PATH_BASE}/${relpath}/$1"
-			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
-			if . "${file}"; then
-				sed -i "/^${lpart}$/ s|$| ${lpart}|" ${S_FILE_INSTALL_DONE}
-				_echoA "< ${lpart}"
-				[ "${_HALT}" = y ] && _askno "Validate to continue"
-			else
-				_echoE "See logs for errors"
-				exit
-			fi
-		fi
-	}
-
 }
 
 __data() {
@@ -547,7 +560,7 @@ __data
 for path in ${_PATH_CONF} ${_PATH_LOG}; do
 	if ! [ -d "${path}" ]; then
 		sudo mkdir -p ${path}
-		sudo chown ${USER}:${USER} ${path}
+		sudo chown :${USER} ${path}
 	fi
 done
 
