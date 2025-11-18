@@ -35,6 +35,8 @@ alias gitcd='git --no-pager branch -v && echo -n "push -> dev? " && read str && 
 alias gitpa='git --no-pager branch -v && echo -n "push all to remote ? " && read str && git push --all && git push --tag && git --no-pager branch -rv && git --no-pager branch -v'
 # remote
 alias gitrv='git remote -v'
+# tag
+alias gitt='git --no-pager tag'
 
 ########################  SSH
 alias sshs='ssh-server'

@@ -516,14 +516,14 @@ __function_install() {
 	_var_replace() {
 		local opt var
 		[ "$#" -lt 2 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (2): $#"
-		local path=$1; shift
+		local pth=$1; shift
 
 		for opt in $*; do
 			for var in `_var_replace_vars ${opt}`; do
 				local var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
 				_echod var=${var} var2=${var2}
-				grep -q "${var2}" -r ${path} && grep "${var2}" -rl ${path} | xargs sudo sed -i "s|${var2}|${!var}|g"
-				#_evalr "sed -i 's|${var/[/\\[}|${!var}|g' '${path}'"
+				grep -q "${var2}" -r ${pth} && grep "${var2}" -rl ${pth} | xargs sudo sed -i "s|${var2}|${!var}|g"
+				#_evalr "sed -i 's|${var/[/\\[}|${!var}|g' '${pth}'"
 				#}"
 			done
 		done
@@ -590,7 +590,7 @@ __function_install() {
 	# 1 part to source
 	# 2 relative path for sourcing
 	_source_sub() {
-		local relpath=${2:-sub}
+		local relpth=${2:-sub}
 		local lpart=$( [ "$2" ] && echo "$2_$1" || echo "$1" )
 		
 		# skip perso if not found
@@ -602,7 +602,7 @@ __function_install() {
 		if ! grep -q "^${lpart} ${lpart}" ${S_FILE_INSTALL_DONE}; then
 			grep -q "^${lpart}$" ${S_FILE_INSTALL_DONE} || echo ${lpart} >> ${S_FILE_INSTALL_DONE}
 			_echoA "\n> ${lpart}"
-			local file="${_PATH_BASE}/${relpath}/$1"
+			local file="${_PATH_BASE}/${relpth}/$1"
 			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
 			if . "${file}"; then
 				sed -i "/^${lpart}$/ s|$| ${lpart}|" ${S_FILE_INSTALL_DONE}
@@ -674,15 +674,15 @@ __function_lxc() {
 	_lxc_var_replace() {
 		[ "$#" -lt 3 ] && _exite "${FUNCNAME}:${LINENO} Wrong parameters numbers (3): $#"
 		_echod "${FUNCNAME}:${LINENO} $*"
-		local ct path opt var var2
+		local ct pth opt var var2
 		ct=$1; shift
-		path=$1; shift
+		pth=$1; shift
 
 		for opt in $*; do
 			for var in $(_var_replace_vars ${opt}); do
-				#_lxc_exec ${ct} "sed -i 's|${var/[/\\[}|${!var}|g' ${path}"
+				#_lxc_exec ${ct} "sed -i 's|${var/[/\\[}|${!var}|g' ${pth}"
 				var2="${var/[/\\[}"; var2="${var2/]/\\]}" 	#"\\]}"
-				_lxc_exec ${ct} "grep -q '${var2}' -r ${path} && grep '${var2}' -rl ${path} | xargs sed -i 's|${var2}|${!var}|g'"
+				_lxc_exec ${ct} "grep -q '${var2}' -r ${pth} && grep '${var2}' -rl ${pth} | xargs sed -i 's|${var2}|${!var}|g'"
 				#}"
 			done
 		done

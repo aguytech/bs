@@ -15,8 +15,8 @@ _rsync() {
 }
 
 _log "[begin] ${script}"
-for path in ${file%/*} ${file_out%/*}; do
-    [ -d "${path}" ] || mkdir -p ${path}
+for pth in ${file%/*} ${file_out%/*}; do
+    [ -d "${pth}" ] || mkdir -p ${pth}
 done
 
 # share

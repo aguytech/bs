@@ -358,7 +358,7 @@ __function_install() {
 	# 1 part to source
 	# 2 relative path for sourcing
 	_source_sub() {
-		local relpath=${2:-sub}
+		local relpth=${2:-sub}
 		local lpart=$( [ "$2" ] && echo "$2_$1" || echo "$1" )
 		
 		# skip perso if not found
@@ -369,7 +369,7 @@ __function_install() {
 
 		if ! grep -q "^${lpart}" ${S_FILE_INSTALL_DONE}; then
 			_echoA "\n=======================> ${lpart}"
-			local file="${_PATH_BASE}/${relpath}/$1"
+			local file="${_PATH_BASE}/${relpth}/$1"
 			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
 			if . "${file}"; then
 				echo "${lpart}" >> ${S_FILE_INSTALL_DONE}
@@ -557,10 +557,10 @@ __function_install
 # set global data
 __data
 
-for path in ${_PATH_CONF} ${_PATH_LOG}; do
-	if ! [ -d "${path}" ]; then
-		sudo mkdir -p ${path}
-		sudo chown :${USER} ${path}
+for pth in ${_PATH_CONF} ${_PATH_LOG}; do
+	if ! [ -d "${pth}" ]; then
+		sudo mkdir -p ${pth}
+		sudo chown :${USER} ${pth}
 	fi
 done
 

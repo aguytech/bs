@@ -48,98 +48,98 @@ __init() {
 	[ -d "${_PATH_BACKUP}" ] || _exite "Unable to find path: ${_PATH_BACKUP}"
 
 	# connectors
-	PATHS_SOFT["connectors"]="path_user=${HOME}
-comp_path_opt=/opt/connectors"
+	PATHS_SOFT["connectors"]="pth_user=${HOME}
+comp_pth_opt=/opt/connectors"
 
 	# archimate
-	PATHS_SOFT[architect]="path_user=${HOME}
-comp_path_opt=/opt/archimate
-comp_path_conf=${HOME}/.archimate
-comp_path_user=${HOME}/dev/archimate
+	PATHS_SOFT[architect]="pth_user=${HOME}
+comp_pth_opt=/opt/archimate
+comp_pth_conf=${HOME}/.archimate
+comp_pth_user=${HOME}/dev/archimate
 comp_file_desk=${HOME}/.local/share/applications/archimate.desktop
 comp_file_bin=/usr/local/bin/archimate"
 
 	# architect
-	PATHS_SOFT[architect]="path_user=${HOME}
-comp_path_opt=/opt/architect
-comp_path_conf=${HOME}/.architect
-comp_path_user=${HOME}/dev/architect
+	PATHS_SOFT[architect]="pth_user=${HOME}
+comp_pth_opt=/opt/architect
+comp_pth_conf=${HOME}/.architect
+comp_pth_user=${HOME}/dev/architect
 comp_file_desk=${HOME}/.local/share/applications/architect.desktop
 comp_file_bin=/usr/local/bin/architect"
 
 	# eclipse
 	for theme in java tools; do
-		PATHS_SOFT[eclipse_${theme}]="path_user=${HOME}
-comp_path_opt=/opt/eclipse_${theme}
-comp_path_conf=${HOME}/.eclipse_${theme}
-comp_path_user=${HOME}/dev/eclipse-workspaces-${theme}
+		PATHS_SOFT[eclipse_${theme}]="pth_user=${HOME}
+comp_pth_opt=/opt/eclipse_${theme}
+comp_pth_conf=${HOME}/.eclipse_${theme}
+comp_pth_user=${HOME}/dev/eclipse-workspaces-${theme}
 comp_file_desk=${HOME}/.local/share/applications/eclipse_${theme}.desktop
 comp_file_bin=/usr/local/bin/eclipse_${theme}"
 	done
 
 	# mindmaster
-	PATHS_SOFT[mindmaster]="path_user=${HOME}
-comp_path_opt=/opt/mindmaster
-comp_path_conf=${HOME}/Edraw/MindMaster
+	PATHS_SOFT[mindmaster]="pth_user=${HOME}
+comp_pth_opt=/opt/mindmaster
+comp_pth_conf=${HOME}/Edraw/MindMaster
 comp_file_desk=${HOME}/.local/share/applications/mindmaster.desktop
 comp_file_bin=/usr/local/bin/mindmaster"
 
 	# pipe
-	PATHS_SOFT[pipe]="path_user=${HOME}
-comp_path_opt=/opt/pipe
+	PATHS_SOFT[pipe]="pth_user=${HOME}
+comp_pth_opt=/opt/pipe
 comp_file_desk=${HOME}/.local/share/applications/pipe.desktop
 comp_file_bin=/usr/local/bin/pipe"
 
 	# smargit
-	PATHS_SOFT[smartgit]="path_user=${HOME}
-comp_path_opt=/opt/smartgit
-comp_path_conf=${HOME}/.config/smartgit
+	PATHS_SOFT[smartgit]="pth_user=${HOME}
+comp_pth_opt=/opt/smartgit
+comp_pth_conf=${HOME}/.config/smartgit
 comp_file_desk=${HOME}/.local/share/applications/smartgit.desktop
 comp_file_bin=/usr/local/bin/smartgit"
 
 	# squirrel-sql
-	PATHS_SOFT[squirrel-sql]="path_user=${HOME}
-comp_path_opt=/opt/squirrel-sql
-comp_path_conf=${HOME}/.squirrel-sql
+	PATHS_SOFT[squirrel-sql]="pth_user=${HOME}
+comp_pth_opt=/opt/squirrel-sql
+comp_pth_conf=${HOME}/.squirrel-sql
 comp_file_desk=${HOME}/.local/share/applications/squirrel-sql.desktop
 comp_file_bin=/usr/local/bin/squirrel-sql"
 
 	# sublime-merge
-	PATHS_SOFT[sublime_merge]="path_user=${HOME}
-comp_path_opt=/opt/sublime_merge
-comp_path_conf=${HOME}/.config/sublime-merge
+	PATHS_SOFT[sublime_merge]="pth_user=${HOME}
+comp_pth_opt=/opt/sublime_merge
+comp_pth_conf=${HOME}/.config/sublime-merge
 comp_file_desk=${HOME}/.local/share/applications/sublime-merge.desktop
 comp_file_icon=${HOME}/.local/share/icons/sublime-merge.png
 comp_file_bin=/usr/local/bin/sublime_merge"
 
 	# sublime-text
-	PATHS_SOFT[sublime_text]="path_user=${HOME}
-comp_path_opt=/opt/sublime_text
-comp_path_conf=${HOME}/.config/sublime-text
-comp_path_user=${HOME}/.sublime-project
+	PATHS_SOFT[sublime_text]="pth_user=${HOME}
+comp_pth_opt=/opt/sublime_text
+comp_pth_conf=${HOME}/.config/sublime-text
+comp_pth_user=${HOME}/.sublime-project
 comp_file_desk=${HOME}/.local/share/applications/sublime-text.desktop
 comp_file_icon=${HOME}/.local/share/icons/sublime-text.png
 comp_file_bin=/usr/local/bin/sublime_text"
 
 	# workcraft
-	PATHS_SOFT[workcraft]="path_user=${HOME}
-comp_path_opt=/opt/workcraft
-comp_path_conf=${HOME}/.config/workcraft
+	PATHS_SOFT[workcraft]="pth_user=${HOME}
+comp_pth_opt=/opt/workcraft
+comp_pth_conf=${HOME}/.config/workcraft
 comp_file_desk=${HOME}/.local/share/applications/workcraft.desktop
 comp_file_bin=/usr/local/bin/workcraft"
 
 	# yed
-	PATHS_SOFT[yed]="path_user=${HOME}
-comp_path_opt=/opt/yed
-comp_path_conf=${HOME}/.yEd
+	PATHS_SOFT[yed]="pth_user=${HOME}
+comp_pth_opt=/opt/yed
+comp_pth_conf=${HOME}/.yEd
 comp_file_desk=${HOME}/.local/share/applications/yed.desktop
 comp_file_bin=/usr/local/bin/yed"
 
 	# zotero
-	PATHS_SOFT[zotero]="path_user=${HOME}
-comp_path_opt=/opt/zotero
-comp_path_conf=${HOME}/.zotero
-comp_path_user=/home/shared/Zotero
+	PATHS_SOFT[zotero]="pth_user=${HOME}
+comp_pth_opt=/opt/zotero
+comp_pth_conf=${HOME}/.zotero
+comp_pth_user=/home/shared/Zotero
 comp_file_desk=${HOME}/.local/share/applications/zotero.desktop
 comp_file_bin=/usr/local/bin/zotero"
 
@@ -148,7 +148,7 @@ comp_file_bin=/usr/local/bin/zotero"
 }
 
 __menu() {
-	local comp_path_opt comp_path_conf comp_file_desk comp_file_bin
+	local comp_pth_opt comp_pth_conf comp_file_desk comp_file_bin
 
 	_menu "Select an action" backup restore
 	_ACTION=${_ANSWER}
@@ -195,29 +195,29 @@ __backup_one() {
 	_echod "${FUNCNAME}::${LINENO} \$1=$1"
 	_echod "${FUNCNAME}::${LINENO} \$2=$2"
 
-	local path paths_comp
-	local comp_path_opt comp_path_conf comp_file_desk comp_file_bin
+	local pth pths_comp
+	local comp_pth_opt comp_pth_conf comp_file_desk comp_file_bin
 
 	_echoT "--> backup '$1'"
 
 	# set variables in "${PATHS_SOFT["${software}"]}"
 	eval "$2"
-	paths_comp=`echo "${PATHS_SOFT["$1"]}"|sed -n 's|^comp_.*=\(.*\)$|\1|p'|xargs`
-	if [ -z "${comp_path_opt}" ]; then
-		_echoE "backup skipped for '$1': 'comp_path_opt' is empty"
+	pths_comp=`echo "${PATHS_SOFT["$1"]}"|sed -n 's|^comp_.*=\(.*\)$|\1|p'|xargs`
+	if [ -z "${comp_pth_opt}" ]; then
+		_echoE "backup skipped for '$1': 'comp_pth_opt' is empty"
 		return 1
 	fi
 
-	# check if paths_comp exists
-	for path in ${paths_comp}; do
-		if [ ! -e "${path}" ]; then
-			_echoE "'$1' skipped: missing path '${path}'"
+	# check if pths_comp exists
+	for pth in ${pths_comp}; do
+		if [ ! -e "${pth}" ]; then
+			_echoE "'$1' skipped: missing path '${pth}'"
 			return 1
 		fi
 	done
 
 	version=${VERSION:+-${VERSION}}
-	cmd="${COMP_CMD} '${_PATH_BACKUP}/$1${version}_${DATE}.${COMP_EXT}' ${paths_comp} 2>&6"
+	cmd="${COMP_CMD} '${_PATH_BACKUP}/$1${version}_${DATE}.${COMP_EXT}' ${pths_comp} 2>&6"
 	_eval ${cmd} || _echoE "executing '${cmd}'"
 }
 
@@ -252,8 +252,8 @@ __restore_one() {
 	_echod "${FUNCNAME}::${LINENO} \$1=$1"
 	_echod "${FUNCNAME}::${LINENO} \$2=$2"
 
-	local paths_comp path path_from path_to file_back
-	local comp_path_opt comp_path_conf comp_file_desk comp_file_bin
+	local pths_comp pth pth_from pth_to file_back
+	local comp_pth_opt comp_pth_conf comp_file_desk comp_file_bin
 
 	# set variables in "${PATHS_SOFT["${software}"]}"
 	eval "$2"
@@ -268,31 +268,31 @@ __restore_one() {
 
 	_echod "${FUNCNAME}::${LINENO} \$_DATEB=${_DATEB}"
 	# existing paths
-	paths_comp=`echo "${PATHS_SOFT["$1"]}"|sed -n 's|^comp_.*=\(.*\)$|\1|p'|xargs`
-	# check if paths_comp exists
-	for path in ${paths_comp}; do
-		if [ -e "${path}" ]; then
+	pths_comp=`echo "${PATHS_SOFT["$1"]}"|sed -n 's|^comp_.*=\(.*\)$|\1|p'|xargs`
+	# check if pths_comp exists
+	for pth in ${pths_comp}; do
+		if [ -e "${pth}" ]; then
 			if [ -z "${FORCE}" ]; then
-				_echoE "'$1' skipped: path exists '${path}', to delete it use option '--force'"
+				_echoE "'$1' skipped: path exists '${pth}', to delete it use option '--force'"
 				return 1
 			else
-				[ -w "${path}" ] && cmd="sudo rm -fR '${path}'"
+				[ -w "${pth}" ] && cmd="sudo rm -fR '${pth}'"
 				_eval ${cmd} || _echoE "executing '${cmd}'"
 			fi
 		fi
 	done
 
 	# delete temporary path
-	path_tmp="/tmp/backup-${DATE}"
-	[ -d '${path_tmp}' ] && rm -fR "${path_tmp}"
-	mkdir -p "${path_tmp}"
+	pth_tmp="/tmp/backup-${DATE}"
+	[ -d '${pth_tmp}' ] && rm -fR "${pth_tmp}"
+	mkdir -p "${pth_tmp}"
 
-	cmd="${UNCOMP_CMD} '${file_back}' -C '${path_tmp}' 2>&6"
+	cmd="${UNCOMP_CMD} '${file_back}' -C '${pth_tmp}' 2>&6"
 	_eval ${cmd} || _echoE "executing '${cmd}'"
-	for path in ${paths_comp}; do
-		path_from=${path_tmp}/${path#/}
-		path_to=${path%/}
-		cmd="sudo mv '${path_from}' '${path_to}'"
+	for pth in ${pths_comp}; do
+		pth_from=${pth_tmp}/${pth#/}
+		pth_to=${pth%/}
+		cmd="sudo mv '${pth_from}' '${pth_to}'"
 		_eval ${cmd} || _echoE "executing '${cmd}'"
 	done
 }

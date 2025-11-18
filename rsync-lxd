@@ -34,29 +34,29 @@ options:
 # check enabled configuration files
 __push() {
 	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
-	local path path_to path_from path_tmp ct
+	local pth pth_sync pth_from pth_tmp ct
 
 	# path
-	paths_sel="${paths_sel:-${S_PATH_SCRIPT}}"
+	pths_sel="${pths_sel:-${S_PATH_SCRIPT}}"
 
 	# cts_sel
 	cts_sel="${cts_sel:-`lxc list -f csv -c n status=Running`}"
 
-	for path in ${paths_sel}; do
+	for pth in ${pths_sel}; do
 
-		path_to="${path//${S_PATH_INSTALL}/\/usr/\local\/install}" # for desktop host
-		path="${path//-desktop/}" # for desktop host
+		pth_sync="${pth//${S_PATH_INSTALL}/\/usr/\local\/install}" # for desktop host
+		pth="${pth//-desktop/}" # for desktop host
 
-		path_from="/tmp/${path##*/}"
-		[ -d "${path_from}" ] && _eval rm -fR ${path_from}
-		_eval cp -a ${path} ${path_from}
-		[ -d "${path_from}/.git" ] && _eval rm -fR "${path_from}/.git"
+		pth_from="/tmp/${pth##*/}"
+		[ -d "${pth_from}" ] && _eval rm -fR ${pth_from}
+		_eval cp -a ${pth} ${pth_from}
+		[ -d "${pth_from}/.git" ] && _eval rm -fR "${pth_from}/.git"
 
 		for ct in ${cts_sel}; do
-			_echo "${path} -> ${ct}"
+			_echo "${pth} -> ${ct}"
 
-			[ "${delete}" ] && _lxc_exec ${ct} "[ -d "${path_to}" ] && rm -fR ${path_to}"
-			_eval lxc file push ${args} ${path_from} $ct${path_to%/*}
+			[ "${delete}" ] && _lxc_exec ${ct} "[ -d "${pth_sync}" ] && rm -fR ${pth_sync}"
+			_eval lxc file push ${args} ${pth_from} $ct${pth_sync%/*}
 		done
 	done
 }
@@ -91,8 +91,8 @@ __opts() {
 			-p|--create-dirs)	args+=" --create-dirs"  ;;
 			-d|--delete)			delete=y  ;;
 			--publish)			publish=y  ;;
-			--bs)						paths_sel+=" ${S_PATH_SCRIPT}"  ;;
-			--install)				paths_sel+=" ${S_PATH_INSTALL}"  ;;
+			--bs)						pths_sel+=" ${S_PATH_SCRIPT}"  ;;
+			--install)				pths_sel+=" ${S_PATH_INSTALL}"  ;;
 		esac
 		shift
 	done
@@ -105,7 +105,7 @@ __main() {
 	_echod "======================================================"
 	_echod "$(ps -o args= ${PPID})"
 	local opts_short opts_long opts
-	local paths_sel args delete cts_sel
+	local pths_sel args delete cts_sel
 
 	! type lxc >/dev/null 2>&1 && _exite "LXC command not found !"
 

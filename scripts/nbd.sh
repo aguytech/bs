@@ -51,12 +51,12 @@ __mount_dev() {
 	[ -z "${nbd_base}" ] && return
 
 	for nbd in $(ls -d1 ${nbd_base}p* ); do
-		path="${_PATH_NBD}/${_FILE_NAME%.*}-${nbd#/dev/}"
-		[ -d "${path}" ] || mkdir -p ${path}
+		pth="${_PATH_NBD}/${_FILE_NAME%.*}-${nbd#/dev/}"
+		[ -d "${pth}" ] || mkdir -p ${pth}
 		if grep -q ${nbd} /proc/mounts; then
 			echo "${nbd} already mounted"
 		else
-			mount ${nbd} ${path}
+			mount ${nbd} ${pth}
 			echo "${nbd} mounted"
 		fi
 	done
@@ -67,11 +67,11 @@ __umount_dev() {
 	[ -z "${nbd_base}" ] && return
 
 	for nbd in $(ls -d1 ${nbd_base}p* ); do
-		path="${_PATH_NBD}/${_FILE_NAME%.*}-${nbd#/dev/}"
-		if grep -q ${nbd} /proc/mounts && umount ${path}; then
+		pth="${_PATH_NBD}/${_FILE_NAME%.*}-${nbd#/dev/}"
+		if grep -q ${nbd} /proc/mounts && umount ${pth}; then
 			echo "${nbd} unmounted"
 		fi
-		[ -d "${path}" ] && rmdir ${path}
+		[ -d "${pth}" ] && rmdir ${pth}
 	done
 }
 
@@ -97,10 +97,10 @@ __init() {
 	[ "$#" -lt 2 ] && echo "Wrong parameters numbers: $#" >&2 && __usage
 
 	# log
-	path_log=/var/log/${script}
-	[ -d "${path_log}" ] || mkdir -p ${path_log}
-	exec 1> >( tee -a ${path_log}/${script}.log )    2> >( tee -a ${path_log}/${script}.err )
-	echo -e "\n### $( date "+%Y%m%d-%H:%M:%S" )" | tee -a ${path_log}/${script}.log > tee -a ${path_log}/${script}.err
+	pth_log=/var/log/${script}
+	[ -d "${pth_log}" ] || mkdir -p ${pth_log}
+	exec 1> >( tee -a ${pth_log}/${script}.log )    2> >( tee -a ${pth_log}/${script}.err )
+	echo -e "\n### $( date "+%Y%m%d-%H:%M:%S" )" | tee -a ${pth_log}/${script}.log > tee -a ${pth_log}/${script}.err
 }
 
 _PATH_NBD=

@@ -53,19 +53,19 @@ groups["Oceania"]="Australia Fiji French_Polynesia Guam New_Caledonia New_Zealan
 ddate="${file_in%.csv}"
 ddate="${ddate##*worldwide-}"
 
-path="${PWD}/${ddate}"
-! [ -d "${path}" ] && mkdir "${path}"
+pth="${PWD}/${ddate}"
+! [ -d "${pth}" ] && mkdir "${pth}"
 
 for group in ${!groups[*]}; do
 
 	_echoI "${group}"
 
-	file_data_case_tmp="${path}/${ddate}_${group}_case_data.tmp"
-	file_data_death_tmp="${path}/${ddate}_${group}_death_data.tmp"
-	file_data_case="${path}/${ddate}_${group}_case_data.csv"
-	file_data_death="${path}/${ddate}_${group}_death_data.csv"
-	file_graph_case="${path}/${ddate}_${group}_case_graph.csv"
-	file_graph_death="${path}/${ddate}_${group}_death_graph.csv"
+	file_data_case_tmp="${pth}/${ddate}_${group}_case_data.tmp"
+	file_data_death_tmp="${pth}/${ddate}_${group}_death_data.tmp"
+	file_data_case="${pth}/${ddate}_${group}_case_data.csv"
+	file_data_death="${pth}/${ddate}_${group}_death_data.csv"
+	file_graph_case="${pth}/${ddate}_${group}_case_graph.csv"
+	file_graph_death="${pth}/${ddate}_${group}_death_graph.csv"
 
 	#~file_tmp="${PWD}/tmp"
 	#echo > "$file_tmp"

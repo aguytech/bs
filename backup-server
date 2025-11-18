@@ -33,48 +33,48 @@ arguments:
 # $1 path base
 # $2 sub path
 __compress() {
-	local path_from="$1"
-	local path_subs="$2"
-	local path_to="${path_from#/}"; path_to="${path_save}/${path_to//\//.}"; path_to="${path_to%/}"
-	_echod "${FUNCNAME}::${LINENO} path_from='$path_from' paths_sub='$paths_sub' path_to='$path_to'"
+	local pth_from="$1"
+	local pth_subs="$2"
+	local pth_to="${pth_from#/}"; pth_to="${pth_save}/${pth_to//\//.}"; pth_to="${pth_to%/}"
+	_echod "${FUNCNAME}::${LINENO} pth_from='$pth_from' pths_sub='$pths_sub' pth_to='$pth_to'"
 
 	# wrong path
-	! [ -d "$path_from" ] && _exite "Wrong path '$path_from' for calling '$*'"
+	! [ -d "$pth_from" ] && _exite "Wrong path '$pth_from' for calling '$*'"
 
 	# create path
-	! [ -d "$path_to" ] && mkdir -p "$path_to"
+	! [ -d "$pth_to" ] && mkdir -p "$pth_to"
 
-	cd "$path_from"
+	cd "$pth_from"
 	_echoT "${PWD}"
 
-	for path_sub in $paths_sub; do
-		path_sub=$(echo "$path_sub")
-		if [ -d "$path_sub" ]; then
-			file_to="${path_sub#/}"
+	for pth_sub in $pths_sub; do
+		pth_sub=$(echo "$pth_sub")
+		if [ -d "$pth_sub" ]; then
+			file_to="${pth_sub#/}"
 			file_to="${file_to//\//.}"
-			file_to="$path_to/${file_to%/}.$cmd_ext"
+			file_to="$pth_to/${file_to%/}.$cmd_ext"
 
-			_echo "compress $path_sub"
-			_evalq "tar $cmd_opt $file_to $path_sub"
+			_echo "compress $pth_sub"
+			_evalq "tar $cmd_opt $file_to $pth_sub"
 		else
-			_echoE "wrong path '$path_sub'"
-			_echod "${FUNCNAME}::${LINENO} wrong path '$path_sub'"
+			_echoE "wrong path '$pth_sub'"
+			_echod "${FUNCNAME}::${LINENO} wrong path '$pth_sub'"
 		fi
 	done
 }
 
 __bc_conf() {
 	_echoW "conf"
-	path_from="/"
-	paths_sub="boot/grub etc root"
-	__compress "$path_from" "$paths_sub"
+	pth_from="/"
+	pths_sub="boot/grub etc root"
+	__compress "$pth_from" "$pths_sub"
 }
 
 __bc_scripts() {
 	_echoW "scripts"
-	path_from="/"
-	paths_sub="usr/local/bs"
-	__compress "$path_from" "$paths_sub"
+	pth_from="/"
+	pths_sub="usr/local/bs"
+	__compress "$pth_from" "$pths_sub"
 }
 
 __main() {
@@ -103,7 +103,7 @@ __main() {
 _echod "======================================================"
 _echod "$(ps -o args= ${PPID})"
 
-path_save="${S_PATH_BACKUP}/${_DATE}"
+pth_save="${S_PATH_BACKUP}/${_DATE}"
 cmd_opt=" --exclude='.cache' -czf"
 cmd_ext=tgz
 

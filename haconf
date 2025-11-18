@@ -45,7 +45,7 @@ __check() {
 	local configs conf
 	configs=
 
-	for conf in $(ls ${path_enabled}/* 2>/dev/null); do
+	for conf in $(ls ${pth_enabled}/* 2>/dev/null); do
 		configs+=" -f ${conf}"
 	done;
 
@@ -64,8 +64,8 @@ __clear() {
 
 	local confs
 
-	confs="$(find -L ${path_enabled}/ -type l|sort|sed "s|${path_enabled}/||")"
-	_evalq "find -L ${path_enabled}/ -type l -exec rm {} \\;"
+	confs="$(find -L ${pth_enabled}/ -type l|sort|sed "s|${pth_enabled}/||")"
+	_evalq "find -L ${pth_enabled}/ -type l -exec rm {} \\;"
 
 	[ "$confs" ] && _echo "The following broken links are deleted:\n$confs"
 }
@@ -76,10 +76,10 @@ __print() {
 	local conf enabled disabled
 
 	# enabled
-	enabled="$(find -L ${path_enabled}/ -type f|sort|sed "s|${path_enabled}/||")"
+	enabled="$(find -L ${pth_enabled}/ -type f|sort|sed "s|${pth_enabled}/||")"
 
 	# disabled
-	disabled="$(ls "${path_available}")"
+	disabled="$(ls "${pth_available}")"
     for conf in ${enabled}; do
     	disabled="${disabled/$conf}"
     done
@@ -100,17 +100,17 @@ __print() {
 __get_confs() {
 	_echod "${FUNCNAME}::${LINENO} IN \$@=$@"
 
-	local path confs conf
-	path="$1"
+	local pth confs conf
+	pth="$1"
 	shift
-	_echod "${FUNCNAME}::${LINENO} path=${path} \$@=$@"
+	_echod "${FUNCNAME}::${LINENO} pth=${pth} \$@=$@"
 
 	# list confs
 	for conf in $@; do
 		confs="${confs}
-$(ls -1 "${path}"/${conf} 2>/dev/null)"
+$(ls -1 "${pth}"/${conf} 2>/dev/null)"
 	done
-	echo -e "$confs"|sort -u|sed "s|${path}/||"|xargs
+	echo -e "$confs"|sort -u|sed "s|${pth}/||"|xargs
 }
 
 # enable configuration files with his short names (without extension)
@@ -120,13 +120,13 @@ __enable() {
 
 	local conf confs enabled ok ko
 
-	confs="$(__get_confs "${path_available}" "$@")"
+	confs="$(__get_confs "${pth_available}" "$@")"
 	_echod "${FUNCNAME}::${LINENO} confs="${confs}
 
 	# select confs
 	for conf in ${confs}; do
-	    [ -h "${path_enabled}/${conf}" ]  && _evalq rm "${path_enabled}/${conf}"
-	    _evalq ln -s ${path_available}/${conf} ${path_enabled}/${conf}
+	    [ -h "${pth_enabled}/${conf}" ]  && _evalq rm "${pth_enabled}/${conf}"
+	    _evalq ln -s ${pth_available}/${conf} ${pth_enabled}/${conf}
 	    ok="${ok}${conf}\n"
 	done
 
@@ -140,13 +140,13 @@ __disable() {
 
 	local conf confs enabled ok ko
 
-	confs="$(__get_confs "${path_available}" "$@")"
+	confs="$(__get_confs "${pth_available}" "$@")"
 	_echod "${FUNCNAME}::${LINENO} confs="${confs}
 
 	# select confs
 	for conf in ${confs}; do
-		if [ -e "${path_enabled}/${conf}" ]; then
-			_evalq rm ${path_enabled}/${conf}
+		if [ -e "${pth_enabled}/${conf}" ]; then
+			_evalq rm ${pth_enabled}/${conf}
 			ok="${ok}${conf}\n"
 		fi
 	done
@@ -162,15 +162,15 @@ __list() {
 
 	# select confs
 	if [ -z $@ ]; then
-		disabled="$(ls "${path_available}")"
-		enabled="$(find -L "${path_enabled}"/ -type f|sort|sed "s|${path_enabled}/||")"
-		ko="$(find -L "${path_enabled}"/ -type l|sort|sed "s|${path_enabled}/||")"
+		disabled="$(ls "${pth_available}")"
+		enabled="$(find -L "${pth_enabled}"/ -type f|sort|sed "s|${pth_enabled}/||")"
+		ko="$(find -L "${pth_enabled}"/ -type l|sort|sed "s|${pth_enabled}/||")"
 	else
 		# select confs
 		for conf in $@; do
-			disabled+="\n$(find ${path_available}/ -type f -name ${conf}|sort|sed "s|${path_available}/||")"
-			enabled+="\n$(find -L ${path_enabled}/ -type f -name ${conf}|sort|sed "s|${path_enabled}/||")"
-			ko+="\n$(find -L ${path_enabled}/ -type l -name ${conf}|sort|sed "s|${path_enabled}/||")"
+			disabled+="\n$(find ${pth_available}/ -type f -name ${conf}|sort|sed "s|${pth_available}/||")"
+			enabled+="\n$(find -L ${pth_enabled}/ -type f -name ${conf}|sort|sed "s|${pth_enabled}/||")"
+			ko+="\n$(find -L ${pth_enabled}/ -type l -name ${conf}|sort|sed "s|${pth_enabled}/||")"
 		done
 	fi
 
@@ -229,20 +229,20 @@ __main() {
 	_echod "======================================================"
 	_echod "$(ps -o args= ${PPID})"
 	local opts_short opts_long opts
-	local path_available path_enabled path
-	path_enabled="/etc/haproxy/conf-enabled"
-	path_available="/etc/haproxy/conf-available"
+	local pth_available pth_enabled pth
+	pth_enabled="/etc/haproxy/conf-enabled"
+	pth_available="/etc/haproxy/conf-available"
 
 	! type haproxy &>/dev/null && _exite "Haproxy are not installed !"
 
-	for path in "${path_enabled}" "${path_available}"; do
-		! [ -d "${path}" ] && mkdir -p "${path}"
+	for pth in "${pth_enabled}" "${pth_available}"; do
+		! [ -d "${pth}" ] && mkdir -p "${pth}"
 	done
 
 	__opts "$@"
 
 	[ -z "${action}" ] && _exite "You have to give an action to execute"
-	if ! [ -d "${path_available}" ] || ! [ -d "${path_enabled}" ]; then _exite "Unable to find path ${path_available} or ${path_enabled}"; fi
+	if ! [ -d "${pth_available}" ] || ! [ -d "${pth_enabled}" ]; then _exite "Unable to find path ${pth_available} or ${pth_enabled}"; fi
 
 	if [[ " check clear enable disable list reload " = *" $action "* ]]; then
 		# call action with arguments

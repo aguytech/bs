@@ -34,8 +34,8 @@ __valid() {
 }
 
 __clone() {
-	path_in=$(pwd)
-	cd "${path_gists}"
+	pth_in=$(pwd)
+	cd "${pth_gists}"
 
 	while read i n; do
 		echo "- ${n} ${i}"
@@ -46,24 +46,24 @@ __clone() {
 		fi
 	done <<<${gists}
 
-	cd ${path_in}
+	cd ${pth_in}
 }
 
 __cmd() {
-	path_in=$(pwd)
+	pth_in=$(pwd)
 
 	while read id name; do
-		path="${path_gists}/${name}:${id}"
-		if ! [ -d "${path}" ]; then
+		pth="${pth_gists}/${name}:${id}"
+		if ! [ -d "${pth}" ]; then
 			echo -e "${red}- ${name} missing \nUse 'gists clone ${id}'${cclear}"
 			continue
 		fi
-		cd "${path_gists}/${name}:${id}"
+		cd "${pth_gists}/${name}:${id}"
 		echo -e "${yellow}- ${name} ${id}${cclear}"
 		git $*
 	done <<<${gists}
 
-	cd ${path_in}
+	cd ${pth_in}
 }
 
 __list() {
@@ -71,23 +71,23 @@ __list() {
 }
 
 __purge() {
-	path_in=$(pwd)
-	cd "${path_gists}" 
+	pth_in=$(pwd)
+	cd "${pth_gists}" 
 
-	paths=
-	while read path; do
-		if ! echo "${gists}" | grep -q "${path##*:} ${path%%:*}"; then
-			paths+="${path} "
+	pths=
+	while read pth; do
+		if ! echo "${gists}" | grep -q "${pth##*:} ${pth%%:*}"; then
+			pths+="${pth} "
 		fi
 	done <<< $( ls )
-	if [ "${paths}" ]; then
+	if [ "${pths}" ]; then
 		echo "Confirm following deletions:"
-		echo ${paths} | tr ' ' '\n'
+		echo ${pths} | tr ' ' '\n'
 		read -p "Y/n: " _ANSWER
-		[ -z "${_ANSWER/y/}" ] && rm -fR ${paths}
+		[ -z "${_ANSWER/y/}" ] && rm -fR ${pths}
 	fi
 
-	cd ${path_in}
+	cd ${pth_in}
 }
 
 __init() {
@@ -103,8 +103,8 @@ __init() {
 	token=$(grep '^# gist' $tokenfile -A1|sed 1d)
 	[ -z "${token}" ] && echo "Unable to find token in file: '${tokenfile}'" && exit 1
 	# gists path
-	path_gists=${HOME}/repo/gists
-	! [ -d "${path_gists}" ] && echo "Unable to find gists path: '${path_gists}'" && exit 1
+	pth_gists=${HOME}/repo/gists
+	! [ -d "${pth_gists}" ] && echo "Unable to find gists path: '${pth_gists}'" && exit 1
 	# initialize gists
 	gists=
 

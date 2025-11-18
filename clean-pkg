@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# command get short from to list $path_pkg
-# command to list $path_pkg
+# command get short from to list $pth_pkg
+# command to list $pth_pkg
 __filter() {
 	echo -n "filter ${NUM}: "
 	NUM=$((${NUM} + 1))
@@ -26,9 +26,9 @@ __filter() {
 
 ########################  MAIN
 
-[ -d /var/cache/pacman/pkg ] && path_pkg=/var/cache/pacman/pkg && os=manajro
-[ -d /var/cache/apt/archives ] && path_pkg=/var/cache/apt/archives && os=ubuntu
-[ "${path_pkg}" ] || echo "[error]${FUNCNAME}:${LINENO} Unable to find a path"
+[ -d /var/cache/pacman/pkg ] && pth_pkg=/var/cache/pacman/pkg && os=manajro
+[ -d /var/cache/apt/archives ] && pth_pkg=/var/cache/apt/archives && os=ubuntu
+[ "${pth_pkg}" ] || echo "[error]${FUNCNAME}:${LINENO} Unable to find a path"
 
 [ "${USER}" != "root" ] && sudo="sudo"
 files_log="/var/log/server/clean-pkg.info"
@@ -38,10 +38,10 @@ files_del="/tmp/pkg-del"
 
 NUM=1
 
-__filter "ls -1 ${path_pkg}|grep zst\$|sed 's|^\(.*\)-[0-9\.]\+-[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${path_pkg}/\${short}-[0-9]*.zst|tail -n +2"
-__filter "ls -1 ${path_pkg}|grep zst\$|sed 's|^\([a-z0-9-]\+\)-[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${path_pkg}/\${short}-[0-9]*.zst|tail -n +2"
-__filter "ls -1 ${path_pkg}|grep zst\$|sed 's|^\(.*\)-[0-9\.]\+-[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${path_pkg}/\${short}-[0-9]*.zst|tail -n +2"
-__filter "ls -1 ${path_pkg}|grep zst\$|sed 's|^\(.*\)-[0-9]:[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${path_pkg}/\${short}-[0-9]:[0-9]*.zst|tail -n +2"
+__filter "ls -1 ${pth_pkg}|grep zst\$|sed 's|^\(.*\)-[0-9\.]\+-[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${pth_pkg}/\${short}-[0-9]*.zst|tail -n +2"
+__filter "ls -1 ${pth_pkg}|grep zst\$|sed 's|^\([a-z0-9-]\+\)-[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${pth_pkg}/\${short}-[0-9]*.zst|tail -n +2"
+__filter "ls -1 ${pth_pkg}|grep zst\$|sed 's|^\(.*\)-[0-9\.]\+-[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${pth_pkg}/\${short}-[0-9]*.zst|tail -n +2"
+__filter "ls -1 ${pth_pkg}|grep zst\$|sed 's|^\(.*\)-[0-9]:[0-9].*|\1|'|grep -v zst|sort -ur" "ls -r1 ${pth_pkg}/\${short}-[0-9]:[0-9]*.zst|tail -n +2"
 
 exit
 
