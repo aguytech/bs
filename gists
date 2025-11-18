@@ -16,10 +16,11 @@ __mod_origin() {
 }
 
 __select() {
-	gists_list=$( gh gist list -L ${gist_limit} | sed -n "s|^\(.\+\)\t\[\(.\+\)\].*|\1 \2|p" )
+	gists_full=$( gh gist list -L ${gist_limit} )
+	gists_list=$( echo "${gists_full}" | sed -n "s|^\(.\+\)\t\[\(.\+\)\].*|\1 \2|p" )
 	if [ "$*" ]; then
-		for  i in $*; do
-			gists="${gists}\n$( grep "^$i " <<< ${gists_list} )"
+		for i in $*; do
+			gists="${gists}\n$( grep " $i$" <<< ${gists_list} )"
 		done
 		gists=$( echo -e "${gists}" | grep -v ^$ )
 	else
@@ -65,6 +66,10 @@ __cmd() {
 	cd ${path_in}
 }
 
+__list() {
+	gh gist list -L ${gist_limit}
+}
+
 __purge() {
 	path_in=$(pwd)
 	cd "${path_gists}" 
@@ -86,17 +91,17 @@ __purge() {
 }
 
 __init() {
-	gist_limit=1000
+	gist_limit=100
 	# variables
 	script=${0##*/}
 	# gh
-	! command gh >/dev/null 2>&1 && echo "Unable to find gist github client: 'gh''" && exit 1
+	! command gh >/dev/null 2>&1 && echo "Unable to find gist github client: 'gh'\n See https://github.com/cli/cli/releases/" && exit 1
 	# token file
 	tokenfile=${HOME}/.perso/.gittoken
 	! [ -f "${tokenfile}" ] && echo "Unable to find token file: '${tokenfile}'" && exit 1
 	# token file
 	token=$(grep '^# gist' $tokenfile -A1|sed 1d)
-	[ -z "${token}" ] && echo "Unable to find token file: '${tokenfile}'" && exit 1
+	[ -z "${token}" ] && echo "Unable to find token in file: '${tokenfile}'" && exit 1
 	# gists path
 	path_gists=${HOME}/repo/gists
 	! [ -d "${path_gists}" ] && echo "Unable to find gists path: '${path_gists}'" && exit 1
@@ -110,8 +115,10 @@ __init() {
 
 __init $*
 action=$1 && shift
-__select $*
-__valid
+if [ "${action}" != "list" ]; then
+	__select $*
+	[[ " status list " =~ " ${action} " ]] && __valid
+fi
 
 case ${action} in
 	clone)   __clone ;;
@@ -119,6 +126,7 @@ case ${action} in
 	push)   __cmd push --all ;;
 	status)   __cmd status ;;
 	purge)   __purge ;;
+	list)   __list ;;
 	*)
 		echo "No good command given to ${script}"
 		__usage
