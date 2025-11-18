@@ -33,8 +33,6 @@ alias gitcd='git branch -v && echo -n "push -> dev? " && read str && git co dev 
 # push
 alias gitpa='git branch -v && echo -n "push all? " && read str && git push --all && git push --tag && git branch -v'
 
-########################  GH
-
 ########################  SSH
 alias sshs='ssh-server'
 alias sshs1='ssh-server node1'
@@ -55,11 +53,23 @@ alias iptlsn='iptables -S -t nat'
 alias iptlm='iptables -nvL -t mangle --line-number'
 alias iptla='iptables -nvL --line-number; iptables -nvL -t nat --line-number'
 
+########################  DOCKER
+alias dckc0="docker stop"
+alias dckc1="docker start"
+alias dckct="docker top"
+alias dckcst="docker stats"
+alias dckcl="docker container ls -a"
+alias dckcr="docker container rm -f"
+alias dckca="docker container attach"
+alias dcki="docker image"
+alias dckil="docker image ls"
+alias dckir="docker image rm"
+
 ########################  LXC
 ## ct
 alias lxc1="lxc start"
 alias lxc0="lxc stop"
-alias lxc^="lxc restart"
+#alias lxc^="lxc restart"
 alias lxcd="lxc delete --force"
 alias lxcs="lxc shell"
 # list
