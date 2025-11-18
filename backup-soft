@@ -14,7 +14,9 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
 
 declare USAGE="backup-soft : backup softwares from /opt
 Available softwares:
-    eclipse_java eclipse_tools smartgit squirrel-sql sublime_text sublime_merge yed
+    archimate architect eclipse_java eclipse_tools mindmaster pipe
+    smartgit squirrel-sql sublime_merge sublime_text workcraft yed
+    zotero
 
 Global usage:
 backup-soft <args> <softwares>
@@ -49,13 +51,21 @@ __init() {
 	PATHS_SOFT["connectors"]="path_user=${HOME}
 comp_path_opt=/opt/connectors"
 
-	# archi
-	PATHS_SOFT[archi]="path_user=${HOME}
-comp_path_opt=/opt/archi
-comp_path_conf=${HOME}/.archi4
-comp_path_user=${HOME}/dev/archi
-comp_file_desk=${HOME}/.local/share/applications/archi.desktop
-comp_file_bin=/usr/local/bin/archi"
+	# archimate
+	PATHS_SOFT[architect]="path_user=${HOME}
+comp_path_opt=/opt/archimate
+comp_path_conf=${HOME}/.archimate
+comp_path_user=${HOME}/dev/archimate
+comp_file_desk=${HOME}/.local/share/applications/archimate.desktop
+comp_file_bin=/usr/local/bin/archimate"
+
+	# architect
+	PATHS_SOFT[architect]="path_user=${HOME}
+comp_path_opt=/opt/architect
+comp_path_conf=${HOME}/.architect
+comp_path_user=${HOME}/dev/architect
+comp_file_desk=${HOME}/.local/share/applications/architect.desktop
+comp_file_bin=/usr/local/bin/architect"
 
 	# eclipse
 	for theme in java tools; do
@@ -94,22 +104,22 @@ comp_path_conf=${HOME}/.squirrel-sql
 comp_file_desk=${HOME}/.local/share/applications/squirrel-sql.desktop
 comp_file_bin=/usr/local/bin/squirrel-sql"
 
+	# sublime-merge
+	PATHS_SOFT[sublime_merge]="path_user=${HOME}
+comp_path_opt=/opt/sublime_merge
+comp_path_conf=${HOME}/.config/sublime-merge
+comp_file_desk=${HOME}/.local/share/applications/sublime-merge.desktop
+comp_file_icon=${HOME}/.local/share/icons/sublime-merge.png
+comp_file_bin=/usr/local/bin/sublime_merge"
+
 	# sublime-text
 	PATHS_SOFT[sublime_text]="path_user=${HOME}
 comp_path_opt=/opt/sublime_text
 comp_path_conf=${HOME}/.config/sublime-text
 comp_path_user=${HOME}/.sublime-project
-comp_file_desk=${HOME}/.local/share/applications/sublime_text.desktop
+comp_file_desk=${HOME}/.local/share/applications/sublime-text.desktop
 comp_file_icon=${HOME}/.local/share/icons/sublime-text.png
 comp_file_bin=/usr/local/bin/sublime_text"
-
-	# sublime-merge
-	PATHS_SOFT[sublime_merge]="path_user=${HOME}
-comp_path_opt=/opt/sublime_merge
-comp_path_conf=${HOME}/.config/sublime-merge
-comp_file_desk=${HOME}/.local/share/applications/sublime_merge.desktop
-comp_file_icon=${HOME}/.local/share/icons/sublime-merge.png
-comp_file_bin=/usr/local/bin/sublime_merge"
 
 	# workcraft
 	PATHS_SOFT[workcraft]="path_user=${HOME}
