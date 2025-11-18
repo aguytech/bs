@@ -26,8 +26,8 @@ alias gita='echo "git add *? " && read str && git add * && git status '
 # commit
 alias gitcim='git commit -m'
 # branch
-alias gitbrv='git --no-pager branch -vv'
-alias gitbrrv='git --no-pager branch -rv'
+alias gitbv='git --no-pager branch -vv'
+alias gitbrv='git --no-pager branch -rv'
 # merge
 alias gitcm='git --no-pager branch -v && echo -n "push -> main? " && read str && git co main && git merge - && git co - && git --no-pager branch -v'
 alias gitcd='git --no-pager branch -v && echo -n "push -> dev? " && read str && git co dev && git merge - && git co - && git --no-pager branch -v'
