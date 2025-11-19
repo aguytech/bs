@@ -33,6 +33,10 @@ alias gitcm='git --no-pager branch -v && echo -n "push -> main? " && read str &&
 alias gitcd='git --no-pager branch -v && echo -n "push -> dev? " && read str && git co dev && git merge - && git co - && git --no-pager branch -v'
 # push
 alias gitpa='git --no-pager branch -v && echo -n "push all to remote ? " && read str && git push --all && git push --tag && git --no-pager branch -rv && git --no-pager branch -v'
+# log
+alias gitl='git log'
+alias gitl2='git --no-pager log HEAD -2'
+alias gitl4='git --no-pager log HEAD -4'
 # remote
 alias gitrv='git remote -v'
 # tag
