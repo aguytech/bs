@@ -406,8 +406,6 @@ __function_install() {
 	_confget() {
 		local file="${2:-${S_FILE_INSTALL_CONF}}"
 		! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
-		#! [ -f "${file}" ] && return 1
-
 		_confhave "$1" "${file}" && sed -n "s|^$1=||p" ${file} | sed 's/"//g'
 	}
 
@@ -416,7 +414,6 @@ __function_install() {
 	# 3 optionnal file name
 	_confset() {
 		local file="${3:-${S_FILE_INSTALL_CONF}}"
-		#! [ -f "${file}" ] && _exite "unable to find '${file}' from ${FUNCNAME}"
 		[ -f "${file}" ] || touch "${file}"
 
 		if _confhave "$1" "${file}"; then
