@@ -557,8 +557,9 @@ __data
 for pth in ${_PATH_CONF} ${_PATH_LOG}; do
 	if ! [ -d "${pth}" ]; then
 		sudo mkdir -p ${pth}
-		sudo chown :${USER} ${pth}
 	fi
+	sudo chown :${USER} ${pth}
+	sudo chmod g+rw ${pth}
 done
 
 for file in ${S_FILE_INSTALL_CONF} ${S_FILE_INSTALL_DONE}; do
