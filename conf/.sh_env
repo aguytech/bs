@@ -7,3 +7,6 @@ export S_GLOBAL_FUNCTIONS="/usr/local/bs/inc-functions"
 ###  EDITOR
 type vim >/dev/null 2>&1 && export EDITOR=vim && export SYSTEMD_EDITOR=vim
 type most >/dev/null 2>&1 && export MANPAGER=most
+
+export S_PATH_SCRIPT=/usr/local/bs
+export S_GLOBAL_CONF=/usr/local/conf
