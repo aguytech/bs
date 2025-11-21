@@ -796,36 +796,6 @@ __function_install
 # set global data
 __data
 
-# initialization for installation
-if [ "${_INSTALL}" ]; then
-
-	S_PATH_CONF=/etc/server
-	S_GLOBAL_CONF=${S_PATH_CONF}/server.conf
-	S_FILE_INSTALL_CONF=${S_PATH_CONF}/install.conf
-	S_FILE_INSTALL_DONE=${S_PATH_CONF}/install.done
-	S_PATH_SCRIPT=/usr/local/bs
-
-	[ -d "${S_PATH_CONF}" ] || mkdir -p ${S_PATH_CONF}
-	for file in ${S_FILE_INSTALL_CONF} ${S_FILE_INSTALL_DONE}; do [ -f "${file}" ] || touch ${file};	done
-	. ${S_FILE_INSTALL_CONF}
-
-	if ! grep -q conf-init ${S_FILE_INSTALL_DONE}; then
-		file="${_PATH_BASE/install-desktop/install}/conf-init"
-		! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to find file: ${file}" && exit 1
-		. "${file}"
-	fi
-
-	# env
-	file=${S_PATH_SCRIPT}/conf/.bash_env
-	! [ -f "${file}" ] && echo ":${LINENO}[error] Unable to source properly file: '${file}'" && exit 1
-	. ${file}
-fi
-
-# global configuration
-S_GLOBAL_CONF="${S_GLOBAL_CONF:-/etc/server/server.conf}"
-[ -f "${S_GLOBAL_CONF}" ] || echo -e ":${LINENO}[error] - Unable to find file '${S_GLOBAL_CONF}' from '${BASH_SOURCE[0]}'"
-. "${S_GLOBAL_CONF}"
-
 # set global data after sourcing S_GLOBAL_CONF
 __data_post
 
