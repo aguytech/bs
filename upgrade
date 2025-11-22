@@ -17,16 +17,16 @@ if grep -qi manjaro "${file_release}"; then
 	${cmd} -Syu  --noconfirm
 
 	echo -e "${color}pacman clean orphans${cclear}"
-	${cmd} -R $(pacman -Qdtq)
+	${cmd} -R --noconfirm $(pacman -Qdtq)
 
 	echo -e "${color}pacman clear cache${cclear}"
 	${cmd} -Sc --noconfirm
 
 	echo -e "${color}yay update${cclear}"
-	yay -Syu
+	yay -Syu --noconfirm
 
 	echo -e "${color}yay clean orphans${cclear}"
-	yay -R  $(yay -Qdt)
+	yay -R  --noconfirm $(yay -Qdt)
 
 	echo -e "${color}pacman clear cache${cclear}"
 	yay -Sc --noconfirm
