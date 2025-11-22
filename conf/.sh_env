@@ -3,7 +3,7 @@
 ###  S_GLOBAL
 # file for global functions
 export S_PATH_SCRIPT=/usr/local/bs
-export S_GLOBAL_CONF=/usr/local/conf
+export S_GLOBAL_CONF=/usr/local/conf/global.conf
 export S_GLOBAL_FUNCTIONS="/usr/local/bs/inc-functions"
 
 ###  EDITOR
