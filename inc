@@ -536,6 +536,7 @@ __data() {
 	S_FILE_INSTALL_CONF=${S_FILE_INSTALL_CONF:-${_PATH_CONF}/install.conf}
 	S_FILE_INSTALL_DONE=${S_FILE_INSTALL_DONE:-${_PATH_CONF}/install.done}
 	_FILE_PCK=${_PATH_CONF}/install.pck
+	_FILE_PCK_AUR=${_PATH_CONF}/install_aur.pck
 
 	PATH="${HOME}/.local/bin:${PATH}"
 }
