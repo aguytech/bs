@@ -358,15 +358,10 @@ __function_install() {
 	# 1 part to source
 	# 2 relative path for sourcing
 	_source_sub() {
+		# skip perso if not found
 		local relpth=${2:-sub}
 		local lpart=$( [ "$2" ] && echo "$2_$1" || echo "$1" )
 		
-		# skip perso if not found
-		if [ "$1" = perso ]; then
-			[ -f ${_PATH_BASE}/perso/perso ] && . ${_PATH_BASE}/perso/perso
-			return
-		fi
-
 		if ! grep -q "^${lpart}" ${S_FILE_INSTALL_DONE}; then
 			_echoA "\n=======================> ${lpart}"
 			local file="${_PATH_BASE}/${relpth}/$1"
