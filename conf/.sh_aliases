@@ -9,7 +9,7 @@ alias llm='ls -AhlF --block-size=M'
 alias lsm='ls -AhlF --block-size=M'
 alias lsblku='lsblk -o name,maj:min,size,type,mountpoint,uuid,label'
 alias df='df -h'
-alias dfs="df -h -x tmpfs -x devtmpfs|grep -v /dev/.*loop"
+alias dfs="df -h -x tmpfs -x devtmpfs|grep -v '/dev/.*loop'"
 alias st='sublime-text'
 alias watch='watch --color'
 alias nanoc='nano -wY conf'
