@@ -42,7 +42,7 @@ alias gitl='git log'
 alias gitl2='git --no-pager log HEAD -2'
 alias gitl4='git --no-pager log HEAD -4'
 alias gitlf='git log --name-status --graph --oneline'
-alias gitlf4='git log --name-status --graph --oneline HEAD -4'
+alias gitlf4='git --no-pager log --name-status --graph --oneline HEAD -4'
 # remote
 alias gitrv='git remote -v'
 # tag
