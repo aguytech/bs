@@ -6,11 +6,6 @@ export S_PATH_SCRIPT=/usr/local/bs
 export S_GLOBAL_CONF=/usr/local/conf/global.conf
 export S_GLOBAL_FUNCTIONS="/usr/local/bs/inc-functions"
 
-# PATH
-export PATH=${PATH}:/usr/local/bs
-# QT6
-export QT_QPA_PLATFORMTHEME=qt6ct
-
 ###  EDITOR
 type vim >/dev/null 2>&1 && export EDITOR=vim && export SYSTEMD_EDITOR=vim
 type most >/dev/null 2>&1 && export MANPAGER=most
