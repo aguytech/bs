@@ -139,7 +139,7 @@ alias bfs='btrfs subvolume'
 alias bfsl='btrfs subvolume list --sort=path -t'
 alias bfslo='btrfs subvolume list --sort=path -to'
 alias bfsc='btrfs subvolume create'
-alias bfsd='btrfs subvolume delete'
+alias bfsd='btrfs subvolume delete -c'
 alias bfss='btrfs subvolume snapshot'
 alias bfssr='btrfs subvolume snapshot -r'
 # filesystem
