@@ -64,9 +64,9 @@ ddate=$(date +%Y%m%d)
 [ -d "/etc/gdm" ] && env="gnome"
 
 if [ -z "$env" ]; then
-	pth_backup=${pth_backup_base}/${HOSTNAME}/export-${HOSTNAME}-${USER}-${S_RELEASE_NAME}-${ddate}
+	pth_backup=${pth_backup_base}/${HOST}/export-${HOST}-${USER}-${S_RELEASE_NAME}-${ddate}
 else
-	pth_backup=${pth_backup_base}/${HOSTNAME}/export-${HOSTNAME}-${USER}-${S_RELEASE_NAME}-${env}-${ddate}
+	pth_backup=${pth_backup_base}/${HOST}/export-${HOST}-${USER}-${S_RELEASE_NAME}-${env}-${ddate}
 fi
 
 
