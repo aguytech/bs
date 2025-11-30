@@ -3,7 +3,8 @@
 ########################  GLOBAL
 alias l='ls -CF --color=auto'
 alias la='ls -A --color=auto'
-alias ld='ls -dlp'
+alias ld='ls -dl'
+alias ld1='ls -d1'
 alias ll='ls -alF --color=auto'
 alias llm='ls -AhlF --block-size=M'
 alias lsm='ls -AhlF --block-size=M'
