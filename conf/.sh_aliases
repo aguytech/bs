@@ -137,11 +137,12 @@ alias lxcxl1="lxcx list -1"
 ########################  BTRFS
 # subvolume
 alias bfs='btrfs subvolume'
-alias bfsl='btrfs subvolume list --sort=path -t'
-alias bfslo='btrfs subvolume list --sort=path -to'
+alias bfsl='btrfs subvolume list --sort=rootid -t'
+alias bfslo='btrfs subvolume list --sort=rootid -ot'
 alias bfsc='btrfs subvolume create'
 alias bfsd='btrfs subvolume delete -c'
 alias bfss='btrfs subvolume snapshot'
+alias bfssh='btrfs subvolume show'
 alias bfssr='btrfs subvolume snapshot -r'
 # filesystem
 alias bff='btrfs filesystem'
