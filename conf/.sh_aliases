@@ -48,6 +48,8 @@ alias gitlf4='git --no-pager log --name-status --graph --oneline HEAD -4'
 alias gitrv='git remote -v'
 # tag
 alias gitt='git --no-pager tag'
+# st
+alias gitst='for i in . perso bs; do echo "- $i"; [ -d $i ] && git -C $i st; done'
 
 ########################  SSH
 alias sshs='ssh-server'
