@@ -8,7 +8,7 @@ alias ld1='ls -d1'
 alias ll='ls -alF --color=auto'
 alias llm='ls -AhlF --block-size=M'
 alias lsm='ls -AhlF --block-size=M'
-alias lsblku='lsblk -o name,maj:min,size,type,mountpoint,uuid,label'
+alias lsblku='lsblk -o name,maj:min,size,type,uuid,fstype,parttypename,label,mountpoint'
 alias df='df -h'
 alias dfs="df -h -x tmpfs -x devtmpfs|grep -v '/dev/.*loop'"
 alias st='sublime-text'
