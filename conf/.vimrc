@@ -8,7 +8,8 @@ syntax enable
 set background=dark
 
 "colorscheme monokai
-"colorscheme sublimemonokai
+"colorscheme monokai2
+"colorscheme sonokai
 colorscheme gruvbox
 
 set t_Co=256 "set termguicolors
