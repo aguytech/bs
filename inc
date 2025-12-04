@@ -371,7 +371,7 @@ __function_install() {
 				_echoA "<==== ${lpart}"
 				[ "${_HALT}" = y ] && _askno "Validate to continue"
 			else
-				_echoE "See logs for errors"
+				_echoE "${relpth} return a wrong code error: $?"
 				exit
 			fi
 		fi
