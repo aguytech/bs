@@ -19,8 +19,9 @@ Available softwares:
     zotero
 
 Global usage:
-backup-soft <args> <softwares>
-backup-soft <args> -r/--restore [date] <softwares>
+backup-soft <args> <softwares>...
+backup-soft <args> [-r|--restore [<date>]] <softwares>...
+backup-soft <args> [-v|--version <version>] -r|--restore [<date>] <softwares>...
 
 softwares:
 	a list of 'nominal' software names
@@ -30,8 +31,7 @@ args:
 	-m,--menu		select options by menu
 	-a,--all		select all softwares
 	-f, --force         	delete existing files before restore
-	-r, --restore [date]
-				backup date of softwares in format : '+%Y%m%d-%s'
+	-r, --restore [<date>]	backup date of softwares in format : '+%Y%m%d-%s'
 	-v, --version       	add given version to backup/restore
 
 	-h, --help		show usage of functions
