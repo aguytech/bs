@@ -355,6 +355,7 @@ __function_install() {
 					_evalr yay -S --noconfirm ${package} \
 					&& _partadd ${package} ${_FILE_PCK_AUR} \
 					|| value=1
+				fi
 			else
 				_echoe "Unable to find aur package: ${package}"
 			fi
