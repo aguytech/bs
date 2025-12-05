@@ -321,38 +321,45 @@ __function_common() {
 
 __function_install() {
 
-	# use adjusted installer
-	# $1 packages
-	_install() {
-		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
-		local pcks=" $* "
-		# wrong number of parameters
+	# install packages from apt / pacman
+	_install_pcks() {
+		local cmd
+		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters : $#. Needs more than 1"
 
-		if type apt >/dev/null 2>&1; then
-			_evalr apt install -y $*
-		elif type pacman >/dev/null 2>&1; then
-			pcks="${pcks/ mariadb-client / mariadb-clients }"
-			pcks="${pcks/ redis-tools / redis }"
-			[ "$(pacman -Ss redis|grep installed)" ] || _evalr pacman -S --noconfirm --needed ${pcks}
+		if which apt >/dev/null; then
+			cmd='apt install -y'
+		elif which pacman >/dev/null; then
+			cmd='pacman -S --noconfirm --needed'
 		else
-			_exite "${FUNCNAME}:${LINENO} Not yet implemented"
+			_exite "${FUNCNAME}:${LINENO} Supports only apt/pacman"
+		fi
+		if ! _evalr ${cmd} $*; then
+			_echoE "Unable to install: ${packages}"
+			return 1
 		fi
 	}
-
+	
 	# install packages from aur
 	_install_aur() {
+		# wrong number of parameters
+		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters: $#"
+		local package value
+
+		value=0
 		for package in $*; do
-			if ! yay -Qi ${package} >/dev/null 2>&1; then
+			if ! yay -Q -kq ${package} 2>/dev/null; then
 				_echot "------- install ${package}"
-				if yay -S --noconfirm --needed ${package}; then
-					_partadd "${package}" ${_FILE_PCK_AUR}
+				if yay -Qe ${package} 2>/dev/null; then
+					_echo "Package already installed: ${package}"
 				else
-					_exite "Unable to install aur package: ${package}"
-				fi
+					_evalr yay -S --noconfirm ${package} \
+					&& _partadd ${package} ${_FILE_PCK_AUR} \
+					|| value=1
 			else
 				_echoe "Unable to find aur package: ${package}"
 			fi
 		done
+		return ${value}
 	}
 
 	# 1 part to source
@@ -562,7 +569,7 @@ for file in ${S_FILE_INSTALL_CONF} ${S_FILE_INSTALL_DONE}; do
 	[ -f "${file}" ] || touch ${file}
 done
 
-. ${S_FILE_INSTALL_CONF} # for partial install
+source ${S_FILE_INSTALL_CONF} # for partial installation
 
 # print major variables
 echo > ${_PATH_CONF}/vars
