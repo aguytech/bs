@@ -347,12 +347,12 @@ __function_install() {
 
 		value=0
 		for package in $*; do
-			if ! yay -Q -kq ${package} 2>/dev/null; then
-				_echot "------- install ${package}"
-				if yay -Qe ${package} 2>/dev/null; then
+			if yay -Si --aur ${package} >/dev/null; then
+				if yay -Q ${package} 2>/dev/null; then
 					_echo "Package already installed: ${package}"
 				else
-					_evalr yay -S --noconfirm ${package} \
+					_echot "------- install ${package}"
+					_eval yay -S --aur --noconfirm ${package} \
 					&& _partadd ${package} ${_FILE_PCK_AUR} \
 					|| value=1
 				fi
