@@ -326,7 +326,7 @@ __function_install() {
 		local cmd
 		[ "$#" -lt 1 ] && _exite "${FUNCNAME}:${LINENO} Internal error, missing parameters : $#. Needs more than 1"
 
-		if which apt >/dev/null; then
+		if which apt >/dev/null 2>&1; then
 			cmd='apt install -y'
 		elif which pacman >/dev/null; then
 			cmd='pacman -S --noconfirm --needed'
@@ -370,12 +370,12 @@ __function_install() {
 		local relpth=${2:-sub}
 		local lpart=$( [ "$2" ] && echo "$2_$1" || echo "$1" )
 		
-		if ! grep -q "^${lpart}" ${S_FILE_INSTALL_DONE}; then
+		if ! _parthave ${lpart} ${S_FILE_INSTALL_DONE}; then
 			_echoA "\n=======================> ${lpart}"
 			local file="${_PATH_BASE}/${relpth}/$1"
 			! [ -f "${file}" ] && _exite "Unable to find file: ${file}"
 			if . "${file}"; then
-				echo "${lpart}" >> ${S_FILE_INSTALL_DONE}
+				_partadd ${lpart} ${S_FILE_INSTALL_DONE}
 				_echoA "<==== ${lpart}"
 				[ "${_HALT}" = y ] && _askno "Validate to continue"
 			else
