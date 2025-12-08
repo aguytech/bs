@@ -76,19 +76,23 @@ __function_common() {
 
 	_eval() {
 		_echod "${FUNCNAME}:${LINENO} $*"
-		eval "$*"
+		eval $@ || { _echoE "Error executing: '${cmd}'"; return 1; }
 	}
 	_evalq() {
 		_echod "${FUNCNAME}:${LINENO} $*"
-		eval "$*" >&4
+		eval $@ >&4
 	}
 	_evalr() {
 		_echod "${FUNCNAME}:${LINENO} $*"
-		[ "${USER}" = root ] && eval $* || eval sudo "$*"
+		local sudo
+		[ "${USER}" = root ] && sudo=sudo || sudo=
+		eval ${sudo} $@ || { _echoE "Error executing: '${cmd}'"; return 1; }
 	}
 	_evalrq() {
 		_echod "${FUNCNAME}:${LINENO} $*"
-		[ "${USER}" = root ] && eval "$*" >&4 || eval sudo "$*" >&4
+		local sudo
+		[ "${USER}" = root ] && sudo=sudo || sudo=
+		eval ${sudo} $@ >&4 
 	}
 
 	##############  SOURCE
@@ -297,7 +301,8 @@ __function_common() {
 		local file_err="${_PATH_LOG}/${_SCRIPT%.*}.err"
 		local file_debug="${_PATH_LOG}/${_SCRIPT%.*}.debug"
 
-		local opt=${S_TRACE:-info}
+		local opt=${1:-${S_TRACE}}
+		opt=${opt:-info}
 
 		# file descriptors
 		case "${opt}" in
@@ -530,16 +535,19 @@ __data() {
 	# date
 	_DATE=$(date "+%Y%m%d")
 	_SDATE=$(date +%s)
-	_SCRIPTFILE="$( readlink -e / >/dev/null 2>&1 && readlink -e "$0" || readlink -f "$0" )"
-	_SCRIPT="$(basename "$0")"
-	_PATH_BS="/usr/local/bs"
-	[ -d "/ext/shared/Soft/linux" ] && _PATH_SOFT=/ext/shared/Soft/linux
-	[ -d "${HOME}/Soft/linux" ] && _PATH_SOFT="${HOME}/Soft/linux"
-	[ -d "${_PATH_SOFT}" ] && _PATH_SOFT_BACKUP=${_PATH_SOFT}/backup
+	[ -z "${_PATH_BASE}" ] && _PATH_BASE=$(dirname $(readlink -f $0))
+	_SCRIPTFILE=$( readlink -f $0 )
+	_SCRIPT=$(basename $0)
+	_PATH_BS=/usr/local/bs
+	_PATH_CONF=${_PATH_CONF:-/usr/local/conf}
+	_PATH_LOG=${_PATH_LOG:-/var/log/${_SCRIPT}}
 	S_FILE_INSTALL_CONF=${S_FILE_INSTALL_CONF:-${_PATH_CONF}/install.conf}
 	S_FILE_INSTALL_DONE=${S_FILE_INSTALL_DONE:-${_PATH_CONF}/install.done}
 	_FILE_PCK=${_PATH_CONF}/install.pck
 	_FILE_PCK_AUR=${_PATH_CONF}/install_aur.pck
+	[ -d /ext/shared/Soft/linux ] && _PATH_SOFT=/ext/shared/Soft/linux
+	[ -d ${HOME}/Soft/linux ] && _PATH_SOFT=${HOME}/Soft/linux
+	[ -d "${_PATH_SOFT}" ] && _PATH_SOFT_BACKUP=${_PATH_SOFT}/backup
 
 	PATH="${HOME}/.local/bin:${PATH}"
 }
@@ -559,9 +567,7 @@ __function_install
 __data
 
 for pth in ${_PATH_CONF} ${_PATH_LOG}; do
-	if ! [ -d "${pth}" ]; then
-		sudo mkdir -p ${pth}
-	fi
+	[ -d "${pth}" ] || sudo mkdir -p ${pth}
 	sudo chown :${USER} ${pth}
 	sudo chmod g+rw ${pth}
 done
