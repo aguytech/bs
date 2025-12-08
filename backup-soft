@@ -14,9 +14,8 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
 
 declare USAGE="backup-soft : backup softwares from /opt
 Available softwares:
-    archimate architect eclipse_java eclipse_tools mindmaster pipe
-    smartgit squirrel-sql sublime_merge sublime_text workcraft yed
-    zotero
+    archi architect eclipse_java eclipse_tools lepton mindmaster pipe
+    squirrel-sql sublime_merge sublime_text workcraft yed zotero
 
 Global usage:
 backup-soft <args> <softwares>...
@@ -52,12 +51,12 @@ __init() {
 comp_pth_opt=/opt/connectors"
 
 	# archimate
-	PATHS_SOFT[architect]="pth_user=${HOME}
-comp_pth_opt=/opt/archimate
-comp_pth_conf=${HOME}/.archimate
-comp_pth_user=${HOME}/dev/archimate
-comp_file_desk=${HOME}/.local/share/applications/archimate.desktop
-comp_file_bin=/usr/local/bin/archimate"
+	PATHS_SOFT[archi]="pth_user=${HOME}
+comp_pth_opt=/opt/archi
+comp_pth_conf=${HOME}/.archi4
+comp_pth_user=${HOME}/dev/archi
+comp_file_desk=${HOME}/.local/share/applications/archi.desktop
+comp_file_bin=/usr/local/bin/archi"
 
 	# architect
 	PATHS_SOFT[architect]="pth_user=${HOME}
@@ -77,6 +76,15 @@ comp_file_desk=${HOME}/.local/share/applications/eclipse_${theme}.desktop
 comp_file_bin=/usr/local/bin/eclipse_${theme}"
 	done
 
+	# lepton
+	PATHS_SOFT[lepton]="pth_user=${HOME}
+comp_pth_opt=/opt/appimages/lepton-snippet-manager.appimage
+comp_pth_conf=${HOME}/.config/Lepton
+comp_file_conf=${HOME}/.leptonrc
+comp_file_img=${HOME}/.local/share/icons/lepton-snippet-manager.png
+comp_file_desk=/usr/share/applications/appimagekit-lepton-snippet-manager.desktop
+comp_file_bin=/usr/bin/lepton-snippet-manager"
+
 	# mindmaster
 	PATHS_SOFT[mindmaster]="pth_user=${HOME}
 comp_pth_opt=/opt/mindmaster
@@ -89,13 +97,6 @@ comp_file_bin=/usr/local/bin/mindmaster"
 comp_pth_opt=/opt/pipe
 comp_file_desk=${HOME}/.local/share/applications/pipe.desktop
 comp_file_bin=/usr/local/bin/pipe"
-
-	# smargit
-	PATHS_SOFT[smartgit]="pth_user=${HOME}
-comp_pth_opt=/opt/smartgit
-comp_pth_conf=${HOME}/.config/smartgit
-comp_file_desk=${HOME}/.local/share/applications/smartgit.desktop
-comp_file_bin=/usr/local/bin/smartgit"
 
 	# squirrel-sql
 	PATHS_SOFT[squirrel-sql]="pth_user=${HOME}
@@ -148,8 +149,6 @@ comp_file_bin=/usr/local/bin/zotero"
 }
 
 __menu() {
-	local comp_pth_opt comp_pth_conf comp_file_desk comp_file_bin
-
 	_menu "Select an action" backup restore
 	_ACTION=${_ANSWER}
 
@@ -218,8 +217,7 @@ __backup_one() {
 
 	version=${VERSION:+-${VERSION}}
 	name=${_PATH_BACKUP}/$1${version}_${DATE}.${COMP_EXT}
-	cmd="${COMP_CMD} '${name}' ${pths_comp} 2>&6"
-	_eval ${cmd} || _echoE "executing '${cmd}'"
+	_eval ${COMP_CMD} ${name} ${pths_comp} 2>&6
 
 	_echot "--> '${name}'"
 }
@@ -279,8 +277,7 @@ __restore_one() {
 				_echoE "'$1' skipped: path exists '${pth}', to delete it use option '--force'"
 				return 1
 			else
-				[ -w "${pth}" ] && cmd="sudo rm -fR '${pth}'"
-				_eval ${cmd} || _echoE "executing '${cmd}'"
+				_evalr rm -fR "${pth}"
 			fi
 		fi
 	done
@@ -290,13 +287,12 @@ __restore_one() {
 	[ -d '${pth_tmp}' ] && rm -fR "${pth_tmp}"
 	mkdir -p "${pth_tmp}"
 
-	cmd="${UNCOMP_CMD} '${file_back}' -C '${pth_tmp}' 2>&6"
-	_eval ${cmd} || _echoE "executing '${cmd}'"
+	_eval ${UNCOMP_CMD} ${file_back} -C ${pth_tmp} 2>&6
 	for pth in ${pths_comp}; do
 		pth_from=${pth_tmp}/${pth#/}
 		pth_to=${pth%/}
-		cmd="sudo mv '${pth_from}' '${pth_to}'"
-		_eval ${cmd} || _echoE "executing '${cmd}'"
+		[ -d ${pth_to} ] && _eval mkdir -p ${pth_to}
+		_evalr mv ${pth_from} ${pth_to}
 	done
 }
 
