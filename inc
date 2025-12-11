@@ -75,24 +75,24 @@ __function_common() {
 	##############  EVAL
 
 	_eval() {
-		_echod "${FUNCNAME}:${LINENO} $*"
-		eval $@ || { _echoE "Error executing: '${cmd}'"; return 1; }
+		_echod "${FUNCNAME}:${LINENO} $@"
+		if ! eval $@; then _echoE "Error executing: '$@'"; return 1; fi
 	}
 	_evalq() {
-		_echod "${FUNCNAME}:${LINENO} $*"
-		eval $@ >&4
+		_echod "${FUNCNAME}:${LINENO} $@"
+		if ! eval $@ >&4; then _echoE "Error executing: '$@'"; return 1; fi
 	}
 	_evalr() {
-		_echod "${FUNCNAME}:${LINENO} $*"
+		_echod "${FUNCNAME}:${LINENO} $@"
 		local sudo
-		[ "${USER}" = root ] && sudo=sudo || sudo=
-		eval ${sudo} $@ || { _echoE "Error executing: '${cmd}'"; return 1; }
+		[ ${USER} = root ] && sudo= || sudo=sudo
+		if ! eval ${sudo} $@; then _echoE "Error executing: '${sudo} $@'"; return 1; fi
 	}
 	_evalrq() {
-		_echod "${FUNCNAME}:${LINENO} $*"
+		_echod "${FUNCNAME}:${LINENO} $@"
 		local sudo
-		[ "${USER}" = root ] && sudo=sudo || sudo=
-		eval ${sudo} $@ >&4 
+		[ ${USER} = root ] && sudo= || sudo=sudo
+		if ! eval ${sudo} $@ >&4; then _echoE "Error executing: '${sudo} $@'"; return 1; fi
 	}
 
 	##############  SOURCE
