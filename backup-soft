@@ -197,7 +197,7 @@ __backup_one() {
 	local pth pths_comp
 	local comp_pth_opt comp_pth_conf comp_file_desk comp_file_bin
 
-	_echot "backup '$1' -->"
+	_echot "backup $1 -->"
 
 	# set variables in "${PATHS_SOFT["${software}"]}"
 	eval "$2"
@@ -219,7 +219,7 @@ __backup_one() {
 	name=${_PATH_BACKUP}/$1${version}_${DATE}.${COMP_EXT}
 	_eval ${COMP_CMD} ${name} ${pths_comp} 2>&6
 
-	_echot "--> '${name}'"
+	_echot "--> ${name}"
 }
 
 # $1 list of softwares
@@ -255,6 +255,8 @@ __restore_one() {
 
 	local pths_comp pth pth_from pth_to file_back
 	local comp_pth_opt comp_pth_conf comp_file_desk comp_file_bin
+
+	_echot "restore $1 -->"
 
 	# set variables in "${PATHS_SOFT["${software}"]}"
 	eval "$2"
@@ -294,6 +296,7 @@ __restore_one() {
 		[ -d ${pth_to} ] && _eval mkdir -p ${pth_to}
 		_evalr mv ${pth_from} ${pth_to}
 	done
+	_echot "--> $1"
 }
 
 __opts() {
