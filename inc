@@ -220,28 +220,22 @@ __function_common() {
 	_keepcp() {
 		local _su=
 		[ -r "$1" ] || _su=sudo
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  \
-		&& ! ( ${_su} [ -e "$1.keep" ] || ${_su} [ -h "$1.keep" ] ) \
-		&& _evalrq cp -a "$1" "$1.keep"
+		${_su} [ -e "$1" ]	&& ! ${_su} [ -e "$1.keep" ] && _evalrq cp -a "$1" "$1.keep"
 	}
 	_keepmv() {
 		local _su=
 		[ -w "$1" ] || _su=sudo
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  \
-		&& ! ( ${_su} [ -e "$1.keep" ] || ${_su} [ -h "$1.keep" ] ) \
-		&& _evalrq mv "$1" "$1.keep"
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq  rm -fR "$1"
+		${_su} [ -e "$1" ]  && ! ${_su} [ -e "$1.keep" ] && _evalrq mv "$1" "$1.keep"
 	}
-
 	_keepcpts() {
 		local _su=
 		[ -r "$1" ] || _su=sudo
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] ) && _evalrq cp -a "$1" "$1.$(date +%s)"
+		${_su} [ -e "$1" ] && _evalrq cp -a "$1" "$1.$(date +%s)"
 	}
 	_keepmvts() {
 		local _su=
 		[ -w "$1" ] || _su=sudo
-		( ${_su} [ -e "$1" ] || ${_su} [ -h "$1" ] )  && _evalrq mv "$1" "$1.$(date +%s)"
+		${_su} [ -e "$1" ] && _evalrq mv "$1" "$1.$(date +%s)"
 	}
 
 	##############  PWD
