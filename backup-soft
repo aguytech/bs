@@ -83,7 +83,7 @@ comp_pth_conf=${HOME}/.config/Lepton
 comp_file_conf=${HOME}/.leptonrc
 comp_file_img=${HOME}/.local/share/icons/lepton-snippet-manager.png
 comp_file_desk=/usr/share/applications/appimagekit-lepton-snippet-manager.desktop
-comp_file_bin=/usr/bin/lepton-snippet-manager"
+comp_file_bin=/usr/local/bin/lepton-snippet-manager"
 
 	# mindmaster
 	PATHS_SOFT[mindmaster]="pth_user=${HOME}
