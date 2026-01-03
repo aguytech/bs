@@ -46,21 +46,21 @@ for id in ${!S_CLUSTER[*]}; do
 		fi
 
 	# get data for menu
-	else
-		if ssh -o ConnectTimeout=3 -p ${s_port} ${s_user}@${s_ip} 'type vzctl >/dev/null 2>&1'; then
+	# elif 
+	# 	if ssh -o ConnectTimeout=3 -p ${s_port} ${s_user}@${s_ip} 'type vzctl >/dev/null 2>&1'; then
 
-			while read ctid ctname; do
-				if [[ "${ctid}" && "${ctname}" ]]; then
-					ips[${id}.${name}.${ctid}]="${s_ip}"
-					ports[${id}.${name}.${ctid}]="${S_HOST_PORT_PRE_SSH}${ctid}"
-					users[${id}.${name}.${ctid}]="${S_HOST_PORT_PRE_SSH}${ctid}"
-				fi
+	# 		while read ctid ctname; do
+	# 			if [[ "${ctid}" && "${ctname}" ]]; then
+	# 				ips[${id}.${name}.${ctid}]="${s_ip}"
+	# 				ports[${id}.${name}.${ctid}]="${S_HOST_PORT_PRE_SSH}${ctid}"
+	# 				users[${id}.${name}.${ctid}]="${S_HOST_PORT_PRE_SSH}${ctid}"
+	# 			fi
 
-				# direct connection to server
-				if [[ "$1" = "${name}.${ctid}" || "$1" = "${id}.${ctid}" ]]; then __ssh "${s_user}" "${s_ip}" "${S_HOST_PORT_PRE_SSH}${ctid}"; fi
-			done <<< "$(ssh -o ConnectTimeout=3 -p ${s_port} ${s_user}@${s_ip} 'vzlist -Ho ctid,hostname')"
+	# 			# direct connection to server
+	# 			if [[ "$1" = "${name}.${ctid}" || "$1" = "${id}.${ctid}" ]]; then __ssh "${s_user}" "${s_ip}" "${S_HOST_PORT_PRE_SSH}${ctid}"; fi
+	# 		done <<< "$(ssh -o ConnectTimeout=3 -p ${s_port} ${s_user}@${s_ip} 'vzlist -Ho ctid,hostname')"
 
-		fi
+	# 	fi
 
 	fi
 done
