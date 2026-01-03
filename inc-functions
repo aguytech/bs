@@ -365,6 +365,7 @@ __data() {
 	# date
 	_DATE=$(date "+%Y%m%d")
 	_SDATE=$(date +%s)
+
 	[ -z "${_PATH_BASE}" ] && _PATH_BASE=$(dirname $(readlink -f $0))
 	_SCRIPTFILE=$( readlink -f $0 )
 	_SCRIPT=$(basename $0)
@@ -386,6 +387,8 @@ __data() {
 
 # preserve sourcing directly from bash
 [ "${0%*bash}" != "$0" ] && echo "No file descriptors are instancied (preserving from direct bash sourcing)" >&2 && return 1
+
+[ -f ${S_GLOBAL_CONF} ] && source ${S_GLOBAL_CONF}
 
 # initialize functions
 __function_common
