@@ -26,6 +26,7 @@ alias du1="du -hd1"
 alias gita='echo "git add *? " && read str && git add * && git status '
 # commit
 alias gitcim='git commit -m'
+alias gitciam='git commit -a -m'
 # branch
 alias gitbv='git --no-pager branch -vv'
 alias gitbrv='git --no-pager branch -rv'
