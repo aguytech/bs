@@ -532,7 +532,7 @@ __data() {
 	[ -z "${_PATH_BASE}" ] && _PATH_BASE=$(dirname $(readlink -f $0))
 	_SCRIPTFILE=$( readlink -f $0 )
 	_SCRIPT=$(basename $0)
-	_PATH_BS=/usr/local/bs
+	S_PATH_SCRIPT=/usr/local/bs
 	_PATH_CONF=${_PATH_CONF:-/usr/local/conf}
 	_PATH_LOG=${_PATH_LOG:-/var/log/${_SCRIPT}}
 	S_FILE_INSTALL_CONF=${S_FILE_INSTALL_CONF:-${_PATH_CONF}/install.conf}
