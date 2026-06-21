@@ -13,10 +13,6 @@ S_GLOBAL_FUNCTIONS="${S_GLOBAL_FUNCTIONS:-/usr/local/bs/inc-functions}"
 ########################  VARIABLES
 
 declare USAGE="backup-soft : backup softwares from /opt
-Available softwares:
-    archi architect eclipse_java eclipse_tools lepton mindmaster pipe
-    squirrel-sql sublime_merge sublime_text workcraft yed zotero
-
 Global usage:
 backup-soft <args> <softwares>...
 backup-soft <args> [-r|--restore [<date>]] <softwares>...
@@ -27,6 +23,7 @@ softwares:
 	if given, desactive option 'all'
 
 args:
+	-l,--list		return list of available softwares
 	-m,--menu		select options by menu
 	-a,--all		select all softwares
 	-f, --force         	delete existing files before restore
